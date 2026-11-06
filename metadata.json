@@ -1,0 +1,8 @@
+{
+  "name": "TWO SIDES OF TIME",
+  "description": "2D side-scrolling puzzle adventure game exploring dual timelines (Past & Present) in an abandoned house.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
