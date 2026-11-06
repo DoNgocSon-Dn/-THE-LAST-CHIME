@@ -152,3 +152,22 @@ button:focus-visible,summary:focus-visible{outline:2px solid #ead49c;outline-off
 @media(max-height:650px) and (min-width:801px){.clock-home-content{padding:85px 0 80px}.hero-clock{transform:scale(1.25);margin:45px}.clock-home-copy h1{font-size:58px}.clock-home-description{font-size:15px;margin:16px 0 22px}.pause-panel{padding:22px 28px}.pause-panel h2{font-size:30px;margin:10px 0 18px}.pause-audio{padding-bottom:12px;margin-bottom:16px}.pause-audio label{margin-top:9px}.pause-actions>button{min-height:43px}.opening-story{align-items:flex-start}.opening-story-paper{padding:15px 35px}.opening-prose{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.clock-shattering .loading-clock,.clock-cracks,.clock-shard{animation:none}.clock-shard{display:none}}
 .antique-panel{max-height:calc(100dvh - 40px);overflow:auto}.antique-overlay{align-items:safe center}.antique-menu.inset-0{overflow:auto;align-items:safe center}.antique-menu.inset-0>div{max-height:calc(100dvh - 40px);overflow:auto}
+/* Game-native title: supplied pixel scenery, restrained type and flat controls. */
+.pixel-title{position:relative;width:100%;height:100%;overflow:hidden;background:#101b17;color:#e6d7a6;isolation:isolate}
+.pixel-title .menu-scene{z-index:-3;opacity:.8;object-position:center;filter:brightness(.8)}
+.pixel-title-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,#09120eed,#09120e8c 52%,#09120e44),linear-gradient(0deg,#09120ec9,transparent 40%)}
+.pixel-audio{position:absolute;right:28px;top:26px;width:46px;height:46px;display:grid;place-items:center;border:1px solid #8b8053;background:#15221dd9;color:#c9bd8d;cursor:pointer}
+.pixel-title-layout{width:min(1020px,84%);height:100%;margin:auto;display:grid;grid-template-columns:1fr 240px;align-items:center;gap:60px;padding:80px 0}
+.pixel-title-name{font:600 13px var(--font-mono);letter-spacing:.2em;color:#a99e71;margin-bottom:22px}
+.pixel-title h1{font:600 clamp(38px,4.9vw,70px)/1.2 var(--font-serif);letter-spacing:-.025em;text-shadow:2px 3px #07100a;margin:0 0 38px}
+.pixel-title nav{display:flex;flex-direction:column;gap:12px;width:min(290px,100%)}
+.pixel-title nav button{min-height:50px;padding:13px 20px;display:flex;align-items:center;justify-content:center;gap:12px;font:600 16px var(--font-sans);color:#e0d1a2;background:#17271ee6;border:1px solid #8b8053;cursor:pointer;border-radius:0}
+.pixel-title nav .pixel-menu-primary{background:#b99e5e;color:#172319;border-color:#d1bb7c;box-shadow:inset 0 -3px #766a41}
+.pixel-title nav button:hover{border-color:#f0d995;filter:brightness(1.1)}
+.pixel-menu-clock{width:240px;height:420px;image-rendering:pixelated;filter:drop-shadow(8px 10px 0 #07100a77)}
+.pixel-title footer{position:absolute;bottom:30px;left:8%;font:14px var(--font-serif);color:#a9ac8c}
+.touch-controls{display:none;position:absolute;inset:auto 18px 24px;z-index:35;justify-content:space-between;pointer-events:none;user-select:none}
+.touch-controls>div{display:flex;gap:12px;pointer-events:auto}.touch-controls button{height:58px;width:58px;border:1px solid #baa36d88;border-bottom-width:3px;background:#15251de6;color:#e4d2a0;display:grid;place-items:center;touch-action:none;border-radius:8px}.touch-controls button:active{background:#786936;color:#fff0bd}
+@media(pointer:coarse),(max-width:700px){.touch-controls{display:flex}.hud-bottom{bottom:105px}.hud-controls{display:none}.interaction-control{bottom:0;min-width:150px;font-size:13px}.game-hud{padding:18px}.hud-objective{max-width:85%;margin-top:18px}.hud-objective p{font-size:13px}.hud-header{gap:10px}.hud-tools{gap:0}.hud-tools button{padding:7px}.hud-location h2{font-size:19px}.time-control{gap:7px}.time-control em{font-size:10px}.time-control strong{font-size:19px}}
+@media(max-width:700px){.pixel-title-layout{width:84%;grid-template-columns:1fr;gap:8px;align-content:center;padding:70px 0 80px}.pixel-title-copy{text-align:center}.pixel-title h1{font-size:clamp(34px,8vw,48px);margin-bottom:24px}.pixel-title-name{font-size:11px;margin-bottom:14px}.pixel-title nav{margin:auto}.pixel-menu-clock{width:110px;height:193px;margin:12px auto 0;grid-row:1}.pixel-title footer{left:0;right:0;text-align:center;font-size:12px;bottom:22px}.pixel-audio{right:18px;top:18px;width:42px;height:42px}}
+@media(max-height:600px){.pixel-menu-clock{width:160px;height:280px}.pixel-title h1{font-size:44px;margin-bottom:25px}.pixel-title-layout{padding:65px 0}.pixel-title footer{bottom:18px}}

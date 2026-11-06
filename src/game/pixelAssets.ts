@@ -92,7 +92,7 @@ export class PixelAssets{
         for(const [key,[sheet,x,y,w,h]]of Object.entries(cuts))if(sheet===name){
           const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
           canvas.getContext('2d')!.drawImage(img,x,y,w,h,0,0,w,h);
-          const character=/^(an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d)/.test(key);
+          const character=/^(an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
           this.sprites.set(key,removeSheetBackground(canvas,true,character));
         }
       };img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.jpg`;

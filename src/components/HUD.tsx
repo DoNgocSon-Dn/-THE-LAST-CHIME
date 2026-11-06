@@ -42,7 +42,7 @@ export const HUD: React.FC<HUDProps> = ({
   const getObjectiveHint = (): { chapterLabel: string; hint: string } => {
     switch (activeStage) {
       case 1:
-        return {chapterLabel:'Màn 1 / 6 — Trở về',hint:!puzzles.tutorialMoved?'Bạn đang ở cửa chính. Dùng A/D hoặc ← → để thử di chuyển.':!puzzles.tutorialJumped?'Nhấn Space để thử nhảy. Sau đó tiến tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần lời nhắn trên ghế, nhấn E để đọc.':'Đến cửa chính của ngôi nhà, nhấn E để vào màn 2.'};
+        return {chapterLabel:'Màn 1 / 6 — Trở về',hint:!puzzles.tutorialMoved?'Bắt đầu từ cổng. Dùng A/D hoặc các nút ← → để đi sang phải.':!puzzles.tutorialJumped?'Thử nhảy bằng Space hoặc nút ↑, rồi đi tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần lời nhắn trên ghế, nhấn E để đọc.':'Đến cửa chính của ngôi nhà, nhấn E để vào màn 2.'};
 
       case 2:
         if(!puzzles.hasWatch)return {chapterLabel:'Màn 2 — Đồng hồ của Ông Ngoại',hint:'Nhặt đồng hồ bỏ túi trên bàn cạnh đèn trong phòng khách [E].'};

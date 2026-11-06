@@ -54,18 +54,18 @@ Bản cốt truyện vẫn có 6 chương và 2 kết thúc. Các ghi chép ph�
 
 ## Luồng hướng dẫn và ghép cảnh
 
-Màn hình chính là chiếc đồng hồ bỏ túi vàng đồng cũ, viền rêu và kim quay. Bấm **Chơi** → màn tải đồng hồ xoay/vỡ/ghép lại → truyện mở đầu → màn 1. Bấm **Tiếp tục** sẽ tải bản lưu mà không kể lại truyện. Tiến độ tải dựa trên 21 ảnh thật, không dùng số phần trăm giả.
+Menu chính dùng cảnh sân và đồng hồ pixel từ bộ asset, chữ và nút phẳng gọn. Bấm **Chơi** → màn tải đồng hồ xoay/vỡ/ghép lại → truyện mở đầu → màn 1. Bấm **Tiếp tục** sẽ tải bản lưu mà không kể lại truyện. Tiến độ tải dựa trên 21 ảnh thật, không dùng số phần trăm giả.
 
 Menu tạm dừng, âm lượng, hội thoại, chọn kết thúc và màn kết thúc dùng cùng bảng màu vàng cổ, nâu rỉ và rêu; nút tối thiểu 42–48 px, chữ chức năng 14–18 px. Âm lượng, tắt tiếng, tiếp tục, chơi lại, lưu khi về menu và hai nút kết thúc đã được kiểm tra trên trình duyệt.
 
 Màn 1 chỉ giới thiệu A/D, Space và E: đọc lời nhắn trên ghế, tới cửa chính có sẵn trong map để vào nhà. Ngoài sân không có đồng hồ cổ hoặc cửa gỗ rời. Màn 2 mới nhặt đồng hồ bỏ túi trên bàn cạnh đèn, nhận hướng dẫn Q và thời gian hồi ba giây. Từ màn 3 không hiện bảng hướng dẫn điều khiển/mục tiêu chi tiết.
 
-Các cửa và đồng hồ đã vẽ trong map chỉ có vùng tương tác, không bị vẽ thêm bản sao. Ảnh gia đình ở quá khứ dùng khung trên tường; ở hiện tại là khung hỏng nhỏ trên bàn. Gợi ý E đặt trên An, tên hành động hiển thị phía dưới. Màn 1 bắt đầu ngay trước cửa chính, camera đặt đúng vị trí từ khung hình đầu. An dùng một sheet thống nhất và cùng tỉ lệ pixel ở các tư thế, không chuyển sang ảnh cầm đồng hồ khi đọc giấy. Thân An cao 84 đơn vị trong cả hình vẽ và va chạm; người lớn cùng tỉ lệ, Linh cao 60. Điểm xuất phát và bản lưu cũ được chỉnh theo cùng vị trí bàn chân.
+Các cửa và đồng hồ đã vẽ trong map chỉ có vùng tương tác, không bị vẽ thêm bản sao. Ảnh gia đình ở quá khứ dùng khung trên tường; ở hiện tại là khung hỏng nhỏ trên bàn. Gợi ý E đặt trên An, tên hành động hiển thị phía dưới. Màn 1 bắt đầu phía ngoài cổng sân ở x=220, camera đặt theo điểm bắt đầu. An dùng một sheet thống nhất và cùng tỉ lệ pixel ở các tư thế, không chuyển sang ảnh cầm đồng hồ khi đọc giấy. Thân An cao 84 đơn vị trong cả hình vẽ và va chạm; người lớn cùng tỉ lệ, Linh cao 60. Điểm xuất phát và bản lưu cũ được chỉnh theo cùng vị trí bàn chân.
 
 ## Xác minh
 
 - TypeScript và production build đạt.
-- 19 bài kiểm tra đạt: vật lý, chuỗi câu đố, đủ 13 map, vị trí tương tác/spawn và giới hạn nhảy của tuyến hang/tâm điểm.
+- 20 bài kiểm tra đạt: vật lý, chuỗi câu đố, đủ 13 map, vị trí tương tác/spawn và giới hạn nhảy của tuyến hang/tâm điểm.
 - Edge headless: đi, nhảy, màn 1 vào nhà không cần Q; màn 2 nhặt đồng hồ bỏ túi rồi mới dùng Q, chuyển thời gian, tên khu và checkpoint, rơi/hồi sinh, cuộc truy đuổi không kết thúc sớm tại mốc cũ, bắt đầu lại về chương 1.
 - Đã xem ảnh chụp menu, hiên nhà, phòng khách ở hai thời điểm, xưởng, phòng Linh, hang và tâm điểm. Không có page error hoặc ảnh 404 trong lượt kiểm tra.
 - Chưa chơi thủ công trọn cả hai kết thúc trong bản đồ mới. Một số chuỗi dùng ít khung vì sheet nguồn là ảnh tổng hợp JPG; ảnh nền đã chứa sẵn nhiều đồ nội thất nên không phải đồ vật nào trong nền cũng tương tác được.
@@ -81,3 +81,7 @@ Nguồn: bộ ảnh người dùng cung cấp. Thông tin giấy phép/tác gi�
 Các map nội thất (2–6 và 9) dùng chiều rộng phòng 800 đơn vị; cảnh ngoài trời dùng 1200. Map, bệ, cửa và điểm tương tác được chuyển cùng một phép biến đổi theo đường chân sàn. Thân An vẫn cao 84 ở mọi cảnh; camera chuyển độ phóng mượt khi qua cửa. Bản lưu cũ được chuyển tọa độ sang phòng tương ứng, không mất tiến độ.
 
 Importer nhân vật lọc cả nền xám sáng do nén JPG, nối vùng nền theo tám hướng và loại các mảnh nhiễu rời. Màu áo, da và điểm sáng bên trong thân được giữ. Đã kiểm tra sprite phóng lớn và đếm pixel viền trung tính sáng còn thừa: 0 ở khung An được kiểm tra.
+
+### Điện thoại
+
+Canvas tự điều chỉnh tỉ lệ theo màn hình, không còn khung 16:9 nằm giữa các khoảng đen lớn khi chơi dọc. Nút cảm ứng trái/phải và nhảy dùng cùng đầu vào với bàn phím; E và Q dùng các nút tương tác trên HUD. Đã kiểm tra khung 390×844 và thao tác giữ nút di chuyển.

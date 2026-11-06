@@ -44,3 +44,9 @@ test('Old save positions retain the same room and floor after source-map scale c
  assert.equal(STAGE_CONFIGS[2].width,2400);
  assert.equal(STAGE_CONFIGS[1].width,1200);
 });
+
+test('The exterior tutorial begins outside the garden gate, away from the house door',()=>{
+ assert.ok(STAGE_CONFIGS[1].spawnX>=180&&STAGE_CONFIGS[1].spawnX<=300);
+ const door=STAGE_CONFIGS[1].interactables.find(o=>o.id==='stage_exit_1')!;
+ assert.ok(door.x-STAGE_CONFIGS[1].spawnX>600);
+});

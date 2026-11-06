@@ -14,7 +14,7 @@ export function configurePixelCampaign(stages:Record<number,StageConfig>){
       for(const obj of cfg.interactables)if(obj.id===id)Object.assign(obj,{x,...y!==undefined?{y}:{},...w!==undefined?{width:w}:{},...h!==undefined?{height:h}:{}});
     };
     if(cfg.stage===1){
-      cfg.spawnX=1045;
+      cfg.spawnX=220;
       cfg.interactables=cfg.interactables.filter(o=>o.id==='mother_note_ch1'||o.id==='stage_exit_1');
       move('mother_note_ch1',490,421,18,12);
       move('stage_exit_1',1075,354,50,92);
@@ -71,3 +71,4 @@ export function configurePixelCampaign(stages:Record<number,StageConfig>){
     for(const obj of cfg.interactables)if(obj.id.startsWith('stage_exit_')||obj.id==='final_door'||(obj.id==='family_portrait'&&obj.timeline==='PAST')||(obj.id==='clock'&&cfg.stage===2))obj.bakedIntoMap=true;
   }
 }
+

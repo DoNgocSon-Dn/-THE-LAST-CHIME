@@ -167,6 +167,10 @@ export class GameEngine {
     this.justPressed.clear();
   };
 
+  public setTouchControl(key:string,pressed:boolean){
+    if(pressed){if(!this.keysPressed.has(key))this.justPressed.add(key);this.keysPressed.add(key);}
+    else this.keysPressed.delete(key);
+  }
   public isReady(){return this.renderer.isReady();}
 
   public start() {
@@ -729,7 +733,7 @@ export class GameEngine {
     try {
       const data = {
         characterScaleVersion:2,
-        spawnVersion:2,
+        spawnVersion:3,
         sceneScaleVersion:2,
         player: { x: this.player.x, y: this.player.y },
         timeline: this.timeline,
@@ -759,7 +763,7 @@ export class GameEngine {
         this.player.x=Math.max(10,Math.min(stageCfg.width-40,point.x));
         this.player.y=point.y-PLAYER_HEIGHT>=50&&point.y<=480?point.y-PLAYER_HEIGHT:stageCfg.spawnY;
       }
-      if(stageCfg.stage===1&&data.spawnVersion!==2){this.player.x=stageCfg.spawnX;this.player.y=stageCfg.spawnY;}
+      if(stageCfg.stage===1&&data.spawnVersion!==3){this.player.x=stageCfg.spawnX;this.player.y=stageCfg.spawnY;}
       this.viewZoom=sceneZoom(stageCfg.stage,this.player.x);
       this.cameraX=Math.max(0,Math.min(stageCfg.width-this.canvas.width/this.viewZoom,this.player.x+this.player.width/2-this.canvas.width/this.viewZoom/2));
       if (data.timeline) {
@@ -771,7 +775,7 @@ export class GameEngine {
         const point=data.sceneScaleVersion===2?{x:data.checkpoint.x,y:oldY+PLAYER_HEIGHT}:legacyScenePoint(data.checkpoint.chapter,data.checkpoint.x,oldY+PLAYER_HEIGHT);
         this.checkpoint={...data.checkpoint,x:point.x,y:point.y-PLAYER_HEIGHT};
       }
-      if(stageCfg.stage===1&&data.spawnVersion!==2)this.checkpoint={x:stageCfg.spawnX,y:stageCfg.spawnY,timeline:'PRESENT',chapter:1,labelVi:stageCfg.roomNameVi};
+      if(stageCfg.stage===1&&data.spawnVersion!==3)this.checkpoint={x:stageCfg.spawnX,y:stageCfg.spawnY,timeline:'PRESENT',chapter:1,labelVi:stageCfg.roomNameVi};
       if (data.stats) {
         this.stats = { ...this.stats, ...data.stats };
       }
