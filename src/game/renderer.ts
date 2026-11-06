@@ -1,3 +1,6 @@
+import { PURSUER_ART_HEIGHT } from './entityScale';
+import { pixelAssets } from './pixelAssets';
+import { CharacterAtlas } from './characterAtlas';
 import {
   Player,
   Timeline,
@@ -7,6 +10,7 @@ import {
   PursuerEntity,
   MemoryNPC
 } from '../types/game';
+import { PixelWorld } from './pixelWorld';
 import { getStageConfig } from './levelData';
 
 interface Particle {
@@ -21,6 +25,9 @@ interface Particle {
 }
 
 export class GameRenderer {
+  private world = new PixelWorld();
+  private pixel = pixelAssets();
+  private character = new CharacterAtlas();
   private particles: Particle[] = [];
   private rainDrops: { x: number; y: number; speed: number; len: number }[] = [];
   private warpAnimProgress: number = 0; // 0 to 1 during transition
@@ -50,6 +57,8 @@ export class GameRenderer {
       });
     }
   }
+
+  public isReady(){return this.pixel.isReady()&&this.world.isReady();}
 
   public triggerWarp() {
     this.warpActive = true;
@@ -106,21 +115,16 @@ export class GameRenderer {
     pursuer?: PursuerEntity
   ) {
     ctx.save();
-    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingEnabled = false;
 
     ctx.translate(-Math.floor(cameraX), 0);
 
     const isPast = timeline === 'PAST';
     const stageCfg = getStageConfig(puzzles.currentStage || 1);
 
-    // 1. Draw stage-specific atmospheric background & windows
-    this.drawBackground(ctx, cameraX, viewportWidth, stageCfg.width, stageCfg.stage, isPast);
-
-    // 2. Draw stage architecture & light puzzle projections
+    this.world.background(ctx, cameraX, viewportWidth, stageCfg.width, isPast, stageCfg.stage);
     this.drawArchitecture(ctx, stageCfg.width, stageCfg.stage, isPast, puzzles);
-
-    // 3. Draw platforms, doors & timeline barriers
-    this.drawPlatforms(ctx, platforms, isPast);
+    this.world.platforms(ctx, platforms, isPast);
 
     // 4. Draw interactive furniture, stage exit doors & puzzle objects
     this.drawInteractables(ctx, interactables, isPast, puzzles, nearbyInteractableId);
@@ -138,9 +142,11 @@ export class GameRenderer {
 
     // 7. Draw player character (An) with expressive character design & overhead speech bubble
     this.drawPlayer(ctx, player, puzzles.hasWatch);
+    if(nearbyInteractableId)this.drawInteractPromptBadge(ctx,player.x+player.width/2,player.y-16,isPast);
 
     // 8. Draw foreground atmosphere, dust particles & rain
     this.drawAtmosphere(ctx, stageCfg.stage, isPast);
+    this.world.foreground(ctx, cameraX, viewportWidth, stageCfg.width, this.animTick);
 
     ctx.restore();
 
@@ -159,135 +165,6 @@ export class GameRenderer {
   // STAGE BACKGROUND & ARCHITECTURE
   // =========================================================================
 
-  private drawBackground(
-    ctx: CanvasRenderingContext2D,
-    cameraX: number,
-    viewportWidth: number,
-    stageWidth: number,
-    stageNum: number,
-    isPast: boolean
-  ) {
-    const startX = Math.max(0, cameraX - 50);
-    const endX = Math.min(stageWidth, cameraX + viewportWidth + 50);
-
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, 500);
-    if (isPast) {
-      bgGrad.addColorStop(0, '#2d1810');
-      bgGrad.addColorStop(0.5, '#4a2818');
-      bgGrad.addColorStop(1, '#3b1d12');
-    } else {
-      bgGrad.addColorStop(0, '#0f171e');
-      bgGrad.addColorStop(0.5, '#16222f');
-      bgGrad.addColorStop(1, '#111a24');
-    }
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(startX, 0, endX - startX, 480);
-
-    // Wallpaper damask vertical stripes
-    ctx.fillStyle = isPast ? 'rgba(92, 45, 26, 0.25)' : 'rgba(30, 48, 64, 0.25)';
-    for (let x = Math.floor(startX / 36) * 36; x < endX; x += 36) {
-      ctx.fillRect(x, 40, 18, 440);
-    }
-
-    // Stage-specific windows
-    if (stageNum === 1) {
-      this.drawWindow(ctx, 110, 80, 80, 140, isPast);
-      this.drawWindow(ctx, 560, 75, 85, 145, isPast);
-      this.drawWindow(ctx, 840, 75, 85, 145, isPast);
-    } else if (stageNum === 2) {
-      this.drawWindow(ctx, 150, 70, 90, 150, isPast);
-      this.drawWindow(ctx, 490, 70, 90, 150, isPast);
-    } else if (stageNum === 3) {
-      this.drawWindow(ctx, 160, 65, 80, 155, isPast);
-      this.drawWindow(ctx, 520, 65, 80, 155, isPast);
-      this.drawWindow(ctx, 900, 65, 80, 155, isPast);
-    } else if (stageNum === 4) {
-      this.drawWindow(ctx, 300, 70, 90, 150, isPast);
-      this.drawWindow(ctx, 680, 70, 90, 150, isPast);
-    } else if (stageNum === 5) {
-      this.drawWindow(ctx, 250, 70, 85, 145, isPast);
-      this.drawWindow(ctx, 560, 70, 85, 145, isPast);
-      this.drawWindow(ctx, 860, 70, 85, 145, isPast);
-      this.drawWindow(ctx, 1180, 70, 85, 145, isPast);
-    } else if (stageNum === 6) {
-      this.drawRoseWindow(ctx, 420, 145, 68, isPast);
-      this.drawRoseWindow(ctx, 860, 145, 78, isPast);
-    }
-  }
-
-  private drawWindow(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    isPast: boolean
-  ) {
-    ctx.save();
-    const skyGrad = ctx.createLinearGradient(x, y, x, y + h);
-    if (isPast) {
-      skyGrad.addColorStop(0, '#ff7675');
-      skyGrad.addColorStop(0.5, '#fdcb6e');
-      skyGrad.addColorStop(1, '#ffeaa7');
-    } else {
-      skyGrad.addColorStop(0, '#090a0f');
-      skyGrad.addColorStop(0.5, '#1e272e');
-      skyGrad.addColorStop(1, '#2f3542');
-    }
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(x, y, w, h);
-
-    ctx.strokeStyle = isPast ? '#5c3d2e' : '#222f3e';
-    ctx.lineWidth = 5;
-    ctx.strokeRect(x, y, w, h);
-
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(x + w / 2, y);
-    ctx.lineTo(x + w / 2, y + h);
-    ctx.moveTo(x, y + h / 2);
-    ctx.lineTo(x + w, y + h / 2);
-    ctx.stroke();
-
-    if (isPast) {
-      ctx.fillStyle = '#8e2727';
-      ctx.fillRect(x - 8, y, 12, h + 10);
-      ctx.fillRect(x + w - 4, y, 12, h + 10);
-    } else {
-      ctx.fillStyle = '#2f3542';
-      ctx.fillRect(x - 6, y, 10, h * 0.7);
-    }
-    ctx.restore();
-  }
-
-  private drawRoseWindow(
-    ctx: CanvasRenderingContext2D,
-    cx: number,
-    cy: number,
-    radius: number,
-    isPast: boolean
-  ) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fillStyle = isPast ? '#e17055' : '#192a56';
-    ctx.fill();
-    ctx.strokeStyle = isPast ? '#d63031' : '#273c75';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    ctx.strokeStyle = isPast ? '#fdcb6e' : '#40739e';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI) / 4;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
   private drawArchitecture(
     ctx: CanvasRenderingContext2D,
     stageWidth: number,
@@ -295,16 +172,6 @@ export class GameRenderer {
     isPast: boolean,
     puzzles: PuzzleState
   ) {
-    // Crown molding & wainscoting across current stage
-    ctx.fillStyle = isPast ? '#523424' : '#1c2833';
-    ctx.fillRect(0, 30, stageWidth, 10);
-    ctx.fillRect(0, 460, stageWidth, 20);
-
-    // Stage 1 porch pillar at x = 380
-    if (stageNum === 1) {
-      this.drawDoorwayArch(ctx, 370, 200, 36, 280, isPast);
-    }
-
     // Stage 4: Memory of Light projection onto wall at x = 428
     if (stageNum === 4 && puzzles.lightSwitchOn) {
       ctx.save();
@@ -339,101 +206,6 @@ export class GameRenderer {
     }
   }
 
-  private drawDoorwayArch(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    isPast: boolean
-  ) {
-    ctx.save();
-    ctx.fillStyle = isPast ? '#633d26' : '#273444';
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = isPast ? '#835334' : '#34495e';
-    ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-    ctx.restore();
-  }
-
-  // =========================================================================
-  // PLATFORMS, DOORS & TIMELINE BARRIERS
-  // =========================================================================
-
-  private drawPlatforms(ctx: CanvasRenderingContext2D, platforms: Platform[], isPast: boolean) {
-    for (const plat of platforms) {
-      ctx.save();
-      if (plat.id.startsWith('ground')) {
-        const floorGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
-        if (isPast) {
-          floorGrad.addColorStop(0, '#59341f');
-          floorGrad.addColorStop(0.15, '#75472b');
-          floorGrad.addColorStop(1, '#3b2112');
-        } else {
-          floorGrad.addColorStop(0, '#242b35');
-          floorGrad.addColorStop(0.15, '#353e4b');
-          floorGrad.addColorStop(1, '#181e26');
-        }
-        ctx.fillStyle = floorGrad;
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-
-        ctx.strokeStyle = isPast ? '#452614' : '#14181f';
-        ctx.lineWidth = 1;
-        for (let bx = plat.x; bx < plat.x + plat.width; bx += 40) {
-          ctx.beginPath();
-          ctx.moveTo(bx, plat.y);
-          ctx.lineTo(bx, plat.y + 16);
-          ctx.stroke();
-        }
-        ctx.fillStyle = isPast ? '#945c38' : '#495666';
-        ctx.fillRect(plat.x, plat.y, plat.width, 2);
-      } else if (plat.id === 'living_hallway_door' || plat.id === 'final_door_barrier') {
-        ctx.fillStyle = isPast ? '#4a2511' : '#1e272e';
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-        ctx.fillStyle = '#d63031';
-        ctx.fillRect(plat.x + 4, plat.y + plat.height / 2 - 12, plat.width - 8, 24);
-      } else if (plat.id === 'hallway_debris_pres' || plat.id === 'chase_wall_present') {
-        ctx.fillStyle = '#2f3640';
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-        ctx.strokeStyle = '#00cec9';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(plat.x + 2, plat.y + 2, plat.width - 4, plat.height - 4);
-        ctx.fillStyle = '#81ecec';
-        ctx.font = 'bold 11px "JetBrains Mono", monospace';
-        ctx.fillText('Q', plat.x + 9, plat.y + plat.height / 2);
-      } else if (plat.id === 'hallway_grate_past' || plat.id === 'chase_barricade_past') {
-        ctx.fillStyle = '#6d4c41';
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-        ctx.strokeStyle = '#fdcb6e';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(plat.x + 2, plat.y + 2, plat.width - 4, plat.height - 4);
-      } else if (plat.type === 'one-way') {
-        ctx.fillStyle = isPast ? '#835334' : '#3d4b5c';
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-        ctx.fillStyle = isPast ? '#a56c44' : '#55667d';
-        ctx.fillRect(plat.x, plat.y, plat.width, 3);
-      } else if (plat.id.includes('stairs')) {
-        ctx.fillStyle = isPast ? '#75472b' : '#333f4d';
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-        ctx.fillStyle = isPast ? '#945c38' : '#4b596b';
-        ctx.fillRect(plat.x, plat.y, plat.width, 3);
-      } else if (plat.id.includes('crate')) {
-        ctx.fillStyle = '#4b382a';
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-        ctx.strokeStyle = '#271d15';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(plat.x, plat.y, plat.width, plat.height);
-      } else {
-        ctx.fillStyle = isPast ? '#633d26' : '#273444';
-        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-      }
-      ctx.restore();
-    }
-  }
-
-  // =========================================================================
-  // INTERACTABLE FURNITURE, STAGE DOORS & PUZZLE ASSETS
-  // =========================================================================
-
   private drawInteractables(
     ctx: CanvasRenderingContext2D,
     interactables: InteractableObject[],
@@ -443,6 +215,14 @@ export class GameRenderer {
   ) {
     for (const obj of interactables) {
       ctx.save();
+      const glow = ctx.createRadialGradient(obj.x + obj.width / 2, obj.y + obj.height / 2, 2, obj.x + obj.width / 2, obj.y + obj.height / 2, obj.id === 'clock' ? 115 : 40);
+      glow.addColorStop(0, obj.bakedIntoMap||obj.id!==nearbyId ? '#00000000' : isPast ? '#f3ca6b26' : '#a8d8b922');
+      glow.addColorStop(1, '#a8d8b900');
+      ctx.fillStyle = glow; ctx.fillRect(obj.x - 115, obj.y - 115, obj.width + 230, obj.height + 230);
+      if(this.pixel.object(ctx,obj,isPast,puzzles,this.animTick)) {
+
+        ctx.restore();continue;
+      }
       switch (obj.id) {
         case 'clock':
           this.drawGrandfatherClock(ctx, obj.x, obj.y, obj.width, obj.height, isPast, puzzles);
@@ -537,9 +317,7 @@ export class GameRenderer {
           break;
       }
 
-      if (obj.id === nearbyId) {
-        this.drawInteractPromptBadge(ctx, obj.x + obj.width / 2, obj.y - 16, isPast);
-      }
+
       ctx.restore();
     }
   }
@@ -555,36 +333,28 @@ export class GameRenderer {
     targetLabel: string
   ) {
     ctx.save();
-    // Outer frame
-    ctx.fillStyle = isPast ? '#452614' : '#1e272e';
-    ctx.fillRect(x - 4, y - 4, w + 8, h + 4);
-
-    // Inner portal / door panel
-    if (isUnlocked) {
-      const portalGrad = ctx.createLinearGradient(x, y, x, y + h);
-      portalGrad.addColorStop(0, isPast ? '#fdcb6e' : '#00cec9');
-      portalGrad.addColorStop(1, isPast ? '#d35400' : '#0984e3');
-      ctx.fillStyle = portalGrad;
-      ctx.fillRect(x + 2, y + 2, w - 4, h - 2);
-
-      // Overhead stage badge
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.beginPath();
-      ctx.roundRect(x - 8, y - 24, w + 16, 16, 4);
-      ctx.fill();
-      ctx.fillStyle = '#fde047';
-      ctx.font = 'bold 9px "Be Vietnam Pro", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`➔ ${targetLabel}`, x + w / 2, y - 13);
-    } else {
-      ctx.fillStyle = isPast ? '#5c3d2e' : '#2f3542';
-      ctx.fillRect(x + 2, y + 2, w - 4, h - 2);
-      // Lock emblem
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(x + w / 2, y + h / 2, 5, 0, Math.PI * 2);
-      ctx.fill();
+    const cx=x+w/2;
+    // Stone arch surrounding a timber door; its frame sits outside the collision box.
+    ctx.fillStyle='#16271f';ctx.strokeStyle='#6c7960';ctx.lineWidth=7;
+    ctx.beginPath();ctx.moveTo(x-5,y+h);ctx.lineTo(x-5,y+22);
+    ctx.quadraticCurveTo(cx,y-20,x+w+5,y+22);ctx.lineTo(x+w+5,y+h);ctx.closePath();
+    ctx.fill();ctx.stroke();
+    ctx.save();ctx.beginPath();ctx.moveTo(x+2,y+h);ctx.lineTo(x+2,y+23);
+    ctx.quadraticCurveTo(cx,y-8,x+w-2,y+23);ctx.lineTo(x+w-2,y+h);ctx.closePath();ctx.clip();
+    const wood=ctx.createLinearGradient(x,y,x+w,y);
+    wood.addColorStop(0,'#263727');wood.addColorStop(.5,isPast?'#695634':'#40533b');wood.addColorStop(1,'#15291f');
+    ctx.fillStyle=wood;ctx.fillRect(x,y,w,h);
+    ctx.strokeStyle='#0e211c';ctx.lineWidth=1;
+    for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(x+i*w/5,y);ctx.lineTo(x+i*w/5,y+h);ctx.stroke();}
+    ctx.fillStyle='#a99d69';ctx.fillRect(x,y+38,w,3);ctx.fillRect(x,y+h-16,w,3);
+    if(isUnlocked){
+      ctx.shadowColor='#f2d899';ctx.shadowBlur=16;ctx.fillStyle='#f2d899';ctx.fillRect(cx-1,y+12,2,h-12);
     }
+    ctx.restore();
+    ctx.fillStyle=isUnlocked?'#ffe3a4':'#b3a575';ctx.beginPath();ctx.arc(x+w-10,y+h*.62,2.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#a0b184';
+    for(let i=0;i<7;i++){ctx.beginPath();ctx.ellipse(x-4+i*3,y+15-i*2,4,2,-.6,0,Math.PI*2);ctx.fill();}
+    if(isUnlocked){ctx.font='9px Georgia,serif';ctx.textAlign='center';ctx.fillStyle='#e9dcc0';ctx.fillText(targetLabel.replace('MÀN','CHƯƠNG'),cx,y-20);}
     ctx.restore();
   }
 
@@ -592,109 +362,14 @@ export class GameRenderer {
   // IN-WORLD MEMORY ECHO NPCs (KÝ ỨC CỦA MẸ & BÉ LINH)
   // =========================================================================
 
-  private drawMemoryNPCs(
-    ctx: CanvasRenderingContext2D,
-    npcs: MemoryNPC[],
-    nearbyId: string | null
-  ) {
-    for (const npc of npcs) {
-      ctx.save();
-      const floatY = Math.sin(this.animTick * 3.2) * 3;
-      const nx = Math.floor(npc.x);
-      const ny = Math.floor(npc.y + floatY);
-      const isMother = npc.character === 'ME';
-
-      // Soft memory aura
-      const auraGrad = ctx.createRadialGradient(
-        nx + npc.width / 2,
-        ny + npc.height / 2,
-        4,
-        nx + npc.width / 2,
-        ny + npc.height / 2,
-        42
-      );
-      if (isMother) {
-        auraGrad.addColorStop(0, 'rgba(253, 203, 110, 0.55)');
-        auraGrad.addColorStop(1, 'rgba(253, 203, 110, 0)');
-      } else {
-        auraGrad.addColorStop(0, 'rgba(129, 236, 236, 0.55)');
-        auraGrad.addColorStop(1, 'rgba(129, 236, 236, 0)');
-      }
-      ctx.fillStyle = auraGrad;
-      ctx.beginPath();
-      ctx.arc(nx + npc.width / 2, ny + npc.height / 2, 42, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.globalAlpha = 0.85 + Math.sin(this.animTick * 4) * 0.1;
-
-      if (isMother) {
-        // Mother's dress & clockmaker apron
-        ctx.fillStyle = '#8d4925';
-        ctx.beginPath();
-        ctx.roundRect(nx + 3, ny + 18, 20, 36, 4);
-        ctx.fill();
-        ctx.fillStyle = '#f5eedb';
-        ctx.fillRect(nx + 6, ny + 22, 14, 24);
-
-        // Head & gentle bun hair
-        ctx.fillStyle = '#f7d794';
-        ctx.beginPath();
-        ctx.arc(nx + 13, ny + 11, 7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#3d2518';
-        ctx.beginPath();
-        ctx.arc(nx + 13, ny + 8, 7.5, Math.PI, Math.PI * 2);
-        ctx.arc(nx + 7, ny + 5, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Spectacles
-        ctx.strokeStyle = '#fdcb6e';
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(nx + 11, ny + 9, 4, 3);
-        ctx.strokeRect(nx + 16, ny + 9, 4, 3);
-      } else {
-        // Little Sister Linh: sky-blue dress & cyan ribbon
-        ctx.fillStyle = '#0984e3';
-        ctx.beginPath();
-        ctx.roundRect(nx + 3, ny + 16, 16, 28, 4);
-        ctx.fill();
-        ctx.fillStyle = '#dff9fb';
-        ctx.fillRect(nx + 5, ny + 18, 12, 8);
-
-        // Head & twin tails
-        ctx.fillStyle = '#f7d794';
-        ctx.beginPath();
-        ctx.arc(nx + 11, ny + 10, 6.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#2d1e18';
-        ctx.beginPath();
-        ctx.arc(nx + 11, ny + 8, 7, Math.PI, Math.PI * 2);
-        ctx.fill();
-        // Cyan hair ribbon
-        ctx.fillStyle = '#00cec9';
-        ctx.fillRect(nx + 4, ny + 4, 5, 3);
-      }
-
-      ctx.globalAlpha = 1.0;
-
-      // Ambient whisper bubble above NPC when player isn't right on top
-      if (nearbyId !== npc.id) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
-        ctx.strokeStyle = isMother ? 'rgba(251, 191, 36, 0.6)' : 'rgba(34, 211, 238, 0.6)';
-        ctx.lineWidth = 1;
-        ctx.font = 'italic 10px "Be Vietnam Pro", sans-serif';
-        const textWidth = Math.min(200, ctx.measureText(npc.ambientQuoteVi).width + 14);
-        ctx.beginPath();
-        ctx.roundRect(nx + npc.width / 2 - textWidth / 2, ny - 26, textWidth, 18, 6);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = isMother ? '#fde68a' : '#a5f3fc';
-        ctx.textAlign = 'center';
-        ctx.fillText(npc.ambientQuoteVi, nx + npc.width / 2, ny - 14);
-      }
-
+  private drawMemoryNPCs(ctx:CanvasRenderingContext2D,npcs:MemoryNPC[],nearbyId:string|null){
+    for(const npc of npcs){
+      ctx.save();ctx.globalAlpha=.8+Math.sin(this.animTick*2)*.08;
+      const key=npc.character==='LINH'?`linhIdle${Math.floor(this.animTick*3)%4}`:npc.character==='ONG'?'npc6':'npc3';
+      const h=npc.height;
+      ctx.shadowBlur=10;ctx.shadowColor=npc.character==='LINH'?'#72d6cf':'#dab56c';
+      this.pixel.feet(ctx,key,npc.x+npc.width/2,npc.y+npc.height,h);
+      ctx.shadowBlur=0;
       ctx.restore();
     }
   }
@@ -762,6 +437,12 @@ export class GameRenderer {
     isPast: boolean,
     puzzles: PuzzleState
   ) {
+    ctx.save();
+    ctx.translate(x+w/2,y+h);ctx.scale(1.12,1.12);ctx.translate(-x-w/2,-y-h);
+    const aura=ctx.createRadialGradient(x+w/2,y+25,5,x+w/2,y+25,90);
+    aura.addColorStop(0,'#f6cb7655');aura.addColorStop(1,'#f6cb7600');ctx.fillStyle=aura;ctx.fillRect(x-80,y-70,w+160,h+140);
+    ctx.fillStyle='#776347';ctx.strokeStyle='#c9b180';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x-5,y+10);ctx.quadraticCurveTo(x+w/2,y-24,x+w+5,y+10);ctx.lineTo(x+w+5,y+17);ctx.lineTo(x-5,y+17);ctx.closePath();ctx.fill();ctx.stroke();
     ctx.fillStyle = isPast ? '#452614' : '#221915';
     ctx.fillRect(x, y, w, h);
 
@@ -815,11 +496,10 @@ export class GameRenderer {
     ctx.arc(bobX, bobY, 5, 0, Math.PI * 2);
     ctx.fill();
 
-    if (!puzzles.hasWatch) {
-      ctx.strokeStyle = '#f39c12';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
-    }
+    ctx.strokeStyle='#a88e5b';ctx.lineWidth=1;
+    ctx.strokeRect(x+3,y+3,w-6,h-6);
+    ctx.fillStyle='#a88e5b';ctx.fillRect(x-4,y+h-4,w+8,5);
+    ctx.restore();
   }
 
   private drawFireplace(
@@ -979,12 +659,14 @@ export class GameRenderer {
   }
 
   private drawNoteObject(ctx: CanvasRenderingContext2D, x: number, y: number, isPast: boolean) {
-    ctx.fillStyle = isPast ? '#f5eedb' : '#a4b0be';
-    ctx.fillRect(x, y, 14, 18);
-    ctx.fillStyle = isPast ? '#d4af37' : '#747d8c';
-    ctx.fillRect(x + 2, y + 3, 10, 2);
-    ctx.fillRect(x + 2, y + 7, 10, 2);
-    ctx.fillRect(x + 2, y + 11, 7, 2);
+    ctx.save();ctx.translate(x+9,y+10);ctx.rotate(-.12);
+    ctx.shadowColor='#efd49c';ctx.shadowBlur=8+Math.sin(this.animTick*2)*3;
+    ctx.fillStyle=isPast?'#eadab2':'#c3c5a0';ctx.strokeStyle='#635f40';ctx.lineWidth=.8;
+    ctx.beginPath();ctx.moveTo(-9,-12);ctx.lineTo(6,-12);ctx.lineTo(10,-7);ctx.lineTo(10,13);ctx.lineTo(-9,13);ctx.closePath();ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+    ctx.fillStyle='#898a63';ctx.beginPath();ctx.moveTo(6,-12);ctx.lineTo(6,-7);ctx.lineTo(10,-7);ctx.fill();
+    ctx.strokeStyle='#77785b';ctx.lineWidth=.7;
+    for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-5,-5+i*4);ctx.lineTo(5-(i%2)*3,-5+i*4);ctx.stroke();}
+    ctx.restore();
   }
 
   private drawInteractPromptBadge(
@@ -997,15 +679,15 @@ export class GameRenderer {
     const py = y + bob;
 
     ctx.save();
-    ctx.fillStyle = isPast ? '#f39c12' : '#0984e3';
+    ctx.fillStyle = '#d5c18b';
     ctx.beginPath();
     ctx.roundRect(x - 14, py - 12, 28, 20, 5);
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#f0e1b2';
+    ctx.lineWidth = .8;
     ctx.stroke();
 
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#193225';
     ctx.font = 'bold 12px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1017,55 +699,10 @@ export class GameRenderer {
   // KẺ LẠC GIỜ (THE TIME-LOST ENTITY)
   // =========================================================================
 
-  private drawPursuer(ctx: CanvasRenderingContext2D, pursuer: PursuerEntity) {
-    ctx.save();
-    const hover = Math.sin(this.animTick * 7) * 5;
-    const gx = Math.floor(pursuer.x);
-    const gy = Math.floor(pursuer.y + hover);
-
-    const aura = ctx.createRadialGradient(
-      gx + pursuer.width / 2,
-      gy + pursuer.height / 2,
-      4,
-      gx + pursuer.width / 2,
-      gy + pursuer.height / 2,
-      54
-    );
-    aura.addColorStop(0, 'rgba(108, 92, 231, 0.8)');
-    aura.addColorStop(0.5, 'rgba(0, 206, 201, 0.4)');
-    aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.arc(gx + pursuer.width / 2, gy + pursuer.height / 2, 54, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Tattered cloak silhouette
-    ctx.fillStyle = '#0b0c10';
-    ctx.beginPath();
-    ctx.roundRect(gx + 3, gy + 12, 24, 35, 6);
-    ctx.fill();
-
-    // Head silhouette
-    ctx.beginPath();
-    ctx.arc(gx + 15, gy + 7, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Glowing cyan eyes
-    ctx.fillStyle = '#81ecec';
-    ctx.fillRect(gx + 12, gy + 5, 3, 3);
-    ctx.fillRect(gx + 18, gy + 5, 3, 3);
-
-    // Floating broken clock hands orbiting the entity
-    ctx.strokeStyle = '#fdcb6e';
-    ctx.lineWidth = 2;
-    const handAngle = this.animTick * 6;
-    ctx.beginPath();
-    ctx.moveTo(gx + 15, gy + 24);
-    ctx.lineTo(gx + 15 + Math.cos(handAngle) * 18, gy + 24 + Math.sin(handAngle) * 18);
-    ctx.moveTo(gx + 15, gy + 24);
-    ctx.lineTo(gx + 15 + Math.cos(-handAngle * 0.7) * 14, gy + 24 + Math.sin(-handAngle * 0.7) * 14);
-    ctx.stroke();
-
+  private drawPursuer(ctx:CanvasRenderingContext2D,pursuer:PursuerEntity){
+    ctx.save();ctx.globalAlpha=pursuer.omenActive?.6:.95;ctx.shadowColor='#65bea0';ctx.shadowBlur=14;
+    const key=pursuer.omenActive?`lostAction${Math.floor(this.animTick*5)%6}`:`lost${Math.floor(this.animTick*8)%9}`;
+    this.pixel.feet(ctx,key,pursuer.x+pursuer.width/2,pursuer.y+pursuer.height+Math.sin(this.animTick*4)*3,PURSUER_ART_HEIGHT);
     ctx.restore();
   }
 
@@ -1091,183 +728,8 @@ export class GameRenderer {
   // EXPRESSIVE 2D CHARACTER DESIGN FOR AN & FLOATING SPEECH BUBBLE
   // =========================================================================
 
-  private drawPlayer(ctx: CanvasRenderingContext2D, player: Player, hasWatch: boolean) {
-    ctx.save();
-    const px = Math.floor(player.x);
-    const py = Math.floor(player.y);
-    const facingRight = player.facing === 'right';
-
-    // Subtle ground shadow beneath An
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(px + player.width / 2, py + player.height + 1, 11, 3.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    let scaleX = 1;
-    let scaleY = 1;
-    if (player.state === 'jump') {
-      scaleX = 0.92;
-      scaleY = 1.08;
-    } else if (player.state === 'fall') {
-      scaleX = 0.96;
-      scaleY = 1.04;
-    }
-
-    ctx.save();
-    ctx.translate(px + player.width / 2, py + player.height);
-    ctx.scale(facingRight ? scaleX : -scaleX, scaleY);
-    ctx.translate(-player.width / 2, -player.height);
-
-    const idleBreath = player.state === 'idle' ? Math.sin(this.animTick * 3.5) * 1.2 : 0;
-    const walkBob = player.state === 'walk' ? Math.abs(Math.sin(this.animTick * 12)) * -2.2 : idleBreath;
-    const legSwing = player.state === 'walk' ? Math.sin(this.animTick * 12) * 6 : 0;
-    const cx = player.width / 2;
-
-    // 1. Trailing Amber Scarf Tail (flutters behind An)
-    const scarfWave = Math.sin(this.animTick * 9) * 2.5 + (player.state === 'walk' ? 4 : 1);
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.moveTo(cx - 4, player.height - 28 + walkBob);
-    ctx.quadraticCurveTo(
-      cx - 13 - scarfWave * 0.6,
-      player.height - 26 + walkBob,
-      cx - 15 - scarfWave,
-      player.height - 19 + walkBob + Math.cos(this.animTick * 8) * 2
-    );
-    ctx.lineTo(cx - 11 - scarfWave * 0.8, player.height - 16 + walkBob);
-    ctx.quadraticCurveTo(cx - 8, player.height - 23 + walkBob, cx - 3, player.height - 24 + walkBob);
-    ctx.fill();
-
-    // 2. Legs & Boots
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(cx - 5 + legSwing * 0.35, player.height - 14 + walkBob, 4, 10);
-    ctx.fillRect(cx + 1 - legSwing * 0.35, player.height - 14 + walkBob, 4, 10);
-
-    // Leather boots
-    ctx.fillStyle = '#5c3a21';
-    ctx.beginPath();
-    ctx.roundRect(cx - 6 + legSwing * 0.45, player.height - 5 + walkBob, 6.5, 5, 2);
-    ctx.roundRect(cx + 0.5 - legSwing * 0.45, player.height - 5 + walkBob, 6.5, 5, 2);
-    ctx.fill();
-
-    // 3. Trench Coat / Autumn Jacket & Skirt Hem
-    ctx.fillStyle = '#b45309';
-    ctx.beginPath();
-    ctx.roundRect(cx - 8, player.height - 29 + walkBob, 16, 16, 4);
-    ctx.fill();
-
-    // Coat inner lapel & belt
-    ctx.fillStyle = '#fef3c7';
-    ctx.fillRect(cx - 2, player.height - 28 + walkBob, 5, 7);
-    ctx.fillStyle = '#451a03';
-    ctx.fillRect(cx - 8, player.height - 19 + walkBob, 16, 2.5);
-
-    // Crossbody satchel bag
-    ctx.fillStyle = '#78350f';
-    ctx.beginPath();
-    ctx.roundRect(cx - 9, player.height - 22 + walkBob, 6, 8, 2);
-    ctx.fill();
-
-    // 4. Warm Amber Scarf Wrap around neck
-    ctx.fillStyle = '#fbbf24';
-    ctx.beginPath();
-    ctx.roundRect(cx - 7, player.height - 31 + walkBob, 14, 4.5, 2);
-    ctx.fill();
-
-    // 5. Head, Expressive Face & Flowing Chestnut Bob Hair
-    // Back hair layer
-    ctx.fillStyle = '#2c1810';
-    ctx.beginPath();
-    ctx.arc(cx, player.height - 38 + walkBob, 8.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Face
-    ctx.fillStyle = '#fde4cf';
-    ctx.beginPath();
-    ctx.roundRect(cx - 6, player.height - 43 + walkBob, 12.5, 11.5, 5);
-    ctx.fill();
-
-    // Subtle rosy cheek
-    ctx.fillStyle = 'rgba(244, 114, 182, 0.45)';
-    ctx.beginPath();
-    ctx.arc(cx + 3.5, player.height - 35 + walkBob, 1.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Expressive Eye (blinks periodically)
-    const isBlinking = Math.sin(this.animTick * 2.7) > 0.96;
-    ctx.fillStyle = '#1e1b4b';
-    if (isBlinking) {
-      ctx.fillRect(cx + 2, player.height - 37.5 + walkBob, 3, 1);
-    } else {
-      ctx.beginPath();
-      ctx.arc(cx + 3.2, player.height - 37.5 + walkBob, 1.6, 0, Math.PI * 2);
-      ctx.fill();
-      // Eye catchlight
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(cx + 3.5, player.height - 38.5 + walkBob, 1, 1);
-    }
-
-    // Front bangs & side hairlocks
-    ctx.fillStyle = '#3b2316';
-    ctx.beginPath();
-    ctx.arc(cx - 0.5, player.height - 40.5 + walkBob, 7.8, Math.PI * 0.95, Math.PI * 2.05);
-    ctx.fill();
-    // Side hair lock framing face
-    ctx.beginPath();
-    ctx.roundRect(cx - 7.5, player.height - 41 + walkBob, 3.8, 9.5, 2);
-    ctx.fill();
-
-    // Hair clip (matching her sister Linh's keepsake)
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(cx - 3, player.height - 42 + walkBob, 3.5, 1.8);
-
-    // 6. Arm & Glowing Broken Clock Hand
-    ctx.fillStyle = '#d97706';
-    if (player.state === 'interact') {
-      ctx.beginPath();
-      ctx.roundRect(cx + 3, player.height - 26 + walkBob, 10, 4, 2);
-      ctx.fill();
-      // Glowing Broken Clock Hand held forward
-      ctx.strokeStyle = hasWatch ? '#22d3ee' : '#facc15';
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(cx + 13, player.height - 24 + walkBob);
-      ctx.lineTo(cx + 20, player.height - 29 + walkBob);
-      ctx.stroke();
-    } else {
-      const armSwing = player.state === 'walk' ? -legSwing * 0.45 : 0;
-      ctx.beginPath();
-      ctx.roundRect(cx + 2 + armSwing * 0.3, player.height - 26 + walkBob, 4, 9, 2);
-      ctx.fill();
-    }
-
-    ctx.restore();
-
-    // 7. In-World Speech / Thought Bubble above An's head
-    if (player.speechBubbleText && (player.speechBubbleTimer ?? 0) > 0) {
-      ctx.save();
-      ctx.font = '600 11px "Be Vietnam Pro", sans-serif';
-      const text = player.speechBubbleText;
-      const bubbleW = Math.min(280, Math.max(90, ctx.measureText(text).width + 20));
-      const bx = Math.max(12, Math.min(1400, px + player.width / 2 - bubbleW / 2));
-      const by = py - 34;
-
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-      ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(bx, by, bubbleW, 24, 8);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#fef3c7';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, bx + bubbleW / 2, by + 12, bubbleW - 14);
-      ctx.restore();
-    }
-
-    ctx.restore();
+  private drawPlayer(ctx:CanvasRenderingContext2D,player:Player,_hasWatch:boolean){
+    this.character.draw(ctx,player,this.animTick);
   }
 
   private drawAtmosphere(ctx: CanvasRenderingContext2D, stageNum: number, isPast: boolean) {
@@ -1282,7 +744,7 @@ export class GameRenderer {
     ctx.globalAlpha = 1.0;
 
     if (!isPast && stageNum === 1) {
-      ctx.strokeStyle = 'rgba(164, 176, 190, 0.42)';
+      ctx.strokeStyle = 'rgba(164, 190, 176, 0.17)';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       for (const r of this.rainDrops) {

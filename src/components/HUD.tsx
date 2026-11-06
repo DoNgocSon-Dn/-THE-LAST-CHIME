@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Timeline, InteractableObject, PuzzleState } from '../types/game';
 import { RoomZone } from '../game/levelData';
 import { Sun, Moon, Volume2, VolumeX, Pause, Sparkles, Compass, Lock } from 'lucide-react';
@@ -35,34 +35,22 @@ export const HUD: React.FC<HUDProps> = ({
 }) => {
   const isPast = timeline === 'PAST';
   const isReady = cooldownRatio <= 0;
-  const isMuted = soundManager.getMuted();
+  const [isMuted, setMuted] = useState(soundManager.getMuted());
+  const [chaptersOpen, setChaptersOpen] = useState(false);
   const activeStage = puzzles.currentStage || 1;
 
   const getObjectiveHint = (): { chapterLabel: string; hint: string } => {
     switch (activeStage) {
       case 1:
-        if (!puzzles.hasWatch) {
-          return {
-            chapterLabel: 'Màn 1 / 6 — Chương 1: Trở Về',
-            hint: 'Đọc mảnh ghi chú của Mẹ trên bàn và đưa chiếc kim gãy chạm vào Đồng Hồ Cổ [E].'
-          };
-        }
-        if (!puzzles.testedTimelineSwitch) {
-          return {
-            chapterLabel: 'Màn 1 / 6 — Chương 1: Trở Về',
-            hint: 'Nhấn phím [Q] để thử chuyển đổi thời gian, sau đó tới cánh cửa bên phải qua Màn 2!'
-          };
-        }
-        return {
-          chapterLabel: 'Màn 1 / 6 — Chương 1: Trở Về',
-          hint: 'Tiến tới Cửa Vào Phòng Khách ở cuối sảnh bên phải [E] để bước sang Màn 2!'
-        };
+        return {chapterLabel:'Màn 1 / 6 — Trở về',hint:!puzzles.tutorialMoved?'Bạn đang ở cửa chính. Dùng A/D hoặc ← → để thử di chuyển.':!puzzles.tutorialJumped?'Nhấn Space để thử nhảy. Sau đó tiến tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần lời nhắn trên ghế, nhấn E để đọc.':'Đến cửa chính của ngôi nhà, nhấn E để vào màn 2.'};
 
       case 2:
+        if(!puzzles.hasWatch)return {chapterLabel:'Màn 2 — Đồng hồ của Ông Ngoại',hint:'Nhặt đồng hồ bỏ túi trên bàn cạnh đèn trong phòng khách [E].'};
+        if(!puzzles.testedTimelineSwitch)return {chapterLabel:'Màn 2 — Hai mốc thời gian',hint:'Nhấn Q để thử chuyển sang Quá Khứ. Chờ 3 giây sau mỗi lần chuyển.'};
         if (!puzzles.clockRepaired) {
           return {
             chapterLabel: 'Màn 2 / 6 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy',
-            hint: 'Chuyển sang Quá Khứ [Q], trò chuyện với Ký Ức Của Mẹ, lấy Bộ Bánh Răng trên lò sưởi và sửa Đồng Hồ Cổ.'
+            hint: 'Chuyển sang Quá Khứ [Q], trò chuyện với Ký Ức Của Mẹ, đi qua phòng ăn tới xưởng lấy bánh răng, rồi quay lại sửa Đồng Hồ Cổ ở phòng khách.'
           };
         }
         if (!puzzles.clockInspectedPresent) {
@@ -142,166 +130,29 @@ export const HUD: React.FC<HUDProps> = ({
   const objective = getObjectiveHint();
 
   const toggleSound = () => {
-    soundManager.setMuted(!isMuted);
+    soundManager.setMuted(!isMuted); setMuted(!isMuted);
   };
-
   return (
-    <div className="fixed inset-0 pointer-events-none z-30 flex flex-col justify-between p-4 select-none">
-      {/* TOP BAR: Stage Switcher, Room/Objective & Utilities */}
-      <div className="flex items-start justify-between w-full gap-3">
-        {/* Left: Stage Progress Pills & Objective */}
-        <div className="flex flex-col gap-1.5 max-w-xl pointer-events-auto">
-          <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-700/70 text-xs font-mono backdrop-blur-xs">
-            <Compass className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="text-amber-300 font-bold">{objective.chapterLabel}</span>
-            <span className="text-slate-500">•</span>
-            <span className="text-slate-300">{currentRoom.nameVi}</span>
-          </div>
-
-          {/* 6-Stage Selector Bar so player clearly sees all 6 distinct stages */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/85 border border-slate-800/80 text-[11px] font-mono">
-            <span className="text-slate-400 mr-1">Chọn Màn:</span>
-            {[1, 2, 3, 4, 5, 6].map((st) => {
-              const isCurrent = activeStage === st;
-              return (
-                <button
-                  key={st}
-                  type="button"
-                  data-testid={`stage-select-${st}`}
-                  onClick={() => onSelectStage(st)}
-                  className={`px-2 py-0.5 rounded-lg border transition cursor-pointer ${
-                    isCurrent
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-sm'
-                      : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:border-amber-500/60 hover:text-amber-200'
-                  }`}
-                >
-                  Màn {st}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/90 border border-amber-800/40 text-xs text-amber-100 shadow-md">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="leading-tight">{objective.hint}</span>
-          </div>
+    <div className="game-hud">
+      <header className="hud-header">
+        <div className="hud-location"><span>CHƯƠNG {activeStage} <i>/ 06</i></span><h2>{currentRoom.nameVi}</h2></div>
+        <div className="hud-tools">
+          <button aria-label="Chọn chương" onClick={()=>setChaptersOpen(!chaptersOpen)}><Compass size={18}/></button>
+          <button onClick={toggleSound} aria-label={isMuted?'Bật âm thanh':'Tắt âm thanh'}>{isMuted?<VolumeX size={18}/>:<Volume2 size={18}/>}</button>
+          <button onClick={onPause} aria-label="Tạm dừng game"><Pause size={18}/><kbd>Esc</kbd></button>
         </div>
-
-        {/* Right: Audio & Pause Controls */}
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <button
-            onClick={toggleSound}
-            aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-            tabIndex={-1}
-            className="p-2 rounded-lg bg-slate-900/80 border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 transition"
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-amber-400" />}
-          </button>
-          <button
-            onClick={onPause}
-            aria-label="Tạm dừng game"
-            tabIndex={-1}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900/80 border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 transition text-xs font-mono"
-          >
-            <Pause className="w-4 h-4" />
-            <span>Esc</span>
-          </button>
-        </div>
-      </div>
-
-      {/* CENTER TOAST NOTIFICATION */}
-      {notification && !isDialogueActive && (
-        <div className="self-center mb-auto mt-3 px-4 py-2 rounded-xl bg-slate-950/90 border border-amber-600/70 text-amber-200 text-xs md:text-sm shadow-xl animate-fade-in text-center max-w-lg pointer-events-auto">
-          {notification}
-        </div>
-      )}
-
-      {/* BOTTOM CLUSTER: Timeline Switcher & Nearby Interaction Prompt */}
-      {!isDialogueActive && (
-        <div className="flex flex-col items-center gap-3 w-full">
-          {nearbyObject && (
-            <button
-              onClick={onInteract}
-              className="pointer-events-auto flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-950/90 border-2 border-amber-500 text-amber-100 shadow-xl shadow-amber-950/50 hover:bg-amber-950/40 hover:scale-102 transition cursor-pointer"
-            >
-              <kbd className="px-2 py-0.5 rounded bg-amber-600 text-slate-950 font-black text-xs font-mono shadow-inner">
-                E
-              </kbd>
-              <span className="text-xs md:text-sm font-semibold tracking-wide">
-                {nearbyObject.promptVi} : <strong className="text-amber-300">{nearbyObject.nameVi}</strong>
-              </span>
-            </button>
-          )}
-
-          {/* Timeline Indicator & Switch Cooldown [Q] */}
-          <div className="pointer-events-auto flex items-center gap-4 px-4 py-2 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-2xl backdrop-blur-xs">
-            <div className="flex items-center gap-2">
-              {isPast ? (
-                <div className="flex items-center gap-2 text-amber-400">
-                  <div className="p-1.5 rounded-full bg-amber-500/20 border border-amber-500/40">
-                    <Sun className="w-5 h-5 text-amber-400 animate-spin-slow" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase font-mono tracking-wider text-amber-500">Dòng Thời Gian</div>
-                    <div className="text-xs font-bold text-amber-200 tracking-wider">QUÁ KHỨ (PAST)</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-cyan-400">
-                  <div className="p-1.5 rounded-full bg-cyan-500/20 border border-cyan-500/40">
-                    <Moon className="w-5 h-5 text-cyan-400" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase font-mono tracking-wider text-cyan-500">Dòng Thời Gian</div>
-                    <div className="text-xs font-bold text-cyan-200 tracking-wider">HIỆN TẠI (PRESENT)</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="h-7 w-px bg-slate-800" />
-
-            {!puzzles.hasWatch ? (
-              <button
-                onClick={onTimelineSwitch}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-500 cursor-not-allowed text-xs font-mono"
-              >
-                <Lock className="w-3.5 h-3.5 text-amber-500/70" />
-                <span>Chưa Mở Khóa [Q]</span>
-              </button>
-            ) : (
-              <button
-                onClick={onTimelineSwitch}
-                disabled={!isReady}
-                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition ${
-                  isReady
-                    ? 'bg-amber-600/20 border-amber-500 text-amber-300 hover:bg-amber-500/30 cursor-pointer shadow-lg shadow-amber-900/30'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">
-                  Q
-                </kbd>
-                <span>
-                  {isReady ? (
-                    <span className="text-emerald-400">Sẵn Sàng Chuyển [Q]</span>
-                  ) : (
-                    <span>Hồi Chiêu: {cooldownSeconds}s</span>
-                  )}
-                </span>
-                {!isReady && (
-                  <div className="w-14 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-500 transition-all duration-100"
-                      style={{ width: `${(1 - cooldownRatio) * 100}%` }}
-                    />
-                  </div>
-                )}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      </header>
+      {chaptersOpen&&<nav className="chapter-menu" aria-label="Chọn chương">{[1,2,3,4,5,6].map(st=><button key={st} data-testid={`stage-select-${st}`} onClick={()=>{onSelectStage(st);setChaptersOpen(false);}} aria-current={st===activeStage?'step':undefined}>Chương {st}</button>)}</nav>}
+      {!isDialogueActive&&activeStage<=2&&<div className="hud-objective"><span>DẤU VẾT TIẾP THEO</span><p>{objective.hint}</p></div>}
+      {notification&&!isDialogueActive&&<div className="hud-toast" role="status">{notification}</div>}
+      {!isDialogueActive&&<footer className="hud-bottom">
+        {activeStage>=2&&<button className={`time-control ${isPast?'is-past':''}`} disabled={!puzzles.hasWatch||!isReady} onClick={onTimelineSwitch} aria-label="Chuyển thời gian">
+          <span className="time-dial">{puzzles.hasWatch?<kbd>Q</kbd>:<Lock size={16}/>}</span>
+          <span><small>{isPast?'KÝ ỨC ẤM ÁP':'NGÔI NHÀ BỎ QUÊN'}</small><strong>{isPast?'Quá khứ':'Hiện tại'}</strong><em>{!puzzles.hasWatch?'Tìm đồng hồ trong phòng khách':isReady?'Chuyển thời gian':`${cooldownSeconds}s · Đang hồi phục`}</em></span>
+        </button>}
+        {nearbyObject&&<button className="interaction-control" onClick={onInteract}><kbd>E</kbd><span>{nearbyObject.promptVi}</span></button>}
+        {activeStage<=2&&<div className="hud-controls"><span><kbd>A</kbd><kbd>D</kbd> Di chuyển</span><span><kbd>Space</kbd> Nhảy</span></div>}
+      </footer>}
     </div>
   );
 };

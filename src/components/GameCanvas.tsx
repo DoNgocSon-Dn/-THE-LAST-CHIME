@@ -5,9 +5,10 @@ interface GameCanvasProps {
   callbacksRef: React.MutableRefObject<EngineCallbacks>;
   engineRef: React.MutableRefObject<GameEngine | null>;
   isPaused: boolean;
+  onReady:()=>void;
 }
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef, isPaused }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef, isPaused, onReady }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef,
 
     // Set internal render resolution
     canvas.width = 1000;
-    canvas.height = 600;
+    canvas.height = 562;
 
     // Create engine instance
     const engine = new GameEngine(canvas, {
@@ -34,14 +35,17 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef,
 
     engineRef.current = engine;
     (window as unknown as { __gameEngine: GameEngine }).__gameEngine = engine;
-    engine.start();
+    let readyFrame=0;
+    const begin=()=>{if(engine.isReady()){engine.start();onReady();}else readyFrame=requestAnimationFrame(begin);};
+    begin();
 
     return () => {
+      cancelAnimationFrame(readyFrame);
       engine.stop();
       engine.unbindEvents();
       engineRef.current = null;
     };
-  }, [callbacksRef, engineRef]);
+  }, [callbacksRef, engineRef, onReady]);
 
   // Handle paused state updates without tearing down the canvas
   useEffect(() => {
@@ -59,7 +63,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef,
       <canvas
         ref={canvasRef}
         data-testid="game-canvas"
-        className="max-w-full max-h-full object-contain aspect-[5/3] shadow-2xl block"
+        className="w-full h-full object-contain block"
+        style={{imageRendering: 'pixelated'}}
       />
     </div>
   );

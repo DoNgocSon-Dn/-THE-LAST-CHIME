@@ -2,20 +2,32 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { INITIAL_PUZZLE_STATE, processInteraction } from './puzzles';
 
-test('Chapter 1 (Trở về): An touches antique clock with broken clock hand to unlock time link', () => {
-  assert.equal(INITIAL_PUZZLE_STATE.hasWatch, false, 'An starts without temporal link unlocked');
-
-  const noteRes = processInteraction('mother_note_ch1', 'PRESENT', INITIAL_PUZZLE_STATE);
-  assert.equal(noteRes.success, true);
-  assert.equal(noteRes.updatedPuzzles.motherNoteCh1Read, true);
-
-  const clockTouch = processInteraction('clock', 'PRESENT', noteRes.updatedPuzzles);
-  assert.equal(clockTouch.success, true);
-  assert.equal(clockTouch.updatedPuzzles.hasWatch, true, 'Touching clock unlocks temporal link');
+test('Chapter 1 teaches interaction and lets An enter the house without a watch or Q',()=>{
+  const note=processInteraction('mother_note_ch1','PRESENT',INITIAL_PUZZLE_STATE);
+  assert.equal(note.updatedPuzzles.motherNoteCh1Read,true);
+  assert.equal(note.updatedPuzzles.hasWatch,false);
+  const door=processInteraction('stage_exit_1','PRESENT',note.updatedPuzzles);
+  assert.equal(door.advanceToStage,2);
+  assert.equal(door.updatedPuzzles.hasWatch,false);
+  assert.equal(door.updatedPuzzles.testedTimelineSwitch,false);
+});
+test('The watch is collected in Chapter 2; an exterior clock or pickup cannot unlock Q',()=>{
+  assert.equal(processInteraction('clock','PRESENT',INITIAL_PUZZLE_STATE).updatedPuzzles.hasWatch,false);
+  assert.equal(processInteraction('pocket_watch_box','PRESENT',INITIAL_PUZZLE_STATE).updatedPuzzles.hasWatch,false);
+  const state={...INITIAL_PUZZLE_STATE,currentStage:2};
+  assert.equal(processInteraction('clock','PRESENT',state).updatedPuzzles.hasWatch,false);
+  const pickup=processInteraction('pocket_watch_box','PRESENT',state);
+  assert.equal(pickup.success,true);
+  assert.equal(pickup.updatedPuzzles.hasWatch,true);
+  assert.equal(pickup.updatedPuzzles.watchCollected,true);
+});
+test('Repairing the grandfather clock requires the actual gear pickup',()=>{
+  const state={...INITIAL_PUZZLE_STATE,currentStage:2,hasWatch:true};
+  assert.equal(processInteraction('clock','PAST',state).updatedPuzzles.clockRepaired,false);
 });
 
 test('Chapter 2 (Chiếc đồng hồ ngừng chạy): repairing clock in Past unlocks hallway door in Present', () => {
-  let state = { ...INITIAL_PUZZLE_STATE, hasWatch: true };
+  let state = { ...INITIAL_PUZZLE_STATE, currentStage:2, hasWatch: true };
 
   // Cannot unlock hallway door in Present before repairing clock in Past
   const prematurePresent = processInteraction('clock', 'PRESENT', state);

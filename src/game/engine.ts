@@ -1,3 +1,5 @@
+import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT } from './entityScale';
+import { GAME_ZOOM, CAMERA_TOP, ROOM_WIDTH, currentPixelRoom } from './pixelLayout';
 import {
   Player,
   Timeline,
@@ -11,6 +13,7 @@ import {
   DialogueLine
 } from '../types/game';
 import {
+  checkAABB,
   updateAndResolvePhysics,
   getActivePlatforms,
   resolveSafeTimelinePosition
@@ -40,7 +43,7 @@ export interface EngineCallbacks {
   onNotification: (msg: string) => void;
 }
 
-const STORAGE_KEY = 'TWO_SIDES_OF_TIME_SAVE_V3';
+const STORAGE_KEY = 'THE_LAST_CHIME_PIXEL_SAVE_V1';
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
@@ -59,11 +62,11 @@ export class GameEngine {
 
   public player: Player = {
     x: 80,
-    y: 436,
+    y: 480-PLAYER_HEIGHT,
     vx: 0,
     vy: 0,
-    width: 22,
-    height: 44,
+    width: PLAYER_WIDTH,
+    height: PLAYER_HEIGHT,
     facing: 'right',
     isGrounded: true,
     state: 'idle',
@@ -82,16 +85,16 @@ export class GameEngine {
     omenActive: false,
     omenTimer: 0,
     x: 20,
-    y: 428,
-    width: 30,
-    height: 48,
+    y: 480-PURSUER_BODY_HEIGHT,
+    width: 40,
+    height: PURSUER_BODY_HEIGHT,
     speed: 132,
     animTimer: 0
   };
 
   public checkpoint: CheckpointData = {
     x: 80,
-    y: 436,
+    y: 480-PLAYER_HEIGHT,
     timeline: 'PRESENT',
     chapter: 1,
     labelVi: 'Màn 1 — Hiên Nhà (Chương 1)'
@@ -106,6 +109,7 @@ export class GameEngine {
     chaseRetries: 0
   };
 
+  private currentPixelRoomId='';
   public cameraX: number = 0;
   public nearbyInteractable: InteractableObject | null = null;
 
@@ -121,7 +125,7 @@ export class GameEngine {
     this.renderer = new GameRenderer();
 
     this.bindEvents();
-    this.loadSave();
+    if(!this.loadSave())this.loadStage(1,false);
   }
 
   private bindEvents() {
@@ -161,6 +165,8 @@ export class GameEngine {
     this.keysPressed.clear();
     this.justPressed.clear();
   };
+
+  public isReady(){return this.renderer.isReady();}
 
   public start() {
     if (this.isRunning) return;
@@ -210,8 +216,10 @@ export class GameEngine {
     this.puzzles.currentStage = cfg.stage;
 
     // Ensure prerequisite abilities are unlocked if jumping directly to later stages
-    if (cfg.stage >= 2) {
+    if(cfg.stage===1){this.puzzles.hasWatch=false;this.puzzles.watchCollected=false;this.puzzles.testedTimelineSwitch=false;}
+    if (cfg.stage >= 3) {
       this.puzzles.hasWatch = true;
+      this.puzzles.watchCollected = true;
       this.puzzles.testedTimelineSwitch = true;
     }
     if (cfg.stage >= 3) {
@@ -238,7 +246,11 @@ export class GameEngine {
     this.player.vx = 0;
     this.player.vy = 0;
     this.player.facing = 'right';
-    this.cameraX = 0;
+    this.player.state = 'idle';
+    this.player.isGrounded = true;
+    this.player.speechBubbleText = '';
+    this.player.speechBubbleTimer = 0;
+    this.cameraX=Math.max(0,Math.min(cfg.width-this.canvas.width/GAME_ZOOM,this.player.x+this.player.width/2-this.canvas.width/GAME_ZOOM/2));
     this.timeline = cfg.defaultTimeline;
     this.switchCooldown = 0;
     this.nearbyInteractable = null;
@@ -250,7 +262,7 @@ export class GameEngine {
       this.puzzles.chaseStarted = true;
       this.pursuer.active = true;
       this.pursuer.x = 25;
-      this.pursuer.y = 428;
+      this.pursuer.y = 480-PURSUER_BODY_HEIGHT;
       this.setPlayerSpeech('Kẻ Lạc Giờ đang đuổi theo! Mau chạy về bên phải và dùng [Q] vượt tường chắn!', 4.5);
     } else {
       this.pursuer.active = false;
@@ -279,36 +291,36 @@ export class GameEngine {
   }
 
   public respawnAtCheckpoint() {
-    this.stats.chaseRetries++;
     const cfg = getStageConfig(this.puzzles.currentStage);
-    this.player.x = cfg.spawnX;
-    this.player.y = cfg.spawnY;
-    this.player.vx = 0;
-    this.player.vy = 0;
-    this.timeline = cfg.defaultTimeline;
+    if(cfg.stage===5)this.stats.chaseRetries++;
+    const point=this.checkpoint.chapter===cfg.stage?this.checkpoint:{x:cfg.spawnX,y:cfg.spawnY,timeline:cfg.defaultTimeline};
+    this.player.x=point.x;
+    this.player.y=point.y;
+    this.player.vx=0;
+    this.player.vy=0;
+    this.timeline=point.timeline;
     this.switchCooldown = 0;
 
     if (cfg.stage === 5) {
       this.pursuer.active = true;
-      this.pursuer.x = 25;
-      this.pursuer.y = 428;
+      this.pursuer.x=Math.max(10,this.player.x-150);
+      this.pursuer.y=this.player.y+2;
     }
 
     soundManager.playDoorUnlock();
     soundManager.setTimeline(this.timeline);
     this.callbacks.onTimelineChange(this.timeline);
     this.callbacks.onCooldownChange(0, 0);
-    this.setPlayerSpeech('Kẻ Lạc Giờ bắt kịp rồi! Thử lại từ đầu Màn 5!', 3.2);
-    this.callbacks.onNotification(
-      'Kẻ Lạc Giờ đã bắt kịp An! Đã hồi sinh nhanh tại đầu ' + cfg.chapterTitleVi
-    );
+    this.setPlayerSpeech('Thử lại từ dấu mốc gần nhất.',2);
+    this.callbacks.onNotification('Đã trở lại dấu mốc: '+this.checkpoint.labelVi);
+    this.callbacks.onRoomChange(getCurrentRoom(this.player.x,cfg.stage));
   }
 
   public switchTimeline() {
     if (!this.puzzles.hasWatch) {
-      this.setPlayerSpeech('Chiếc kim gãy chưa kích hoạt... Mình cần chạm vào Đồng Hồ Cổ trước!', 3.2);
+      this.setPlayerSpeech('Đồng hồ bỏ túi ở trong phòng khách. Mình phải vào nhà trước.', 3.2);
       this.callbacks.onNotification(
-        'Chưa mở khóa chuyển đổi thời gian! Hãy chạm chiếc kim gãy vào Đồng Hồ Cổ ở Màn 1.'
+        'Chưa có đồng hồ. Màn 1: học di chuyển và vào nhà bằng E. Màn 2: nhặt đồng hồ trên bàn cạnh đèn.'
       );
       return;
     }
@@ -426,7 +438,7 @@ export class GameEngine {
       this.pursuer.omenActive = true;
       this.pursuer.omenTimer = 3.5;
       this.pursuer.x = Math.min(stageCfg.width - 90, this.player.x + 130);
-      this.pursuer.y = 428;
+      this.pursuer.y = 480-PURSUER_BODY_HEIGHT;
       soundManager.playTimelineWarp('PRESENT');
     }
 
@@ -550,6 +562,12 @@ export class GameEngine {
       this.player.x = stageCfg.width - this.player.width - 10;
     }
 
+    if(stageCfg.stage===1){
+      let changed=false;
+      if(!this.puzzles.tutorialMoved&&Math.abs(this.player.x-stageCfg.spawnX)>40){this.puzzles.tutorialMoved=true;changed=true;}
+      if(!this.puzzles.tutorialJumped&&prevGrounded&&!this.player.isGrounded&&this.player.vy<0){this.puzzles.tutorialJumped=true;changed=true;}
+      if(changed)this.callbacks.onPuzzleUpdate({...this.puzzles});
+    }
     if (!prevGrounded && this.player.isGrounded && prevVy > 100) {
       soundManager.playLand();
     }
@@ -579,6 +597,15 @@ export class GameEngine {
       this.player.state = 'idle';
     }
 
+    if(this.player.y>640){this.respawnAtCheckpoint();return;}
+    const room=getCurrentRoom(this.player.x,stageCfg.stage);
+    const previousRoom=currentPixelRoom(stageCfg.stage,this.checkpoint.x);
+    const nextRoom=currentPixelRoom(stageCfg.stage,this.player.x);
+    if(this.player.isGrounded&&nextRoom.index>previousRoom.index){
+      this.checkpoint={x:this.player.x,y:this.player.y,timeline:this.timeline,chapter:stageCfg.stage,labelVi:room.nameVi};
+      this.callbacks.onNotification('Dấu mốc mới: '+room.nameVi);this.saveGame();
+    }
+    if(this.currentPixelRoomId!==room.id){this.currentPixelRoomId=room.id;this.callbacks.onRoomChange(room);}
     // 5. Check nearby interactables in current stage
     this.checkNearbyInteractables(stageCfg);
 
@@ -591,8 +618,8 @@ export class GameEngine {
     this.updatePursuerAndStageProgress(dt, stageCfg);
 
     // 8. Camera follow within current stage bounds
-    const targetCamX = this.player.x + this.player.width / 2 - this.canvas.width / 2;
-    const maxCamX = Math.max(0, stageCfg.width - this.canvas.width);
+    const targetCamX = this.player.x + this.player.width / 2 - this.canvas.width / GAME_ZOOM / 2;
+    const maxCamX = Math.max(0, stageCfg.width - this.canvas.width / GAME_ZOOM);
     const clampedCamX = Math.max(0, Math.min(maxCamX, targetCamX));
     this.cameraX += (clampedCamX - this.cameraX) * Math.min(dt * 8, 1);
 
@@ -613,22 +640,21 @@ export class GameEngine {
       if (!this.pursuer.active) {
         this.pursuer.active = true;
         this.pursuer.x = 25;
-        this.pursuer.y = 428;
+        this.pursuer.y = 480-PURSUER_BODY_HEIGHT;
       }
 
       const dir = this.player.x > this.pursuer.x ? 1 : -1;
       this.pursuer.x += dir * this.pursuer.speed * dt;
 
+      this.pursuer.y += (this.player.y+3-this.pursuer.y)*Math.min(2*dt,1);
       // Check collision with An
-      const dx = Math.abs((this.player.x + this.player.width / 2) - (this.pursuer.x + this.pursuer.width / 2));
-      const dy = Math.abs((this.player.y + this.player.height / 2) - (this.pursuer.y + this.pursuer.height / 2));
-      if (dx < 20 && dy < 34) {
+      if (checkAABB(this.player,this.pursuer)) {
         this.respawnAtCheckpoint();
         return;
       }
 
-      // Reaching the Sanctuary Portal at x >= 1340 automatically completes Stage 5 and loads Stage 6!
-      if (this.player.x >= 1340) {
+      // The sanctuary is at the end of all three forest/cave rooms.
+      if (this.player.x >= stageCfg.width - 100) {
         this.pursuer.active = false;
         this.puzzles.chaseCompleted = true;
         soundManager.playChimeSuccess();
@@ -646,6 +672,7 @@ export class GameEngine {
       if (obj.timeline !== 'both' && obj.timeline !== this.timeline) {
         continue;
       }
+      if(obj.id==='pocket_watch_box'&&this.puzzles.hasWatch)continue;
       if (obj.id === 'clock_gear' && this.puzzles.clockGearFound) {
         continue;
       }
@@ -653,7 +680,7 @@ export class GameEngine {
       const dist = Math.abs(pCenter - objCenter);
       const verticalDist = Math.abs((this.player.y + this.player.height / 2) - (obj.y + obj.height / 2));
 
-      if (dist < closestDist && verticalDist < 85) {
+      if (dist < closestDist && verticalDist < (obj.type==='portrait'?170:85)) {
         closestDist = dist;
         closestObj = obj;
       }
@@ -674,11 +701,14 @@ export class GameEngine {
       obj => obj.timeline === 'both' || obj.timeline === this.timeline
     );
 
+    this.ctx.save();
+    this.ctx.scale(GAME_ZOOM, GAME_ZOOM);
+    this.ctx.translate(0, -CAMERA_TOP);
     this.renderer.render(
       this.ctx,
       this.cameraX,
-      this.canvas.width,
-      this.canvas.height,
+      this.canvas.width / GAME_ZOOM,
+      this.canvas.height / GAME_ZOOM,
       this.timeline,
       this.player,
       activePlatforms,
@@ -687,6 +717,7 @@ export class GameEngine {
       this.nearbyInteractable?.id || null,
       this.pursuer
     );
+    this.ctx.restore();
   }
 
   // --- SAVE / LOAD SYSTEM ---
@@ -694,6 +725,8 @@ export class GameEngine {
   public saveGame() {
     try {
       const data = {
+        characterScaleVersion:2,
+        spawnVersion:2,
         player: { x: this.player.x, y: this.player.y },
         timeline: this.timeline,
         puzzles: this.puzzles,
@@ -715,16 +748,22 @@ export class GameEngine {
         this.puzzles = { ...this.puzzles, ...data.puzzles };
       }
       const stageCfg = getStageConfig(this.puzzles.currentStage || 1);
+      if(stageCfg.stage===1||(stageCfg.stage===2&&!this.puzzles.watchCollected)){this.puzzles.hasWatch=false;this.puzzles.testedTimelineSwitch=false;this.timeline='PRESENT';}
       if (data.player && typeof data.player.x === 'number') {
         this.player.x = Math.max(10, Math.min(stageCfg.width - 40, data.player.x));
-        this.player.y = data.player.y >= 50 && data.player.y <= 450 ? data.player.y : 436;
+        const savedY=data.player.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT);
+        this.player.y=savedY>=50&&savedY<=480-PLAYER_HEIGHT?savedY:stageCfg.spawnY;
       }
+      if(stageCfg.stage===1&&data.spawnVersion!==2){this.player.x=stageCfg.spawnX;this.player.y=stageCfg.spawnY;}
+      this.cameraX=Math.max(0,Math.min(stageCfg.width-this.canvas.width/GAME_ZOOM,this.player.x+this.player.width/2-this.canvas.width/GAME_ZOOM/2));
       if (data.timeline) {
         this.timeline = data.timeline;
       }
+      if(!this.puzzles.hasWatch)this.timeline='PRESENT';
       if (data.checkpoint) {
-        this.checkpoint = data.checkpoint;
+        this.checkpoint = {...data.checkpoint,y:data.checkpoint.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT)};
       }
+      if(stageCfg.stage===1&&data.spawnVersion!==2)this.checkpoint={x:stageCfg.spawnX,y:stageCfg.spawnY,timeline:'PRESENT',chapter:1,labelVi:stageCfg.roomNameVi};
       if (data.stats) {
         this.stats = { ...this.stats, ...data.stats };
       }

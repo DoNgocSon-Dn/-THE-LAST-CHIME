@@ -12,7 +12,7 @@ interface NoteModalProps {
 
 export const NoteModal: React.FC<NoteModalProps> = ({ note, onClose }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 select-none">
+    <div className="antique-menu fixed inset-0 z-50 flex items-center justify-center bg-[#11150d]/80 backdrop-blur-xs p-4 select-none">
       <div className="relative max-w-lg w-full bg-[#f6eee3] text-[#2c1d11] rounded-2xl p-7 shadow-2xl border-4 border-[#bcaaa4] font-serif">
         {/* Close Button */}
         <button

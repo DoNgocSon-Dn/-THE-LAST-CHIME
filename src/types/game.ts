@@ -1,10 +1,10 @@
 export type Timeline = 'PAST' | 'PRESENT';
 
-export type GameState = 'title' | 'intro' | 'playing' | 'paused' | 'choice' | 'ending';
+export type GameState = 'title' | 'loading' | 'prologue' | 'playing' | 'paused' | 'choice' | 'ending';
 
 export type EndingType = 'ACCEPT_TRUTH' | 'ETERNAL_MEMORY';
 
-export type SpeakerId = 'AN' | 'ME' | 'LINH' | 'KE_LAC_GIO' | 'HE_THONG';
+export type SpeakerId = 'AN' | 'ME' | 'LINH' | 'KE_LAC_GIO' | 'HE_THONG' | 'ONG';
 
 export type DialogueEmotion = 'normal' | 'sad' | 'surprised' | 'determined' | 'whisper';
 
@@ -17,7 +17,7 @@ export interface DialogueLine {
 
 export interface MemoryNPC {
   id: string;
-  character: 'ME' | 'LINH';
+  character: 'ME' | 'LINH' | 'ONG';
   nameVi: string;
   x: number;
   y: number;
@@ -44,6 +44,7 @@ export interface Platform extends BoundingBox {
   requiresPuzzleSolved?: keyof PuzzleState;
   label?: string;
   color?: string;
+  bakedIntoMap?: boolean;
 }
 
 export type PlayerAction = 'idle' | 'walk' | 'jump' | 'fall' | 'interact' | 'warp';
@@ -107,6 +108,7 @@ export interface InteractableObject extends BoundingBox {
     | 'fireplace'
     | 'portrait'
     | 'bookshelf';
+  bakedIntoMap?: boolean;
   isSolved?: boolean;
   isActive?: boolean;
 }
@@ -117,7 +119,10 @@ export interface PuzzleState {
 
   // Chapter 1 — Trở về (Màn 1)
   motherNoteCh1Read: boolean;
-  hasWatch: boolean;            // Unlocked when An touches the antique clock with the broken clock hand
+  tutorialMoved?: boolean;
+  tutorialJumped?: boolean;
+  watchCollected?: boolean;
+  hasWatch: boolean;            // Collected in Chapter 2, inside the living room
   testedTimelineSwitch: boolean; // Player presses [Q] to test switching between Past & Present
 
   // Chapter 2 — Chiếc đồng hồ ngừng chạy (Màn 2)

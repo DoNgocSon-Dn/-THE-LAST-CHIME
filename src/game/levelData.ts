@@ -1,3 +1,5 @@
+import { configurePixelCampaign } from './pixelCampaign';
+import { currentPixelRoom, ROOM_WIDTH } from './pixelLayout';
 import { Platform, InteractableObject, PuzzleState, MemoryNPC, Timeline } from '../types/game';
 
 export const LEVEL_WIDTH = 1200; // Default stage width (each stage has its own width in StageConfig)
@@ -112,7 +114,6 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
     defaultTimeline: 'PRESENT',
     platforms: [
       ...createStageBoundaryPlatforms(1100),
-      { id: 'porch_roof', x: 0, y: 200, width: 380, height: 22, type: 'solid', timeline: 'both' },
       { id: 'porch_bench', x: 210, y: 446, width: 65, height: 34, type: 'one-way', timeline: 'both' },
       { id: 'foyer_table', x: 445, y: 442, width: 70, height: 38, type: 'one-way', timeline: 'both' }
     ],
@@ -218,7 +219,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
         id: 'family_portrait',
         name: 'Family Portrait',
         nameVi: 'Bức Ảnh Gia Đình (Mẹ, An & Bé Linh)',
-        descriptionVi: 'Bức ảnh chụp Mẹ cùng hai chị em An và Linh trước đêm tai nạn.',
+        descriptionVi: 'Bức ảnh chụp Mẹ cùng hai anh em An và Linh trước đêm tai nạn.',
         timeline: 'both',
         promptVi: 'Ngắm bức ảnh gia đình',
         room: 'stage_2',
@@ -263,7 +264,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
         id: 'clock_gear',
         name: 'Brass Escapement Gear',
         nameVi: 'Bộ Bánh Răng Hồi Cơ Khí',
-        descriptionVi: 'Bộ bánh răng đồng thau Mẹ đặt trên bệ lò sưởi trong Quá Khứ.',
+        descriptionVi: 'Bộ bánh răng đồng thau Mẹ đặt trên bàn sửa đồng hồ trong xưởng trong Quá Khứ.',
         timeline: 'PAST',
         promptVi: 'Nhặt Bộ Bánh Răng Đồng Hồ',
         room: 'stage_2',
@@ -316,7 +317,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
         height: 58,
         timeline: 'PAST',
         stage: 2,
-        ambientQuoteVi: '“Bánh răng dự phòng mẹ để trên lò sưởi...”'
+        ambientQuoteVi: '“Bánh răng dự phòng mẹ để trên bàn sửa đồng hồ trong xưởng...”'
       }
     ]
   },
@@ -430,7 +431,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
         height: 48,
         timeline: 'PAST',
         stage: 3,
-        ambientQuoteVi: '“Chị An ơi... trong mặt kính có ai giống hệt em...”'
+        ambientQuoteVi: '“Anh An ơi... trong mặt kính có ai giống hệt em...”'
       }
     ]
   },
@@ -729,20 +730,23 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
         height: 48,
         timeline: 'both',
         stage: 6,
-        ambientQuoteVi: '“Chị An... cuối cùng chị cũng tìm thấy em rồi...”'
+        ambientQuoteVi: '“Anh An... cuối cùng anh cũng tìm thấy em rồi...”'
       }
     ]
   }
 };
+
+configurePixelCampaign(STAGE_CONFIGS);
 
 export function getStageConfig(stage: number): StageConfig {
   const clamped = Math.max(1, Math.min(6, Math.round(stage || 1)));
   return STAGE_CONFIGS[clamped];
 }
 
-export function getCurrentRoom(_playerX: number, stage: number = 1): RoomZone {
-  const idx = Math.max(0, Math.min(ROOM_ZONES.length - 1, (stage || 1) - 1));
-  return ROOM_ZONES[idx];
+export function getCurrentRoom(playerX:number,stage:number=1):RoomZone {
+  const base=ROOM_ZONES[Math.max(0,Math.min(5,stage-1))];
+  const room=currentPixelRoom(stage,playerX);
+  return {...base,id:`stage_${stage}_room_${room.index}`,nameVi:room.name,minX:room.start,maxX:room.start+ROOM_WIDTH};
 }
 
 export function getActiveChapter(puzzles: PuzzleState, _playerX: number = 0): { num: number; titleVi: string } {

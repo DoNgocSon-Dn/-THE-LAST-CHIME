@@ -1,3 +1,4 @@
+import { OpeningStory } from './components/OpeningStory';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Timeline,
@@ -18,7 +19,8 @@ import { HUD } from './components/HUD';
 import { PauseModal } from './components/PauseModal';
 import { DialogueBox, StageTransitionBanner } from './components/DialogueBox';
 import { EndingModal, FinalChoiceModal } from './components/EndingModal';
-import { IntroStoryModal } from './components/IntroStoryModal';
+import { ClockLoader } from './components/ClockLoader';
+import { preloadGameAssets } from './game/preload';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>('title');
@@ -34,6 +36,24 @@ export default function App() {
   const [selectedEnding, setSelectedEnding] = useState<EndingType>('ACCEPT_TRUTH');
   const [notification, setNotification] = useState<string | null>(null);
   const [hasSave, setHasSave] = useState<boolean>(false);
+  const [assetsReady,setAssetsReady]=useState(false);
+  const [loadProgress,setLoadProgress]=useState(0);
+  const [loadError,setLoadError]=useState<string>();
+  const [enteringGame,setEnteringGame]=useState(false);
+  const [loadingDestination,setLoadingDestination]=useState<'prologue'|'playing'>('prologue');
+  useEffect(()=>{
+    if(gameState!=='loading'||!assetsReady)return;
+    const timer=setTimeout(()=>{setEnteringGame(true);setGameState(loadingDestination);},2200);
+    return()=>clearTimeout(timer);
+  },[gameState,assetsReady,loadingDestination]);
+  const handleGameReady=useCallback(()=>setEnteringGame(false),[]);
+  useEffect(()=>{
+    let disposed=false;
+    preloadGameAssets(value=>{if(!disposed)setLoadProgress(value);}).then(async()=>{
+      if(!disposed)setAssetsReady(true);
+    }).catch(error=>{if(!disposed)setLoadError(error.message);});
+    return()=>{disposed=true;};
+  },[]);
 
   const engineRef = useRef<GameEngine | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
@@ -43,13 +63,12 @@ export default function App() {
   useEffect(() => {
     let mappedState: string = gameState;
     if (gameState === 'ending') mappedState = 'gameover';
-    if (gameState === 'intro') mappedState = 'title';
     document.body.dataset.state = mappedState;
   }, [gameState]);
 
   // Check save data and autostart on mount
   useEffect(() => {
-    const hasData = localStorage.getItem('TWO_SIDES_OF_TIME_SAVE_V3') !== null;
+    const hasData = localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1') !== null;
     setHasSave(hasData);
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -84,6 +103,8 @@ export default function App() {
   }, []);
 
   const handleStageTransition = useCallback((cfg: StageConfig) => {
+    setNotification(null);
+    if(toastTimeoutRef.current)clearTimeout(toastTimeoutRef.current);
     setTransitionStage(cfg);
     if (bannerTimeoutRef.current) clearTimeout(bannerTimeoutRef.current);
     bannerTimeoutRef.current = window.setTimeout(() => {
@@ -151,45 +172,25 @@ export default function App() {
   ]);
 
   const startNewGame = () => {
-    soundManager.init();
-    if (engineRef.current) {
-      engineRef.current.resetGame();
-    }
-    setGameState('intro');
-  };
-
-  const handleIntroComplete = () => {
-    enterGameplayDirectly();
-  };
-
-  const enterGameplayDirectly = () => {
-    soundManager.init();
-    setGameState('playing');
-    if (engineRef.current) {
-      engineRef.current.gameState = 'playing';
-      engineRef.current.start();
-    }
-  };
-
-  const continueGame = () => {
-    soundManager.init();
-    setGameState('playing');
-    window.setTimeout(() => {
-      if (engineRef.current) {
-        engineRef.current.loadSave();
-        engineRef.current.gameState = 'playing';
-        engineRef.current.start();
-      }
-    }, 50);
-  };
-
-  const restartGame = () => {
-    if (engineRef.current) {
-      engineRef.current.resetGame();
-    }
-    setGameState('intro');
+    localStorage.removeItem('THE_LAST_CHIME_PIXEL_SAVE_V1');
+    setHasSave(false);
+    setPuzzles({...INITIAL_PUZZLE_STATE});
+    setTimeline('PRESENT');
     setActiveDialogue(null);
-    setEndingStats(null);
+    soundManager.init();
+    if (engineRef.current) {
+      engineRef.current.resetGame();
+    }
+    setEnteringGame(false);
+    setLoadingDestination('prologue');
+    setGameState('loading');
+  };
+
+  const enterGameplayDirectly=()=>{soundManager.init();setLoadingDestination('playing');setGameState('loading');};
+  const continueGame=()=>{soundManager.init();setLoadingDestination('playing');setGameState('loading');};
+  const restartGame=()=>{setEndingStats(null);startNewGame();};
+  const returnToTitle=()=>{
+    engineRef.current?.saveGame();setHasSave(true);setActiveDialogue(null);setEnteringGame(false);setGameState('title');
   };
 
   const handleSelectStage = (stageNum: number) => {
@@ -245,7 +246,9 @@ export default function App() {
   }, [gameState, activeDialogue]);
 
   return (
-    <div className="relative w-screen h-screen bg-black overflow-hidden flex flex-col items-center justify-center font-sans">
+    <div className="relative w-screen h-[100dvh] bg-[#060e0b] overflow-hidden flex flex-col items-center justify-center font-sans">
+      {(gameState==='loading'||(enteringGame&&gameState==='playing'))&&<ClockLoader progress={gameState==='loading'?loadProgress:undefined} error={loadError} shattering={gameState==='loading'}/>}
+      {gameState==='prologue'&&<OpeningStory onContinue={()=>setGameState('playing')}/>}
       {/* Title Screen */}
       {gameState === 'title' && (
         <TitleScreen
@@ -255,18 +258,15 @@ export default function App() {
         />
       )}
 
-      {/* Intro Narrative Prologue */}
-      {gameState === 'intro' && (
-        <IntroStoryModal onComplete={handleIntroComplete} />
-      )}
-
       {/* Live Gameplay Canvas */}
-      {gameState !== 'title' && gameState !== 'intro' && (
+      {assetsReady && gameState !== 'title' && gameState !== 'loading' && (
         <>
           <GameCanvas
+            onReady={handleGameReady}
             callbacksRef={callbacksRef}
             engineRef={engineRef}
             isPaused={
+              gameState === 'prologue' ||
               gameState === 'paused' ||
               gameState === 'choice' ||
               gameState === 'ending' ||
@@ -308,7 +308,7 @@ export default function App() {
             <PauseModal
               onResume={() => setGameState('playing')}
               onRestart={restartGame}
-              onMainMenu={() => setGameState('title')}
+              onMainMenu={returnToTitle}
             />
           )}
 
