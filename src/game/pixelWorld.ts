@@ -1,6 +1,6 @@
 import { Platform } from '../types/game';
 import { pixelAssets, removeSheetBackground } from './pixelAssets';
-import { CHAPTER_ROOMS, MAP_CROPS, ROOM_WIDTH } from './pixelLayout';
+import { chapterRooms, MAP_CROPS } from './pixelLayout';
 export function removeExteriorMattePixels(d:Uint8ClampedArray){
   for(let i=0;i<d.length;i+=4){
     const lo=Math.min(d[i],d[i+1],d[i+2]),hi=Math.max(d[i],d[i+1],d[i+2]);
@@ -35,16 +35,16 @@ export class PixelWorld {
     const sky=ctx.createLinearGradient(0,180,0,600);
     sky.addColorStop(0,past?'#c5a979':'#152e37');sky.addColorStop(1,past?'#6c7560':'#080f17');
     ctx.fillStyle=sky;ctx.fillRect(camera,0,viewport,600);
-    const rooms=CHAPTER_ROOMS[stage];
+    const rooms=chapterRooms(stage);
     rooms.forEach((room,index)=>{
-      const x=index*ROOM_WIDTH;if(x>camera+viewport||x+ROOM_WIDTH<camera)return;
-      const era=past?'past':'present',crop=MAP_CROPS[room.map][era],image=this.maps.get(`${room.map}-${era}`),scale=ROOM_WIDTH/crop.w;
+      const x=room.start,roomWidth=room.width;if(x>camera+viewport||x+roomWidth<camera)return;
+      const era=past?'past':'present',crop=MAP_CROPS[room.map][era],image=this.maps.get(`${room.map}-${era}`),scale=roomWidth/crop.w;
       if(image){
         const y=480-(crop.floor-crop.y)*scale;
-        ctx.drawImage(image,x,y,ROOM_WIDTH,crop.h*scale);
+        ctx.drawImage(image,x,y,roomWidth,crop.h*scale);
         // Extend the soil beneath each painted floor without adding a second grass strip.
         const bottom=y+crop.h*scale;
-        ctx.fillStyle=past?'#292b23':'#0c171b';ctx.fillRect(x,bottom,ROOM_WIDTH,Math.max(0,600-bottom));
+        ctx.fillStyle=past?'#292b23':'#0c171b';ctx.fillRect(x,bottom,roomWidth,Math.max(0,600-bottom));
       }
       if(index>0){ctx.fillStyle=past?'#3c3226':'#142023';ctx.fillRect(x-2,210,4,270);}
     });

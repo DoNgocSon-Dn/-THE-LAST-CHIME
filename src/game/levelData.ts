@@ -1,5 +1,6 @@
+import { normalizeSceneScales } from './sceneScale';
 import { configurePixelCampaign } from './pixelCampaign';
-import { currentPixelRoom, ROOM_WIDTH } from './pixelLayout';
+import { currentPixelRoom } from './pixelLayout';
 import { Platform, InteractableObject, PuzzleState, MemoryNPC, Timeline } from '../types/game';
 
 export const LEVEL_WIDTH = 1200; // Default stage width (each stage has its own width in StageConfig)
@@ -737,6 +738,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
 };
 
 configurePixelCampaign(STAGE_CONFIGS);
+normalizeSceneScales(STAGE_CONFIGS);
 
 export function getStageConfig(stage: number): StageConfig {
   const clamped = Math.max(1, Math.min(6, Math.round(stage || 1)));
@@ -746,7 +748,7 @@ export function getStageConfig(stage: number): StageConfig {
 export function getCurrentRoom(playerX:number,stage:number=1):RoomZone {
   const base=ROOM_ZONES[Math.max(0,Math.min(5,stage-1))];
   const room=currentPixelRoom(stage,playerX);
-  return {...base,id:`stage_${stage}_room_${room.index}`,nameVi:room.name,minX:room.start,maxX:room.start+ROOM_WIDTH};
+  return {...base,id:`stage_${stage}_room_${room.index}`,nameVi:room.name,minX:room.start,maxX:room.start+room.width};
 }
 
 export function getActiveChapter(puzzles: PuzzleState, _playerX: number = 0): { num: number; titleVi: string } {

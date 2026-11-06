@@ -65,7 +65,7 @@ Các cửa và đồng hồ đã vẽ trong map chỉ có vùng tương tác, kh
 ## Xác minh
 
 - TypeScript và production build đạt.
-- 18 bài kiểm tra đạt: vật lý, chuỗi câu đố, đủ 13 map, vị trí tương tác/spawn và giới hạn nhảy của tuyến hang/tâm điểm.
+- 19 bài kiểm tra đạt: vật lý, chuỗi câu đố, đủ 13 map, vị trí tương tác/spawn và giới hạn nhảy của tuyến hang/tâm điểm.
 - Edge headless: đi, nhảy, màn 1 vào nhà không cần Q; màn 2 nhặt đồng hồ bỏ túi rồi mới dùng Q, chuyển thời gian, tên khu và checkpoint, rơi/hồi sinh, cuộc truy đuổi không kết thúc sớm tại mốc cũ, bắt đầu lại về chương 1.
 - Đã xem ảnh chụp menu, hiên nhà, phòng khách ở hai thời điểm, xưởng, phòng Linh, hang và tâm điểm. Không có page error hoặc ảnh 404 trong lượt kiểm tra.
 - Chưa chơi thủ công trọn cả hai kết thúc trong bản đồ mới. Một số chuỗi dùng ít khung vì sheet nguồn là ảnh tổng hợp JPG; ảnh nền đã chứa sẵn nhiều đồ nội thất nên không phải đồ vật nào trong nền cũng tương tác được.
@@ -75,3 +75,9 @@ Nguồn: bộ ảnh người dùng cung cấp. Thông tin giấy phép/tác gi�
 ## Triển khai
 
 Ứng dụng Vite tĩnh, build bằng `npm run build`, thư mục đầu ra `dist`, dùng Node.js 24. Vercel đọc cấu hình trong `vercel.json`. Không cần API key hoặc biến môi trường để chơi.
+
+### Tỉ lệ và viền sprite
+
+Các map nội thất (2–6 và 9) dùng chiều rộng phòng 800 đơn vị; cảnh ngoài trời dùng 1200. Map, bệ, cửa và điểm tương tác được chuyển cùng một phép biến đổi theo đường chân sàn. Thân An vẫn cao 84 ở mọi cảnh; camera chuyển độ phóng mượt khi qua cửa. Bản lưu cũ được chuyển tọa độ sang phòng tương ứng, không mất tiến độ.
+
+Importer nhân vật lọc cả nền xám sáng do nén JPG, nối vùng nền theo tám hướng và loại các mảnh nhiễu rời. Màu áo, da và điểm sáng bên trong thân được giữ. Đã kiểm tra sprite phóng lớn và đếm pixel viền trung tính sáng còn thừa: 0 ở khung An được kiểm tra.

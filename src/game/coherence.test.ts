@@ -1,3 +1,4 @@
+import {chapterRooms,currentPixelRoom,legacyScenePoint} from './pixelLayout';
 import {PLAYER_HEIGHT, ADULT_HEIGHT, CHILD_HEIGHT} from './entityScale';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -31,4 +32,15 @@ test('Actor art, collision spawns and adult/child proportions share a world scal
   assert.ok(cfg.platforms.some(p=>cfg.spawnX>=p.x&&cfg.spawnX<=p.x+p.width&&Math.abs(cfg.spawnY+PLAYER_HEIGHT-p.y)<1));
   for(const npc of cfg.memoryNPCs)assert.ok(npc.character==='LINH'?npc.height<PLAYER_HEIGHT:Math.abs(npc.height-PLAYER_HEIGHT)<=2);
  }
+});
+
+test('Old save positions retain the same room and floor after source-map scale calibration',()=>{
+ for(let stage=1;stage<=6;stage++)for(const room of chapterRooms(stage)){
+  const point=legacyScenePoint(stage,room.index*1200+600,480);
+  assert.equal(currentPixelRoom(stage,point.x).map,room.map);
+  assert.equal(point.y,480);
+  assert.ok(point.x>=room.start&&point.x<=room.start+room.width);
+ }
+ assert.equal(STAGE_CONFIGS[2].width,2400);
+ assert.equal(STAGE_CONFIGS[1].width,1200);
 });

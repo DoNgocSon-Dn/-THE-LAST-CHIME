@@ -1,5 +1,5 @@
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT } from './entityScale';
-import { GAME_ZOOM, CAMERA_TOP, ROOM_WIDTH, currentPixelRoom } from './pixelLayout';
+import { GAME_ZOOM, currentPixelRoom, sceneZoom, legacyScenePoint } from './pixelLayout';
 import {
   Player,
   Timeline,
@@ -110,6 +110,7 @@ export class GameEngine {
   };
 
   private currentPixelRoomId='';
+  private viewZoom=GAME_ZOOM;
   public cameraX: number = 0;
   public nearbyInteractable: InteractableObject | null = null;
 
@@ -250,7 +251,8 @@ export class GameEngine {
     this.player.isGrounded = true;
     this.player.speechBubbleText = '';
     this.player.speechBubbleTimer = 0;
-    this.cameraX=Math.max(0,Math.min(cfg.width-this.canvas.width/GAME_ZOOM,this.player.x+this.player.width/2-this.canvas.width/GAME_ZOOM/2));
+    this.viewZoom=sceneZoom(cfg.stage,this.player.x);
+    this.cameraX=Math.max(0,Math.min(cfg.width-this.canvas.width/this.viewZoom,this.player.x+this.player.width/2-this.canvas.width/this.viewZoom/2));
     this.timeline = cfg.defaultTimeline;
     this.switchCooldown = 0;
     this.nearbyInteractable = null;
@@ -618,8 +620,9 @@ export class GameEngine {
     this.updatePursuerAndStageProgress(dt, stageCfg);
 
     // 8. Camera follow within current stage bounds
-    const targetCamX = this.player.x + this.player.width / 2 - this.canvas.width / GAME_ZOOM / 2;
-    const maxCamX = Math.max(0, stageCfg.width - this.canvas.width / GAME_ZOOM);
+    this.viewZoom+=(sceneZoom(stageCfg.stage,this.player.x)-this.viewZoom)*Math.min(dt*6,1);
+    const targetCamX = this.player.x + this.player.width / 2 - this.canvas.width / this.viewZoom / 2;
+    const maxCamX = Math.max(0, stageCfg.width - this.canvas.width / this.viewZoom);
     const clampedCamX = Math.max(0, Math.min(maxCamX, targetCamX));
     this.cameraX += (clampedCamX - this.cameraX) * Math.min(dt * 8, 1);
 
@@ -702,13 +705,13 @@ export class GameEngine {
     );
 
     this.ctx.save();
-    this.ctx.scale(GAME_ZOOM, GAME_ZOOM);
-    this.ctx.translate(0, -CAMERA_TOP);
+    this.ctx.scale(this.viewZoom, this.viewZoom);
+    this.ctx.translate(0,-Math.min(480-470.25/this.viewZoom,this.player.y-45));
     this.renderer.render(
       this.ctx,
       this.cameraX,
-      this.canvas.width / GAME_ZOOM,
-      this.canvas.height / GAME_ZOOM,
+      this.canvas.width / this.viewZoom,
+      this.canvas.height / this.viewZoom,
       this.timeline,
       this.player,
       activePlatforms,
@@ -727,6 +730,7 @@ export class GameEngine {
       const data = {
         characterScaleVersion:2,
         spawnVersion:2,
+        sceneScaleVersion:2,
         player: { x: this.player.x, y: this.player.y },
         timeline: this.timeline,
         puzzles: this.puzzles,
@@ -750,18 +754,22 @@ export class GameEngine {
       const stageCfg = getStageConfig(this.puzzles.currentStage || 1);
       if(stageCfg.stage===1||(stageCfg.stage===2&&!this.puzzles.watchCollected)){this.puzzles.hasWatch=false;this.puzzles.testedTimelineSwitch=false;this.timeline='PRESENT';}
       if (data.player && typeof data.player.x === 'number') {
-        this.player.x = Math.max(10, Math.min(stageCfg.width - 40, data.player.x));
         const savedY=data.player.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT);
-        this.player.y=savedY>=50&&savedY<=480-PLAYER_HEIGHT?savedY:stageCfg.spawnY;
+        const point=data.sceneScaleVersion===2?{x:data.player.x,y:savedY+PLAYER_HEIGHT}:legacyScenePoint(stageCfg.stage,data.player.x,savedY+PLAYER_HEIGHT);
+        this.player.x=Math.max(10,Math.min(stageCfg.width-40,point.x));
+        this.player.y=point.y-PLAYER_HEIGHT>=50&&point.y<=480?point.y-PLAYER_HEIGHT:stageCfg.spawnY;
       }
       if(stageCfg.stage===1&&data.spawnVersion!==2){this.player.x=stageCfg.spawnX;this.player.y=stageCfg.spawnY;}
-      this.cameraX=Math.max(0,Math.min(stageCfg.width-this.canvas.width/GAME_ZOOM,this.player.x+this.player.width/2-this.canvas.width/GAME_ZOOM/2));
+      this.viewZoom=sceneZoom(stageCfg.stage,this.player.x);
+      this.cameraX=Math.max(0,Math.min(stageCfg.width-this.canvas.width/this.viewZoom,this.player.x+this.player.width/2-this.canvas.width/this.viewZoom/2));
       if (data.timeline) {
         this.timeline = data.timeline;
       }
       if(!this.puzzles.hasWatch)this.timeline='PRESENT';
       if (data.checkpoint) {
-        this.checkpoint = {...data.checkpoint,y:data.checkpoint.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT)};
+        const oldY=data.checkpoint.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT);
+        const point=data.sceneScaleVersion===2?{x:data.checkpoint.x,y:oldY+PLAYER_HEIGHT}:legacyScenePoint(data.checkpoint.chapter,data.checkpoint.x,oldY+PLAYER_HEIGHT);
+        this.checkpoint={...data.checkpoint,x:point.x,y:point.y-PLAYER_HEIGHT};
       }
       if(stageCfg.stage===1&&data.spawnVersion!==2)this.checkpoint={x:stageCfg.spawnX,y:stageCfg.spawnY,timeline:'PRESENT',chapter:1,labelVi:stageCfg.roomNameVi};
       if (data.stats) {

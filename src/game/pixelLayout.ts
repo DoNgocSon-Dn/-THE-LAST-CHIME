@@ -27,8 +27,20 @@ export const MAP_CROPS:Record<number,{past:MapCrop;present:MapCrop}>={
   12:{past:rect(0,44,1600,596,550),present:rect(0,44,1600,596,550)},
   13:{past:rect(0,42,1600,565,520),present:rect(0,42,1600,565,520)},
 };
-export function currentPixelRoom(stage:number,x:number){
-  const rooms=CHAPTER_ROOMS[stage]||CHAPTER_ROOMS[1];
-  const index=Math.max(0,Math.min(rooms.length-1,Math.floor(x/ROOM_WIDTH)));
-  return {...rooms[index],index,start:index*ROOM_WIDTH};
+const INTERIOR_MAPS=new Set([2,3,4,5,6,9]);
+export function chapterRooms(stage:number){
+  let start=0;
+  return (CHAPTER_ROOMS[stage]||CHAPTER_ROOMS[1]).map((room,index)=>{
+    const width=INTERIOR_MAPS.has(room.map)?800:ROOM_WIDTH;
+    const result={...room,index,start,width};start+=width;return result;
+  });
 }
+export function currentPixelRoom(stage:number,x:number){
+  const rooms=chapterRooms(stage);return rooms.find(room=>x<room.start+room.width)||rooms[rooms.length-1];
+}
+export function legacyScenePoint(stage:number,x:number,y:number){
+  const rooms=chapterRooms(stage),index=Math.max(0,Math.min(rooms.length-1,Math.floor(x/ROOM_WIDTH)));
+  const room=rooms[index],scale=room.width/ROOM_WIDTH;
+  return {x:room.start+(x-index*ROOM_WIDTH)*scale,y:480+(y-480)*scale,scale};
+}
+export function sceneZoom(stage:number,x:number){return INTERIOR_MAPS.has(currentPixelRoom(stage,x).map)?2.15:GAME_ZOOM;}

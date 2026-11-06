@@ -47,17 +47,34 @@ for(let i=0;i<6;i++)cuts[`lostAction${i}`]=['memories',i%3*298,548+Math.floor(i/
 /** Deterministic import of JPG sprite sheets: remove only border-connected white.
  * Enclosed highlights (eyes, paper, clothing) retain their original pixels.
  */
-export function removeSheetBackground(canvas:HTMLCanvasElement,trim=true):HTMLCanvasElement{
+export function removeSheetBackground(canvas:HTMLCanvasElement,trim=true,character=false):HTMLCanvasElement{
   const ctx=canvas.getContext('2d',{willReadFrequently:true})!;
   const {width:w,height:h}=canvas;const pixels=ctx.getImageData(0,0,w,h);const d=pixels.data;
   const seen=new Uint8Array(w*h),queue=new Int32Array(w*h);let head=0,tail=0;
   const push=(p:number)=>{
     if(p<0||p>=w*h||seen[p])return;seen[p]=1;
     const j=p*4,r=d[j],g=d[j+1],b=d[j+2];
-    if(Math.min(r,g,b)>220&&Math.max(r,g,b)-Math.min(r,g,b)<32){queue[tail++]=p;d[j+3]=0;}
+    if(Math.min(r,g,b)>(character?140:220)&&Math.max(r,g,b)-Math.min(r,g,b)<(character?48:32)){queue[tail++]=p;d[j+3]=0;}
   };
   for(let x=0;x<w;x++){push(x);push((h-1)*w+x);}for(let y=0;y<h;y++){push(y*w);push(y*w+w-1);}
-  while(head<tail){const p=queue[head++];if(p%w)push(p-1);if(p%w<w-1)push(p+1);if(p>=w)push(p-w);if(p<w*(h-1))push(p+w);}
+  while(head<tail){const p=queue[head++];if(p%w)push(p-1);if(p%w<w-1)push(p+1);if(p>=w)push(p-w);if(p<w*(h-1))push(p+w);if(character){if(p%w&&p>=w)push(p-w-1);if(p%w<w-1&&p>=w)push(p-w+1);if(p%w&&p<w*(h-1))push(p+w-1);if(p%w<w-1&&p<w*(h-1))push(p+w+1);}}
+  if(character){
+    // Remove disconnected JPEG flecks, while retaining all interior skin/eye highlights.
+    const visited=new Uint8Array(w*h);let largest:number[]=[];
+    for(let seed=0;seed<w*h;seed++)if(d[seed*4+3]&&!visited[seed]){
+      const component:number[]=[seed];visited[seed]=1;
+      for(let k=0;k<component.length;k++){
+        const at=component[k],x=at%w,y=Math.floor(at/w);
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+          const nx=x+dx,ny=y+dy;if(nx<0||nx>=w||ny<0||ny>=h)continue;
+          const next=ny*w+nx;if(!visited[next]&&d[next*4+3]){visited[next]=1;component.push(next);}
+        }
+      }
+      if(component.length>largest.length)largest=component;
+    }
+    const keep=new Uint8Array(w*h);for(const at of largest)keep[at]=1;
+    for(let at=0;at<w*h;at++)if(!keep[at])d[at*4+3]=0;
+  }
   ctx.putImageData(pixels,0,0);
   if(!trim)return canvas;
   let left=w,right=-1,top=h,bottom=-1;
@@ -75,7 +92,8 @@ export class PixelAssets{
         for(const [key,[sheet,x,y,w,h]]of Object.entries(cuts))if(sheet===name){
           const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
           canvas.getContext('2d')!.drawImage(img,x,y,w,h,0,0,w,h);
-          this.sprites.set(key,removeSheetBackground(canvas));
+          const character=/^(an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d)/.test(key);
+          this.sprites.set(key,removeSheetBackground(canvas,true,character));
         }
       };img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.jpg`;
     }
