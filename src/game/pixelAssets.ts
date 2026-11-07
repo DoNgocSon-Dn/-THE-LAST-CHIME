@@ -114,6 +114,15 @@ export class PixelAssets{
     if(obj.bakedIntoMap||obj.type==='npc_memory'||obj.id==='light_target')return true;
     if(obj.id==='pocket_watch_box'&&puzzles.hasWatch)return true;
     if(obj.id==='clock_gear'&&puzzles.clockGearFound)return true;
+    if(obj.id==='mother_note_ch1'){
+      if(puzzles.motherNoteCh1Read)return true;
+      const sprite=this.get('letter');if(!sprite)return false;
+      ctx.save();ctx.imageSmoothingEnabled=false;
+      ctx.translate(Math.round(obj.x+obj.width/2),Math.round(obj.y+obj.height-2));
+      ctx.fillStyle='rgba(9,17,14,.4)';ctx.fillRect(-5,0,11,2);
+      ctx.transform(1,-.12,.45,.35,0,0);ctx.globalAlpha=.82;
+      ctx.drawImage(sprite,-5,-9,10,9);ctx.restore();return true;
+    }
     if(obj.id==='clock'&&puzzles.currentStage===2)return true; // clock is already painted into map 2
     if(obj.id.startsWith('stage_exit')||obj.id==='final_door')key=past?'doorPast':'doorPresent';
     const keys:Record<string,string>={clock:past?'clockPast':'clockPresent',pocket_watch_box:'watch',clock_gear:'gear',family_portrait:past?'familyPast':'familyPresent',fireplace:past?'benchPast':'benchPresent',hallway_pulley:'gear',light_switch:'key',mother_note_ch4:'book',music_box:'box',entrance_journal:'letter',mother_note_ch1:'letter',mother_diary_ch3:'diary',final_diary_ch6:'diary',temporal_anchor:'seal',final_core:'portal'};

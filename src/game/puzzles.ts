@@ -98,21 +98,23 @@ export function processInteraction(
     }
 
     case 'mother_note_ch1': {
+      if(nextPuzzles.motherNoteCh1Read)return {success:false,messageVi:'An đã cất mẩu giấy vào túi.',updatedPuzzles:nextPuzzles};
       nextPuzzles.motherNoteCh1Read=true;
-      return {success:true,messageVi:'Đã đọc lời nhắn trên ghế. Đi tới cửa chính và nhấn E để vào nhà.',soundEvent:'paper_rustle',updatedPuzzles:nextPuzzles,dialogue:[
-        {speaker:'AN',speakerName:'An',emotion:'normal',text:'Lời nhắn của Mẹ còn kẹp trên ghế: “Đồng hồ của Ông Ngoại mẹ để trên bàn cạnh đèn trong phòng khách.”'},
-        {speaker:'AN',speakerName:'An',emotion:'determined',text:'Mình có thể dùng A/D hoặc mũi tên để đi, Space để nhảy và E để tương tác. Đến cửa chính, nhấn E để vào nhà trước đã.'}
+      return {success:true,messageVi:'Đã nhặt mẩu giấy cũ.',soundEvent:'paper_rustle',updatedPuzzles:nextPuzzles,dialogue:[
+        {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Có gì kẹt dưới thanh ghế này... Một mẩu giấy?'},
+        {speaker:'AN',speakerName:'An',emotion:'sad',text:'“An, vào nhà thì cất đồng hồ của ông giúp mẹ nhé. Mẹ để cạnh đèn phòng khách.” ...Chữ của mẹ.'},
+        {speaker:'AN',speakerName:'An',emotion:'normal',text:'Ngày ấy mình có đọc được không nhỉ...'}
       ]};
     }
 
     case 'pocket_watch_box': {
-      if(nextPuzzles.currentStage!==2)return {success:false,messageVi:'Đồng hồ nằm trong phòng khách. Hãy vào nhà trước.',updatedPuzzles:nextPuzzles};
+      if(nextPuzzles.currentStage!==2)return {success:false,messageVi:'An chưa vào phòng khách.',updatedPuzzles:nextPuzzles};
       if(nextPuzzles.hasWatch)return {success:false,messageVi:'An đã giữ chiếc đồng hồ.',updatedPuzzles:nextPuzzles};
       nextPuzzles.hasWatch=true;nextPuzzles.watchCollected=true;
-      return {success:true,messageVi:'Đã nhặt đồng hồ bỏ túi. Nhấn Q để chuyển thời gian.',soundEvent:'chime_success',updatedPuzzles:nextPuzzles,dialogue:[
-        {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Chiếc đồng hồ bỏ túi của Ông Ngoại vẫn ở trên bàn cạnh đèn. Chiếc kim gãy trong thư vừa khớp vào rãnh trên nắp...'},
-        {speaker:'ME',speakerName:'Lời nhắn của Mẹ',emotion:'whisper',text:'Đồng hồ là vật dẫn. Nhấn Q để đi giữa ngôi nhà hiện tại và ký ức quá khứ. Sau mỗi lần chuyển, hãy chờ ba giây để chiếc kim hồi năng lượng.'},
-        {speaker:'AN',speakerName:'An',emotion:'determined',text:'Mình sẽ thử Q ngay trong phòng khách. Chỉ những vật cộng hưởng mới giữ được thay đổi giữa hai thời điểm. Sau đó tìm bánh răng ở xưởng để sửa đồng hồ lớn.'}
+      return {success:true,messageVi:'Đã nhặt đồng hồ bỏ túi. Nhấn Q để thử chiếc kim.',soundEvent:'chime_success',updatedPuzzles:nextPuzzles,dialogue:[
+        {speaker:'AN',speakerName:'An',emotion:'normal',text:'Đồng hồ của ông... Vẫn còn ở đây.'},
+        {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Rãnh này vừa với chiếc kim trong phong thư. Thử đặt vào xem...'},
+        {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Nó chạy rồi? Khoan... tiếng ai trong nhà vậy?'}
       ]};
     }
     case 'clock': {
@@ -122,7 +124,7 @@ export function processInteraction(
         nextPuzzles.hasWatch = true;
         nextPuzzles.testedTimelineSwitch = true;
 
-        if (!nextPuzzles.clockGearFound)return {success:false,messageVi:'Cần lấy bánh răng dự phòng trong xưởng của Mẹ trước khi sửa.',updatedPuzzles:nextPuzzles};
+        if (!nextPuzzles.clockGearFound)return {success:false,messageVi:'Trong bộ máy có một chỗ trống. Hình như thiếu một bánh răng.',updatedPuzzles:nextPuzzles};
         if (!nextPuzzles.clockRepaired) {
           nextPuzzles.clockRepaired = true;
           nextPuzzles.clockGearFound = true;
@@ -137,13 +139,13 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'determined',
-                text: 'Khớp vừa khít! Mình đã lắp bộ bánh răng đồng thau vào trục chính và lên dây cót cho con lắc trong Quá Khứ.'
+                text: 'Vừa rồi... Con lắc chạy lại rồi.'
               },
               {
                 speaker: 'ME',
                 speakerName: 'Ký Ức Của Mẹ',
                 emotion: 'normal',
-                text: '“Những gì được sửa chữa ở Quá Khứ sẽ lưu giữ động năng sang tận Hiện Tại. Con hãy quay về Hiện Tại [Q] và kiểm tra đồng hồ để mở chốt cửa hành lang nhé.”'
+                text: '“Nghe tiếng máy là biết ngay con ạ. Đều thế này mới đúng.”'
               }
             ],
             showNote: {
@@ -177,13 +179,13 @@ export function processInteraction(
                   speaker: 'AN',
                   speakerName: 'An',
                   emotion: 'surprised',
-                  text: 'Kỳ diệu thật... Dù đã trôi qua mười năm, con lắc ở Hiện Tại vẫn đang nhịp nhàng đung đưa nhờ lần sửa chữa trong Quá Khứ!'
+                  text: 'Nó vẫn chạy... Nhưng vừa nãy ở đây còn hỏng mà.'
                 },
                 {
                   speaker: 'AN',
                   speakerName: 'An',
                   emotion: 'determined',
-                  text: 'Dây cáp cơ khí nối từ chân đồng hồ đã rút chốt sắt bên phải. Mình có thể bước qua cánh cửa để sang Màn 3: Hành Lang Ký Ức rồi!'
+                  text: 'Có tiếng chốt cửa bật ra trong hành lang.'
                 }
               ],
               showNote: {
@@ -211,13 +213,13 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'sad',
-                text: 'Mặt kính đồng hồ ở Hiện Tại vỡ nát, hai chiếc kim kẹt cứng ở đúng 3 giờ 15 phút — thời khắc bé Linh biến mất.'
+                text: 'Ba giờ mười lăm... Nó vẫn dừng đúng lúc ấy.'
               },
               {
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'determined',
-                text: 'Ở Hiện Tại bánh răng đã mục nát hết rồi. Mình phải nhấn [Q] trở về QUÁ KHỨ, tìm bộ bánh răng dự phòng trên bàn sửa đồng hồ trong xưởng và sửa chiếc đồng hồ lúc nó còn nguyên vẹn!'
+                text: 'Bên trong rỉ hết rồi. Không biết trước kia bộ máy trông thế nào...'
               }
             ]
           };
@@ -251,19 +253,19 @@ export function processInteraction(
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'sad',
-            text: 'Mẹ...! Hình bóng của Mẹ đang cặm cụi ghi chép bên chiếc đồng hồ... Dù chỉ là dư ảnh của Quá Khứ, tim mình vẫn nhói lên khi nhìn thấy Mẹ.'
+            text: 'Mẹ...? Mẹ có nghe con không?'
           },
           {
             speaker: 'ME',
             speakerName: 'Ký Ức Của Mẹ',
             emotion: 'normal',
-            text: '“Bộ bánh răng hồi bằng đồng thau mình cất tạm trên BÀN SỬA ĐỒNG HỒ trong xưởng... Phải lắp nó vào đồng hồ trước khi con lắc lệch nhịp hoàn toàn.”'
+            text: '“Lại thiếu mất một bánh răng... Mình còn để cái dự phòng trên bàn trong xưởng.”'
           },
           {
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'determined',
-            text: 'Đi qua phòng ăn là tới xưởng! Mình cần tìm Bộ Bánh Răng trên bàn và lắp vào chiếc đồng hồ giúp Mẹ!'
+            text: 'Mẹ không nghe thấy mình... Cứ như chuyện này đang diễn ra lại vậy.'
           }
         ]
       };
@@ -283,7 +285,7 @@ export function processInteraction(
               speaker: 'AN',
               speakerName: 'An',
               emotion: 'determined',
-              text: 'Tìm thấy rồi! Bộ bánh răng đồng thau của Ông Ngoại vẫn còn sáng bóng. Giờ hãy quay lại chiếc Đồng Hồ Cổ ở giữa phòng để lắp nó vào!'
+              text: 'Cái này cùng cỡ với chỗ trống trong đồng hồ. May mà vẫn còn.'
             }
           ]
         };
@@ -332,13 +334,13 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'determined',
-                text: 'Kẽo kẹt...! Mình đã kéo căng dây cáp thép trên gác lửng, cố định chắc chắn thanh dầm gỗ trần nhà trong Quá Khứ!'
+                text: 'Nặng quá... Được rồi. Sợi cáp này giữ được thanh dầm.'
               },
               {
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'normal',
-                text: 'Khi trần nhà được gia cố từ mười năm trước, nó sẽ không còn bị sập ở Hiện Tại nữa. Đống đổ nát chắn ngang bên dưới đã biến mất rồi!'
+                text: 'Nếu giữ nó lại từ lúc này... Có khi lối bên dưới sẽ không bị sập.'
               }
             ],
             showNote: {
@@ -396,7 +398,7 @@ export function processInteraction(
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'surprised',
-            text: 'Cái bóng đen có những chiếc kim đồng hồ xoay quanh vừa thoáng hiện ra ở cuối hành lang là gì vậy?! Mình phải mau chóng qua cánh cửa bên phải để sang Màn 4!'
+            text: 'Ai ở đó...? Giọng vừa rồi... giống Linh quá.'
           }
         ],
         showNote: {
@@ -607,7 +609,7 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'surprised',
-                text: 'Không khí ở Hiện Tại chợt lạnh buốt — Kẻ Lạc Giờ đã nghe thấy tiếng hộp nhạc! Hãy nhấn [Q] chuyển sang HIỆN TẠI và mở Cánh Cửa Bị Khóa để tiến vào Màn 5!'
+                text: 'Tiếng bước chân ấy lại tới rồi. Mình phải đi thôi.'
               }
             ],
             showNote: {
@@ -715,7 +717,7 @@ export function processInteraction(
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'determined',
-            text: 'Linh ơi... Anh hiểu rồi. Anh phải ngắt cỗ máy, không thể cứu em bằng cách lặp lại tai nạn. Hãy chuyển sang QUÁ KHỨ [Q] đồng bộ Trụ Cộng Hưởng ở giữa phòng, rồi bước tới Lõi Đồng Hồ để giải cứu Linh!'
+            text: 'Linh... Anh nghe thấy rồi. Anh sẽ dừng cỗ máy. Em không phải chờ ở đây nữa.'
           }
         ],
         showNote: {
@@ -764,7 +766,7 @@ export function processInteraction(
               speaker: 'AN',
               speakerName: 'An',
               emotion: 'determined',
-              text: 'Trụ Cộng Hưởng đã kết nối hoàn toàn tần số giữa Quá Khứ và Hiện Tại! Lõi Đồng Hồ Giao Thời ở bục cao bên phải đã sẵn sàng!'
+              text: 'Tiếng ù ngừng rồi. Ánh sáng từ trụ đang dẫn về phía lõi.'
             }
           ],
           showNote: {
@@ -868,7 +870,7 @@ export function processInteraction(
               speaker: 'AN',
               speakerName: 'An',
               emotion: 'sad',
-              text: 'Mặt kính khung ảnh ở Hiện Tại đã nứt toác đúng vị trí của Mẹ và bé Linh... Hãy chuyển sang Quá Khứ [Q] nếu muốn ngắm lại bức ảnh lúc còn nguyên vẹn.'
+              text: 'Kính vỡ hết rồi... Chỉ còn nhìn rõ mặt mình.'
             }
           ]
         };

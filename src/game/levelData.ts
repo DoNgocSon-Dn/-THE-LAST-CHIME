@@ -137,10 +137,10 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
       {
         id: 'mother_note_ch1',
         name: "Mother's Faded Note",
-        nameVi: 'Mảnh Ghi Chú Của Mẹ',
-        descriptionVi: 'Mảnh giấy của Mẹ để lại trên bàn sảnh.',
+        nameVi: 'Mẩu giấy cũ',
+        descriptionVi: 'Một góc giấy mắc dưới thanh ghế.',
         timeline: 'both',
-        promptVi: 'Đọc lời nhắn của Mẹ',
+        promptVi: 'Nhặt mẩu giấy',
         room: 'stage_1',
         chapter: 1,
         type: 'journal_entry',

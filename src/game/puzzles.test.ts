@@ -122,3 +122,16 @@ test('Chapters 4 to 6: Study room puzzle, Chase door unlock, and Chapter 6 Final
   assert.equal(coreRes.success, true);
   assert.equal(coreRes.triggerFinalChoice, true, 'Interacting with aligned core triggers Final Choice modal');
 });
+
+test('Discoveries do not reveal their author or puzzle solution before inspection',()=>{
+  const note=processInteraction('mother_note_ch1','PRESENT',INITIAL_PUZZLE_STATE);
+  assert.match(note.dialogue![0].text,/Một mẩu giấy/);
+  const repeated=processInteraction('mother_note_ch1','PRESENT',note.updatedPuzzles);
+  assert.equal(repeated.dialogue,undefined);
+  const watch=processInteraction('pocket_watch_box','PRESENT',{...INITIAL_PUZZLE_STATE,currentStage:2});
+  assert.equal(watch.dialogue!.some(line=>line.speaker==='ME'),false);
+  assert.equal(watch.dialogue!.some(line=>/Nhấn|ba giây|Màn \d/.test(line.text)),false);
+  const clock=processInteraction('clock','PAST',watch.updatedPuzzles);
+  assert.doesNotMatch(clock.messageVi,/xưởng|dự phòng/);
+  assert.equal(clock.updatedPuzzles.clockRepaired,false);
+});

@@ -42,7 +42,7 @@ export const HUD: React.FC<HUDProps> = ({
   const getObjectiveHint = (): { chapterLabel: string; hint: string } => {
     switch (activeStage) {
       case 1:
-        return {chapterLabel:'Màn 1 / 6 — Trở về',hint:!puzzles.tutorialMoved?'Bắt đầu từ cổng. Dùng A/D hoặc các nút ← → để đi sang phải.':!puzzles.tutorialJumped?'Thử nhảy bằng Space hoặc nút ↑, rồi đi tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần lời nhắn trên ghế, nhấn E để đọc.':'Đến cửa chính của ngôi nhà, nhấn E để vào màn 2.'};
+        return {chapterLabel:'Màn 1 / 6 — Trở về',hint:!puzzles.tutorialMoved?'Bắt đầu từ cổng. Dùng A/D hoặc các nút ← → để đi sang phải.':!puzzles.tutorialJumped?'Thử nhảy bằng Space hoặc nút ↑, rồi đi tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần đồ vật, nhấn E khi biểu tượng tương tác xuất hiện.':'Đến cửa chính của ngôi nhà, nhấn E để vào màn 2.'};
 
       case 2:
         if(!puzzles.hasWatch)return {chapterLabel:'Màn 2 — Đồng hồ của Ông Ngoại',hint:'Nhặt đồng hồ bỏ túi trên bàn cạnh đèn trong phòng khách [E].'};
@@ -50,7 +50,7 @@ export const HUD: React.FC<HUDProps> = ({
         if (!puzzles.clockRepaired) {
           return {
             chapterLabel: 'Màn 2 / 6 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy',
-            hint: 'Chuyển sang Quá Khứ [Q], trò chuyện với Ký Ức Của Mẹ, đi qua phòng ăn tới xưởng lấy bánh răng, rồi quay lại sửa Đồng Hồ Cổ ở phòng khách.'
+            hint: 'Khám phá căn nhà trong Quá Khứ. Đến gần đồ vật và nhấn E để kiểm tra.'
           };
         }
         if (!puzzles.clockInspectedPresent) {
