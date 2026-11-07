@@ -16,7 +16,7 @@ interface HUDProps {
   onPause: () => void;
   onTimelineSwitch: () => void;
   onInteract: () => void;
-  onSelectStage: (stageNum: number) => void;
+  onOpenChapters:()=>void;
 }
 
 export const HUD: React.FC<HUDProps> = ({
@@ -31,13 +31,12 @@ export const HUD: React.FC<HUDProps> = ({
   onPause,
   onTimelineSwitch,
   onInteract,
-  onSelectStage
+  onOpenChapters
 }) => {
   const isPast = timeline === 'PAST';
   const isReady = cooldownRatio <= 0;
   const [isMuted, setMuted] = useState(soundManager.getMuted());
   const [journalOpen,setJournalOpen]=useState(false);
-  const [chaptersOpen, setChaptersOpen] = useState(false);
   const activeStage = puzzles.currentStage || 1;
 
   const getObjectiveHint = (): { chapterLabel: string; hint: string } => {
@@ -139,13 +138,12 @@ export const HUD: React.FC<HUDProps> = ({
         <div className="hud-location"><span>CHƯƠNG {activeStage} <i>/ 06</i></span><h2>{currentRoom.nameVi}</h2></div>
         <div className="hud-tools">
           <button aria-label="Mở sổ tay" aria-expanded={journalOpen} onClick={()=>setJournalOpen(!journalOpen)}><BookOpen size={18}/></button>
-          <button aria-label="Chọn chương" onClick={()=>setChaptersOpen(!chaptersOpen)}><Compass size={18}/></button>
+          <button aria-label="Chọn chương" onClick={onOpenChapters}><Compass size={18}/></button>
           <button onClick={toggleSound} aria-label={isMuted?'Bật âm thanh':'Tắt âm thanh'}>{isMuted?<VolumeX size={18}/>:<Volume2 size={18}/>}</button>
           <button onClick={onPause} aria-label="Tạm dừng game"><Pause size={18}/><kbd>Esc</kbd></button>
         </div>
       </header>
       {journalOpen&&!isDialogueActive&&<aside className="hud-journal mechanism-journal"><header><h3>Sổ tay của An</h3><button onClick={()=>setJournalOpen(false)} aria-label="Đóng sổ tay">×</button></header>{puzzles.collectedClues?.length?puzzles.collectedClues.map(c=><p key={c}>{c}</p>):<p>Chưa ghi lại dấu vết nào. Kiểm tra đồ vật trong căn nhà để tìm hiểu thêm.</p>}</aside>}
-      {chaptersOpen&&<nav className="chapter-menu" aria-label="Chọn chương">{[1,2,3,4,5,6].map(st=><button key={st} data-testid={`stage-select-${st}`} disabled={st>(puzzles.furthestStage??activeStage)} onClick={()=>{onSelectStage(st);setChaptersOpen(false);}} aria-current={st===activeStage?'step':undefined}>Chương {st}</button>)}</nav>}
       {!isDialogueActive&&!journalOpen&&activeStage<=2&&<div className="hud-objective"><span>DẤU VẾT TIẾP THEO</span><p>{objective.hint}</p></div>}
       {notification&&!isDialogueActive&&!journalOpen&&<div className="hud-toast" role="status">{notification}</div>}
       {!isDialogueActive&&<footer className="hud-bottom">

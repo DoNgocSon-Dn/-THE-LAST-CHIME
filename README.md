@@ -101,3 +101,6 @@ Canvas tự điều chỉnh tỉ lệ theo màn hình, không còn khung 16:9 n�
 The user-provided split-time title illustration is the visual reference. `public/assets/menu/title-plate.png` is its clean background plate; `title-reference.png` preserves the supplied art for Linh's clipped animation. The canvas animates Linh's breathing and wave, An's revised idle/thinking poses, pocket-watch hands, pollen and rain. Hovering or tapping either character triggers a reaction. Reduced-motion preferences keep the scene still.
 
 All four menu items are real controls. Continue requires a save, chapter selection respects saved progress, and audio preferences persist separately from the game save. New Game retains the loading → opening story → Chapter 1 flow. Portrait screens use larger controls below the illustration; short landscape screens use a four-button toolbar.
+
+
+Loading and chapter selection share the split-time menu palette. Loading uses the pocket watch sampled from the title reference, with spinning hands and an eight-piece break/reassembly cycle; reduced motion keeps it still and the progress bar reports real asset progress. The same six-card chapter picker is available from the title and HUD, with paired timeline previews, saved chapter locks, focus trapping and gameplay pause/resume.

@@ -1,3 +1,4 @@
+import {ChapterSelect} from './components/ChapterSelect';
 import { MechanismPanel } from './components/MechanismPanel';
 import type { MechanismId } from './game/mechanisms';
 import { OpeningStory } from './components/OpeningStory';
@@ -26,6 +27,7 @@ import { preloadGameAssets } from './game/preload';
 
 export default function App() {
   const pendingTitleChapter=useRef<number|null>(null);
+  const [chapterPicker,setChapterPicker]=useState(false);
   const [activeMechanism,setActiveMechanism]=useState<MechanismId|null>(null);
   const [gameState, setGameState] = useState<GameState>('title');
   const [timeline, setTimeline] = useState<Timeline>('PRESENT');
@@ -202,6 +204,7 @@ export default function App() {
   };
 
   const handleSelectStage = (stageNum: number) => {
+    setChapterPicker(false);
     if(stageNum>(engineRef.current?.puzzles.furthestStage??puzzles.currentStage))return;
     if (engineRef.current) {
       setActiveDialogue(null);
@@ -231,7 +234,7 @@ export default function App() {
       }
 
       // If dialogue is active, DialogueBox handles its own keys
-      if (activeDialogue || activeMechanism) {
+      if (activeDialogue || activeMechanism || chapterPicker) {
         return;
       }
 
@@ -252,7 +255,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKey);
     return () => window.removeEventListener('keydown', handleGlobalKey);
-  }, [gameState, activeDialogue, activeMechanism]);
+  }, [gameState, activeDialogue, activeMechanism,chapterPicker]);
 
   return (
     <div className="relative w-screen h-[100dvh] bg-[#060e0b] overflow-hidden flex flex-col items-center justify-center font-sans">
@@ -280,7 +283,7 @@ export default function App() {
               gameState === 'paused' ||
               gameState === 'choice' ||
               gameState === 'ending' ||
-              activeDialogue !== null || activeMechanism !== null
+              activeDialogue !== null || activeMechanism !== null || chapterPicker
             }
           />
 
@@ -294,11 +297,11 @@ export default function App() {
               puzzles={puzzles}
               currentRoom={currentRoom}
               notification={notification}
-              isDialogueActive={activeDialogue !== null || activeMechanism !== null}
+              isDialogueActive={activeDialogue !== null || activeMechanism !== null || chapterPicker}
               onPause={() => setGameState('paused')}
               onTimelineSwitch={() => engineRef.current?.switchTimeline()}
               onInteract={() => engineRef.current?.triggerInteract()}
-              onSelectStage={handleSelectStage}
+              onOpenChapters={()=>setChapterPicker(true)}
             />
           )}
 
@@ -316,6 +319,8 @@ export default function App() {
           {activeMechanism && <MechanismPanel id={activeMechanism} clues={puzzles.collectedClues??[]}
             onClose={()=>{engineRef.current?.closeMechanism();setActiveMechanism(null);}}
             onSubmit={values=>{const solved=engineRef.current?.submitMechanism(activeMechanism,values)===true;if(solved)setActiveMechanism(null);return solved;}}/>}
+
+          {chapterPicker&&<ChapterSelect unlocked={puzzles.furthestStage??puzzles.currentStage} current={puzzles.currentStage} onSelect={handleSelectStage} onClose={()=>setChapterPicker(false)}/>}
 
           {/* Pause Modal */}
           {gameState === 'paused' && (

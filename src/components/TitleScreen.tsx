@@ -1,14 +1,15 @@
+import {ChapterSelect} from './ChapterSelect';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
-import {Volume2,VolumeX,Lock} from 'lucide-react';
+import {Volume2,VolumeX} from 'lucide-react';
 import {soundManager} from '../game/audio';
 import {MenuScene,type TitleReaction} from './MenuScene';
-const chapters=['Trở về','Chiếc đồng hồ ngừng chạy','Hành lang ký ức','Căn phòng bị khóa','Cuộc truy đuổi','Hai phía của thời gian'];
 function MenuLabel({text}:{text:string}){
  const ref=useRef<HTMLCanvasElement>(null);
  useEffect(()=>{let alive=true;Promise.all([document.fonts.ready,document.fonts.load('900 30px "Be Vietnam Pro"','BẮT ĐẦU TIẾP TỤC CHỌN CHƯƠNG CÀI ĐẶT')]).then(()=>{if(!alive||!ref.current)return;const c=ref.current.getContext('2d')!;c.clearRect(0,0,300,46);c.font='900 30px "Be Vietnam Pro", sans-serif';c.textAlign='center';c.textBaseline='alphabetic';c.lineJoin='miter';c.strokeStyle='#10150e';c.lineWidth=6;c.strokeText(text.toLocaleUpperCase('vi'),150,35);c.strokeStyle='#694123';c.lineWidth=3;c.strokeText(text.toLocaleUpperCase('vi'),150,33);c.fillStyle='#e6bf79';c.fillText(text.toLocaleUpperCase('vi'),150,33);});return()=>{alive=false;};},[text]);
  return <><span className="sr-only">{text}</span><canvas ref={ref} width={300} height={46} aria-hidden="true"/></>;
 }
 function unlockedChapter(){try{const p=JSON.parse(localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1')??'null')?.puzzles;return Math.max(1,Math.min(6,p?.furthestStage??p?.currentStage??1));}catch{return 1;}}
+function currentSavedChapter(){try{return Math.max(1,Math.min(6,JSON.parse(localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1')??'null')?.puzzles?.currentStage??1));}catch{return 1;}}
 function MenuDialog({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
  const ref=useRef<HTMLDivElement>(null);
  useEffect(()=>{const before=document.activeElement as HTMLElement|null;ref.current?.focus();const key=(e:KeyboardEvent)=>{
@@ -40,6 +41,7 @@ export function TitleScreen({onStart,onContinue,onSelectChapter,hasSave}:{onStar
    </nav>
    <button className="illustrated-menu-audio" aria-label={muted?'Bật âm thanh':'Tắt âm thanh'} onClick={toggleMute}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}</button>
   </div>
-  {panel&&<MenuDialog title={panel==='chapters'?'Chọn chương':'Cài đặt'} onClose={()=>setPanel(null)}>{panel==='chapters'?<div className="title-chapters">{chapters.map((name,i)=><button key={name} disabled={i+1>unlocked} onClick={()=>onSelectChapter(i+1)}><span>{String(i+1).padStart(2,'0')}</span><strong>{name}</strong>{i+1>unlocked&&<Lock size={16}/>}</button>)}<p>Các chương mở dần theo hành trình của bạn.</p></div>:<TitleSettings muted={muted} onMute={toggleMute}/>}</MenuDialog>}
+  {panel==='chapters'&&<ChapterSelect unlocked={unlocked} current={hasSave?currentSavedChapter():0} onSelect={onSelectChapter} onClose={()=>setPanel(null)}/>}
+  {panel==='settings'&&<MenuDialog title="Cài đặt" onClose={()=>setPanel(null)}><TitleSettings muted={muted} onMute={toggleMute}/></MenuDialog>}
  </section>;
 }
