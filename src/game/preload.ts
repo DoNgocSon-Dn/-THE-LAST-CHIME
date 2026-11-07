@@ -1,6 +1,6 @@
 import {pixelAssets} from './pixelAssets';
 const assetNames=[...Array.from({length:13},(_,i)=>`map-${i+1}`),'an','an-v2','menu-actors','npc','pursuer','animations','furniture','objects','memories','scenes'];
-const assetPaths=[...assetNames.map(name=>`assets/pixel/${name}.${name==='menu-actors'?'png':'jpg'}`),'assets/menu/title-plate.png','assets/loading/workshop-plate.png','assets/loading/workshop-animations.png'];
+const assetPaths=[...assetNames.map(name=>`assets/pixel/${name}.${name==='menu-actors'?'png':'jpg'}`),'assets/story/opening-reference.png','assets/story/opening-animations.png','assets/menu/title-plate.png','assets/loading/workshop-plate.png','assets/loading/workshop-animations.png'];
 export async function preloadGameAssets(onProgress:(fraction:number)=>void):Promise<void>{
   let loaded=0;
   await Promise.all(assetPaths.map(path=>new Promise<void>((resolve,reject)=>{
