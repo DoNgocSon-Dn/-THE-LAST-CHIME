@@ -92,7 +92,7 @@ export const HUD: React.FC<HUDProps> = ({
       {journalOpen&&!isDialogueActive&&<aside className="hud-journal mechanism-journal"><header><h3>Sổ tay của An</h3><button onClick={()=>setJournalOpen(false)} aria-label="Đóng sổ tay">×</button></header>{puzzles.collectedClues?.length?puzzles.collectedClues.map(c=><p key={c}>{c}</p>):<p>Chưa ghi lại dấu vết nào. Kiểm tra đồ vật trong căn nhà để tìm hiểu thêm.</p>}</aside>}
       {!isDialogueActive&&!journalOpen&&activeStage===3&&<aside className="encounter-hud"><span>BA ẤN THỜI GIAN</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.chaseSeals?.includes(i)?'filled':''}>{i+1}</i>)}</div><p>Quá khứ và hiện tại giữ những lối đi khác nhau. Cái bóng sẽ đuổi kịp sau mỗi lần đổi.</p></aside>}
       {!isDialogueActive&&!journalOpen&&puzzles.currentStage===6&&<aside className="encounter-hud"><span>{bossDefeated(puzzles)?'LÕI ĐÃ ĐƯỢC GIẢI PHÓNG':`KẺ LẠC GIỜ · ${puzzles.bossHits?.length??0}/3 LỚP VỎ`}</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.bossHits?.includes(i)?'filled':''}>{i+1}</i>)}<small>Liên kết: {puzzles.playerResolve??3}/3</small></div><p>{trapHint(puzzles,timeline)}</p>{timeline==='PAST'&&!bossDefeated(puzzles)&&<strong className="boss-window">Ký ức ổn định: {puzzles.pastSafetySeconds??6}s</strong>}{puzzles.bossArmedTrap!==undefined&&<strong className="boss-window">{puzzles.bossExposedTrap!==undefined?'Lộ điểm yếu':'Bẫy còn nhịp'}: {puzzles.bossWindowSeconds??12}s</strong>}</aside>}
-      {!isDialogueActive&&!journalOpen&&activeStage<=2&&<div className="hud-objective"><span>DẤU VẾT TIẾP THEO</span><p>{objective.hint}</p></div>}
+      {!isDialogueActive&&!journalOpen&&activeStage===2&&puzzles.testedTimelineSwitch&&<div className="hud-objective"><span>DẤU VẾT TIẾP THEO</span><p>{objective.hint}</p></div>}
       {notification&&!isDialogueActive&&!journalOpen&&<div className="hud-toast" role="status">{notification}</div>}
       {!isDialogueActive&&<footer className="hud-bottom">
         {activeStage>=2&&<button className={`time-control ${isPast?'is-past':''}`} disabled={!puzzles.hasWatch||!isReady} onClick={onTimelineSwitch} aria-label="Chuyển thời gian">
@@ -100,7 +100,7 @@ export const HUD: React.FC<HUDProps> = ({
           <span><small>{isPast?'KÝ ỨC ẤM ÁP':'NGÔI NHÀ BỎ QUÊN'}</small><strong>{isPast?'Quá khứ':'Hiện tại'}</strong><em>{!puzzles.hasWatch?'Tìm đồng hồ trong phòng khách':isReady?'Chuyển thời gian':`${cooldownSeconds}s · Đang hồi phục`}</em></span>
         </button>}
         {nearbyObject&&<button className="interaction-control" onClick={onInteract}><kbd>E</kbd><span>{nearbyObject.promptVi}</span></button>}
-        {activeStage<=2&&<div className="hud-controls"><span><kbd>A</kbd><kbd>D</kbd> Di chuyển</span><span><kbd>Space</kbd> Nhảy</span></div>}
+
       </footer>}
     </div>
   );

@@ -819,7 +819,8 @@ export class GameEngine {
       activeInteractables,
       this.puzzles,
       this.nearbyInteractable?.id || null,
-      this.pursuer
+      this.pursuer,
+      this.gameState==='playing'
     );
     this.ctx.restore();
     if(this.roomFade>0){this.ctx.fillStyle=`rgba(4,12,8,${this.roomFade/.24})`;this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);}

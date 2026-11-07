@@ -139,6 +139,7 @@ export interface PuzzleState {
 
   // Chapter 1 — Trở về (Màn 1)
   motherNoteCh1Read: boolean;
+  arrivalMonologueSeen?: boolean;
   tutorialMoved?: boolean;
   tutorialJumped?: boolean;
   watchCollected?: boolean;

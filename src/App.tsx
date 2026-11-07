@@ -63,6 +63,19 @@ export default function App() {
   },[]);
 
   const engineRef = useRef<GameEngine | null>(null);
+  useEffect(()=>{
+    const engine=engineRef.current;
+    if(gameState!=='playing'||enteringGame||!engine||engine.puzzles.currentStage!==1||engine.puzzles.arrivalMonologueSeen||engine.puzzles.tutorialMoved)return;
+    engine.puzzles.arrivalMonologueSeen=true;
+    engine.gameState='paused';
+    setActiveDialogue([
+      {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'sad',text:'Mùi đất sau mưa… vẫn giống ngày ấy. Chỉ có căn nhà là khác quá.'},
+      {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'whisper',text:'Ngày trước, cứ nghe tiếng cổng là Linh đã chạy ra. Giờ đứng ở đây… mình vẫn chờ em gọi.'},
+      {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'determined',text:'Mình đã tránh nơi này đủ lâu rồi. Vào trong thôi. Ít nhất lần này, mình phải tìm cho ra chuyện đã xảy ra.'}
+    ]);
+    engine.saveGame();
+  },[gameState,enteringGame]);
+
   const toastTimeoutRef = useRef<number | null>(null);
   const bannerTimeoutRef = useRef<number | null>(null);
 
