@@ -372,7 +372,7 @@ export class GameRenderer {
     ctx.fillStyle=isUnlocked?'#ffe3a4':'#b3a575';ctx.beginPath();ctx.arc(x+w-10,y+h*.62,2.5,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#a0b184';
     for(let i=0;i<7;i++){ctx.beginPath();ctx.ellipse(x-4+i*3,y+15-i*2,4,2,-.6,0,Math.PI*2);ctx.fill();}
-    if(isUnlocked){ctx.font='9px Georgia,serif';ctx.textAlign='center';ctx.fillStyle='#e9dcc0';ctx.fillText(targetLabel.replace('MÀN','CHƯƠNG'),cx,y-20);}
+    if(isUnlocked){ctx.font='9px "Be Vietnam Pro",sans-serif';ctx.textAlign='center';ctx.fillStyle='#e9dcc0';ctx.fillText(targetLabel.replace('MÀN','CHƯƠNG'),cx,y-20);}
     ctx.restore();
   }
 
@@ -706,7 +706,7 @@ export class GameRenderer {
     ctx.stroke();
 
     ctx.fillStyle = '#193225';
-    ctx.font = 'bold 12px "JetBrains Mono", monospace';
+    ctx.font = '600 12px "Be Vietnam Pro", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('E', x, py - 2);

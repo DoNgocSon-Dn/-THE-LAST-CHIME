@@ -17,14 +17,14 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono uppercase tracking-widest mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-sans uppercase tracking-widest mb-2">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Chương 4 — Thời Khắc Quyết Định</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-serif font-black tracking-wide text-amber-100">
+          <h2 className="text-2xl md:text-3xl font-sans font-bold tracking-wide text-amber-100">
             HAI PHÍA CỦA THỜI GIAN
           </h2>
-          <p className="text-xs md:text-sm text-amber-200/80 font-serif italic mt-2 max-w-xl mx-auto">
+          <p className="text-xs md:text-sm text-amber-200/80 font-sans italic mt-2 max-w-xl mx-auto">
             Ba lớp vỏ đã vỡ. Linh hiện ra bên lõi, vẫn giữ chiếc nơ đỏ từ đêm ấy. An cầm chiếc kim gãy: rút nó ra để kết thúc vòng lặp, hoặc giữ căn nhà ký ức chạy mãi.
           </p>
         </div>
@@ -33,14 +33,14 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
           {/* Choice 1: Accept Truth & Free Linh */}
           <div className="flex flex-col justify-between bg-[#11150d]/85 border-2 border-amber-600/50 hover:border-amber-400 rounded-2xl p-5 transition shadow-lg">
             <div>
-              <div className="flex items-center gap-2.5 text-amber-200 font-mono text-xs uppercase tracking-wider mb-2">
+              <div className="flex items-center gap-2.5 text-amber-200 font-sans text-xs uppercase tracking-wider mb-2">
                 <Flame className="w-4 h-4 text-amber-400" />
                 <span>Lựa Chọn I — Hiện Tại & Sự Giải Thoát</span>
               </div>
-              <h3 className="text-lg font-serif font-bold text-amber-100 mb-2">
+              <h3 className="text-lg font-sans font-bold text-amber-100 mb-2">
                 Phá Hủy Liên Kết & Giải Thoát Linh
               </h3>
-              <p className="text-xs text-[#d4c9a3] leading-relaxed font-serif">
+              <p className="text-xs text-[#d4c9a3] leading-relaxed font-sans">
                 Rút chiếc kim đồng hồ gãy khỏi lõi cơ khí để chấm dứt vòng lặp thời gian mãi mãi. Kẻ Lạc Giờ sẽ tan biến, linh hồn của bé Linh và tâm nguyện của Mẹ được siêu thoát, còn An chấp nhận sự thật để bước tiếp về phía tương lai.
               </p>
             </div>
@@ -57,14 +57,14 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
           {/* Choice 2: Eternal Memory */}
           <div className="flex flex-col justify-between bg-[#11150d]/85 border-2 border-amber-500/50 hover:border-amber-400 rounded-2xl p-5 transition shadow-lg">
             <div>
-              <div className="flex items-center gap-2.5 text-amber-300 font-mono text-xs uppercase tracking-wider mb-2">
+              <div className="flex items-center gap-2.5 text-amber-300 font-sans text-xs uppercase tracking-wider mb-2">
                 <HeartHandshake className="w-4 h-4 text-amber-400" />
                 <span>Lựa Chọn II — Quá Khứ Vĩnh Cửu</span>
               </div>
-              <h3 className="text-lg font-serif font-bold text-amber-100 mb-2">
+              <h3 className="text-lg font-sans font-bold text-amber-100 mb-2">
                 Khóa Chặt Kim Đồng Hồ & Ở Lại Quá Khứ
               </h3>
-              <p className="text-xs text-[#d4c9a3] leading-relaxed font-serif">
+              <p className="text-xs text-[#d4c9a3] leading-relaxed font-sans">
                 Cố định chiếc kim đồng hồ gãy vào bánh răng trung tâm để đóng băng ngôi nhà trong buổi chiều ấm áp trước đêm tai nạn. An sẽ mãi mãi ở lại cùng Mẹ và bé Linh trong vòng lặp ký ức êm đềm, đánh đổi việc không bao giờ trở về Hiện Tại.
               </p>
             </div>
@@ -125,18 +125,18 @@ export const EndingModal: React.FC<EndingModalProps> = ({
           >
             <Sparkles className="w-7 h-7 animate-pulse" />
           </div>
-          <div className="text-xs uppercase font-mono tracking-widest text-amber-400">
+          <div className="text-xs uppercase font-sans tracking-widest text-amber-400">
             {isAcceptTruth
               ? 'Kết Thúc I / II — Bình Minh Sau Cơn Mưa'
               : 'Kết Thúc II / II — Giấc Mơ Không Bao Giờ Tỉnh'}
           </div>
-          <h2 className="text-2xl md:text-3xl font-serif font-black tracking-wider text-amber-200 mt-1">
+          <h2 className="text-2xl md:text-3xl font-sans font-bold tracking-wider text-amber-200 mt-1">
             {isAcceptTruth ? 'PHÍA BÊN KIA CỦA SỰ THẬT' : 'MÃI MÃI TRONG QUÁ KHỨ'}
           </h2>
         </div>
 
         {/* Epilogue Narrative */}
-        <div className="bg-[#f6eee3] text-[#2c1d11] p-5 rounded-2xl border-2 border-[#d7ccc8] mb-5 font-serif shadow-inner">
+        <div className="bg-[#f6eee3] text-[#2c1d11] p-5 rounded-2xl border-2 border-[#d7ccc8] mb-5 font-sans shadow-inner">
           <h3 className="text-sm font-bold text-[#5d4037] mb-2 uppercase tracking-wide">
             {isAcceptTruth
               ? 'Lời Từ Biệt Của Bé Linh & Người Mẹ'
@@ -166,32 +166,32 @@ export const EndingModal: React.FC<EndingModalProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           <div className="bg-[#11150d]/70 p-2.5 rounded-xl border border-[#41412a] text-center">
             <Clock className="w-4 h-4 text-amber-400 mx-auto mb-1" />
-            <div className="text-[10px] text-[#b8b28d] font-mono uppercase">Thời Gian</div>
-            <div className="text-sm font-bold font-mono text-amber-200">
+            <div className="text-[10px] text-[#b8b28d] font-sans uppercase">Thời Gian</div>
+            <div className="text-sm font-bold font-sans text-amber-200">
               {formatTime(stats.timeElapsed)}
             </div>
           </div>
 
           <div className="bg-[#11150d]/70 p-2.5 rounded-xl border border-[#41412a] text-center">
             <Compass className="w-4 h-4 text-amber-400 mx-auto mb-1" />
-            <div className="text-[10px] text-[#b8b28d] font-mono uppercase">Đổi Thời Gian</div>
-            <div className="text-sm font-bold font-mono text-amber-100">
+            <div className="text-[10px] text-[#b8b28d] font-sans uppercase">Đổi Thời Gian</div>
+            <div className="text-sm font-bold font-sans text-amber-100">
               {stats.timelineSwitches} lần
             </div>
           </div>
 
           <div className="bg-[#11150d]/70 p-2.5 rounded-xl border border-[#41412a] text-center">
             <Sparkles className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-            <div className="text-[10px] text-[#b8b28d] font-mono uppercase">Chương</div>
-            <div className="text-sm font-bold font-mono text-emerald-200">
+            <div className="text-[10px] text-[#b8b28d] font-sans uppercase">Chương</div>
+            <div className="text-sm font-bold font-sans text-emerald-200">
               4 / 4
             </div>
           </div>
 
           <div className="bg-[#11150d]/70 p-2.5 rounded-xl border border-[#41412a] text-center">
             <BookOpen className="w-4 h-4 text-purple-400 mx-auto mb-1" />
-            <div className="text-[10px] text-[#b8b28d] font-mono uppercase">Nhật Ký</div>
-            <div className="text-sm font-bold font-mono text-purple-200">
+            <div className="text-[10px] text-[#b8b28d] font-sans uppercase">Nhật Ký</div>
+            <div className="text-sm font-bold font-sans text-purple-200">
               {stats.notesRead}
             </div>
           </div>

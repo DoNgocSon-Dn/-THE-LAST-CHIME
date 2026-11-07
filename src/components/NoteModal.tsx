@@ -13,7 +13,7 @@ interface NoteModalProps {
 export const NoteModal: React.FC<NoteModalProps> = ({ note, onClose }) => {
   return (
     <div className="antique-menu fixed inset-0 z-50 flex items-center justify-center bg-[#11150d]/80 backdrop-blur-xs p-4 select-none">
-      <div className="relative max-w-lg w-full bg-[#f6eee3] text-[#2c1d11] rounded-2xl p-7 shadow-2xl border-4 border-[#bcaaa4] font-serif">
+      <div className="relative max-w-lg w-full bg-[#f6eee3] text-[#2c1d11] rounded-2xl p-7 shadow-2xl border-4 border-[#bcaaa4] font-sans">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -26,7 +26,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({ note, onClose }) => {
         {/* Vintage Header */}
         <div className="flex items-center gap-2 border-b-2 border-[#d7ccc8] pb-3 mb-4 text-[#8d6e63]">
           <BookOpen className="w-5 h-5 text-[#6d4c41]" />
-          <span className="text-xs tracking-widest uppercase font-mono font-bold">Kỷ Vật Thời Gian</span>
+          <span className="text-xs tracking-widest uppercase font-sans font-bold">Kỷ Vật Thời Gian</span>
         </div>
 
         {/* Title */}

@@ -103,7 +103,7 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ lines, onClose }) => {
               >
                 {currentLine.speakerName}
               </span>
-              <span className="text-[11px] font-mono text-[#b8b28d]">
+              <span className="text-[11px] font-sans text-[#b8b28d]">
                 ({lineIndex + 1}/{lines.length})
               </span>
             </div>
@@ -114,18 +114,18 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ lines, onClose }) => {
                 e.stopPropagation();
                 onClose();
               }}
-              className="text-[11px] font-mono text-[#b8b28d] hover:text-amber-300 px-2 py-0.5 rounded bg-[#232217]/80 border border-[#41412a]"
+              className="text-[11px] font-sans text-[#b8b28d] hover:text-amber-300 px-2 py-0.5 rounded bg-[#232217]/80 border border-[#41412a]"
             >
               Đóng nhanh [Esc]
             </button>
           </div>
 
-          <p className="text-sm md:text-base text-amber-50 font-serif leading-relaxed min-h-[3.2rem]">
+          <p className="text-sm md:text-base text-amber-50 font-sans leading-relaxed min-h-[3.2rem]">
             {fullText.slice(0, charIndex)}
             {isTyping && <span className="inline-block w-1.5 h-4 ml-1 bg-amber-400 animate-pulse" />}
           </p>
 
-          <div className="mt-2 flex items-center justify-end gap-1.5 text-xs font-mono text-amber-300/90">
+          <div className="mt-2 flex items-center justify-end gap-1.5 text-xs font-sans text-amber-300/90">
             <span>
               {isTyping
                 ? 'Nhấn [E] / [Space] để hiện hết câu'
@@ -154,14 +154,14 @@ export const StageTransitionBanner: React.FC<StageTransitionBannerProps> = ({ st
       className="antique-menu fixed inset-0 z-40 pointer-events-none flex items-center justify-center bg-[#11150d]/75 backdrop-blur-xs animate-fade-in"
     >
       <div className="text-center px-8 py-6 rounded-3xl bg-[#11150d]/90 border-2 border-amber-500/60 shadow-2xl max-w-lg">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono uppercase tracking-widest mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-sans uppercase tracking-widest mb-2">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Chương mới — {stageConfig.roomNameVi}</span>
         </div>
-        <h2 className="text-2xl md:text-3xl font-serif font-black text-amber-100 tracking-wide">
+        <h2 className="text-2xl md:text-3xl font-sans font-bold text-amber-100 tracking-wide">
           {stageConfig.chapterTitleVi}
         </h2>
-        <p className="text-xs md:text-sm font-serif italic text-amber-200/80 mt-2">
+        <p className="text-xs md:text-sm font-sans italic text-amber-200/80 mt-2">
           {stageConfig.subtitleVi}
         </p>
       </div>
