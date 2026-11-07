@@ -50,13 +50,13 @@ export default function App() {
   const [loadingDestination,setLoadingDestination]=useState<'prologue'|'playing'>('prologue');
   useEffect(()=>{
     if(gameState!=='loading'||!assetsReady)return;
-    const timer=setTimeout(()=>{setEnteringGame(true);setGameState(loadingDestination);},2200);
+    const timer=setTimeout(()=>{setEnteringGame(true);setGameState(loadingDestination);},4600);
     return()=>clearTimeout(timer);
   },[gameState,assetsReady,loadingDestination]);
   const handleGameReady=useCallback(()=>{const stage=pendingTitleChapter.current;if(stage&&engineRef.current){engineRef.current.loadStage(stage,true);pendingTitleChapter.current=null;}setEnteringGame(false);},[]);
   useEffect(()=>{
     let disposed=false;
-    preloadGameAssets(value=>{if(!disposed)setLoadProgress(value);}).then(async()=>{
+    Promise.all([preloadGameAssets(value=>{if(!disposed)setLoadProgress(value);}),new Promise(resolve=>setTimeout(resolve,5000))]).then(async()=>{
       if(!disposed)setAssetsReady(true);
     }).catch(error=>{if(!disposed)setLoadError(error.message);});
     return()=>{disposed=true;};
