@@ -49,7 +49,7 @@ Kẻ Lạc Giờ là nỗi sợ của Linh bị cỗ máy biến dạng. Kết t
 
 ## Hình ảnh và menu
 
-Asset nằm trong `public/assets/pixel` và `public/assets/menu`; game không phụ thuộc đường dẫn ổ D. Importer canvas cắt bỏ chữ chú thích, lọc nền trắng/nhiễu JPG và giữ màu bên trong nhân vật. Nội thất rộng 800 đơn vị, cảnh ngoài rộng 1200; An cao 84 đơn vị với chung tỷ lệ và đường chân giữa các động tác. Nhịp chân đi theo quãng đường thực tế.
+Asset nằm trong `public/assets/pixel` và `public/assets/menu`; game không phụ thuộc đường dẫn ổ D. Importer canvas cắt bỏ chữ chú thích, lọc nền trắng/nhiễu JPG và giữ màu bên trong nhân vật. Nội thất rộng 800 đơn vị, cảnh ngoài rộng 1200; An cao 56 đơn vị với chung tỷ lệ và đường chân giữa các động tác. Nhịp chân đi theo quãng đường thực tế.
 
 Menu dùng tranh chia đôi quá khứ/hiện tại. Sheet `menu-actors.png` có 24 khung riêng: Linh vẫy tay/chào vui vẻ, An nhìn quanh/chỉnh túi. Hover hoặc chạm nhân vật kích hoạt phản ứng. Giảm chuyển động giữ hình tĩnh.
 

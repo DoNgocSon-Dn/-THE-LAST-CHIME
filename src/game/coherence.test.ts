@@ -1,5 +1,5 @@
 import {chapterRooms,currentPixelRoom,legacyScenePoint} from './pixelLayout';
-import {PLAYER_HEIGHT, ADULT_HEIGHT, CHILD_HEIGHT} from './entityScale';
+import {PLAYER_HEIGHT, ADULT_HEIGHT, CHILD_HEIGHT, migrateCharacterY} from './entityScale';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {anFrame} from './characterAtlas';
@@ -52,4 +52,11 @@ test('The exterior tutorial begins outside the garden gate, away from the house 
  assert.ok(STAGE_CONFIGS[1].spawnX>=180&&STAGE_CONFIGS[1].spawnX<=300);
  const door=STAGE_CONFIGS[1].interactables.find(o=>o.id==='stage_exit_1')!;
  assert.ok(door.x-STAGE_CONFIGS[1].spawnX>600);
+});
+
+test('Character scale fits small painted doorways and save upgrades preserve feet',()=>{
+ assert.ok(PLAYER_HEIGHT<=70*.8);
+ for(const [version,height]of [[undefined,44],[2,84],[3,56]]as const){
+  for(const floor of [364,398,480])assert.equal(migrateCharacterY(floor-height,version)+PLAYER_HEIGHT,floor);
+ }
 });

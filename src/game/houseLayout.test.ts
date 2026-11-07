@@ -1,3 +1,4 @@
+import {PLAYER_WIDTH,PLAYER_HEIGHT} from './entityScale';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {STAGE_CONFIGS} from './levelData';
@@ -30,9 +31,9 @@ test('All house door destinations are inside their room and have a supporting fl
 });
 test('Interior boundaries prevent walking through neighboring rooms; camera cannot reveal the next room',()=>{
  for(const room of chapterRooms(2).slice(0,-1)){
-  let player={x:room.start+room.width-50,y:396,width:30,height:84,vx:0,vy:0,isGrounded:true,coyoteTimer:0,jumpBufferTimer:0}as Player;
+  let player={x:room.start+room.width-50,y:480-PLAYER_HEIGHT,width:PLAYER_WIDTH,height:PLAYER_HEIGHT,vx:0,vy:0,isGrounded:true,coyoteTimer:0,jumpBufferTimer:0}as Player;
   for(let i=0;i<30;i++)player={...player,...updateAndResolvePhysics(player,hub.platforms,1,false,false,1/60)};
-  assert.ok(player.x+30<=room.start+room.width-8+.01);
+  assert.ok(player.x+PLAYER_WIDTH<=room.start+room.width-8+.01);
   const bounds=houseCamera(2,player.x,400,hub.width);assert.equal(bounds.min,room.start);assert.equal(bounds.max,room.start+400);
  }
 });

@@ -1,3 +1,4 @@
+import {PLAYER_HEIGHT} from './entityScale';
 import type {StageConfig} from './levelData';
 import type {InteractableObject,PuzzleState} from '../types/game';
 import {chapterRooms,currentPixelRoom} from './pixelLayout';
@@ -39,7 +40,7 @@ export function configureHouseLayout(stages:Record<number,StageConfig>){
  door(two,'kitchen_yard','Mở cửa ra sân sau',3115,{stage:3,x:90,requiresPuzzle:'clockInspectedPresent',lockedMessage:'Chốt cửa sau vẫn bị dây cáp giữ. Sợi cáp chạy về phía phòng khách.'});
  // Separate interiors cannot be crossed by walking through the image boundary.
  for(const cfg of [two,four])for(const room of chapterRooms(cfg.stage).slice(1))cfg.platforms.push({id:`wall_room_${cfg.stage}_${room.index}`,x:room.start-8,y:0,width:16,height:600,type:'solid',timeline:'both',bakedIntoMap:true});
- three.chapterTitleVi='Chương 3 — Dấu vết bên giếng';three.roomNameVi='Sân sau & giếng cũ';three.subtitleVi='Sợi chỉ đỏ, chiếc gàu kẹt và hộp sắt của Mẹ';three.spawnX=90;three.spawnY=396;
+ three.chapterTitleVi='Chương 3 — Dấu vết bên giếng';three.roomNameVi='Sân sau & giếng cũ';three.subtitleVi='Sợi chỉ đỏ, chiếc gàu kẹt và hộp sắt của Mẹ';three.spawnX=90;three.spawnY=480-PLAYER_HEIGHT;
  three.platforms=three.platforms.filter(p=>p.id==='ground_main'||p.id.startsWith('wall_')||p.id==='ceiling');
  three.interactables=three.interactables.filter(o=>['hallway_pulley','mother_diary_ch3','memory_well'].includes(o.id));three.memoryNPCs=[];
  move(three,'hallway_pulley',390,400);move(three,'mother_diary_ch3',480,415);move(three,'memory_well',970,415);

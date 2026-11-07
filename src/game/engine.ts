@@ -3,7 +3,7 @@ import {BOSS_TRAPS,bossDefeated,completeSeals} from './encounters';
 import {houseDestination,houseCamera,migrateHouseLocation} from './houseLayout';
 import { advanceGait } from './locomotion';
 import type { MechanismId } from './mechanisms';
-import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT } from './entityScale';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT, savedCharacterHeight, migrateCharacterY } from './entityScale';
 import { GAME_ZOOM, currentPixelRoom, sceneZoom, legacyScenePoint } from './pixelLayout';
 import {
   Player,
@@ -453,7 +453,7 @@ export class GameEngine {
     const era=this.timeline,story=this.puzzles.storyChapter??this.puzzles.currentStage,d=route.destination;
     if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,chapterForArea(d.stage)>story,true,era);
     this.timeline=this.puzzles.hasWatch?era:'PRESENT';
-    Object.assign(this.player,{x:d.x,y:d.y??396,vx:0,vy:0,state:'idle',animTimer:0,animFrame:0,interactCooldown:.5,isGrounded:true});
+    Object.assign(this.player,{x:d.x,y:d.y??480-PLAYER_HEIGHT,vx:0,vy:0,state:'idle',animTimer:0,animFrame:0,interactCooldown:.5,isGrounded:true});
     this.handleBlur();this.viewZoom=sceneZoom(d.stage,d.x);this.snapRoomCamera();this.nearbyInteractable=null;this.mechanismContext=null;this.roomFade=.24;
     const room=getCurrentRoom(d.x,d.stage);this.checkpoint={x:d.x,y:this.player.y,timeline:this.timeline,chapter:d.stage,labelVi:room.nameVi};
     this.callbacks.onTimelineChange(this.timeline);soundManager.setTimeline(this.timeline);soundManager.playDoorUnlock();
@@ -867,7 +867,7 @@ export class GameEngine {
       const data = {
         campaignVersion:2,
         houseLayoutVersion:1,
-        characterScaleVersion:2,
+        characterScaleVersion:3,
         spawnVersion:3,
         sceneScaleVersion:2,
         player: { x: this.player.x, y: this.player.y },
@@ -892,7 +892,7 @@ export class GameEngine {
         const moved=migrateHouseLocation(oldStage,data.player?.x??80);data.puzzles.currentStage=moved.stage;if(data.player)data.player.x=moved.x;
         if(data.checkpoint){const cp=migrateHouseLocation(data.checkpoint.chapter,data.checkpoint.x);data.checkpoint.chapter=cp.stage;data.checkpoint.x=cp.x;}
       }
-      if(data.puzzles&&data.campaignVersion!==2){const progress=savedChapterProgress(data.puzzles,data.campaignVersion);data.puzzles.storyChapter=progress.current;data.puzzles.furthestChapter=progress.unlocked;if(data.puzzles.currentStage===5){data.player={x:170,y:396};data.checkpoint={chapter:5,x:170,y:396,timeline:'PRESENT'};data.puzzles.chaseSeals=[];data.puzzles.chaseSealsComplete=false;data.puzzles.chaseCompleted=false;}}
+      if(data.puzzles&&data.campaignVersion!==2){const progress=savedChapterProgress(data.puzzles,data.campaignVersion);data.puzzles.storyChapter=progress.current;data.puzzles.furthestChapter=progress.unlocked;if(data.puzzles.currentStage===5){data.player={x:170,y:480-savedCharacterHeight(data.characterScaleVersion)};data.checkpoint={chapter:5,x:170,y:480-savedCharacterHeight(data.characterScaleVersion),timeline:'PRESENT'};data.puzzles.chaseSeals=[];data.puzzles.chaseSealsComplete=false;data.puzzles.chaseCompleted=false;}}
       if (data.puzzles) {
         this.puzzles = { ...this.puzzles, ...data.puzzles };
         this.puzzles.storyChapter??=chapterForArea(this.puzzles.currentStage);
@@ -900,7 +900,7 @@ export class GameEngine {
       const stageCfg = getStageConfig(this.puzzles.currentStage || 1);
       if((stageCfg.stage===1&&(this.puzzles.storyChapter??1)<=1)||(stageCfg.stage===2&&!this.puzzles.watchCollected)){this.puzzles.hasWatch=false;this.puzzles.testedTimelineSwitch=false;this.timeline='PRESENT';}
       if (data.player && typeof data.player.x === 'number') {
-        const savedY=data.player.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT);
+        const savedY=migrateCharacterY(data.player.y,data.characterScaleVersion);
         const point=data.sceneScaleVersion===2?{x:data.player.x,y:savedY+PLAYER_HEIGHT}:legacyScenePoint(stageCfg.stage,data.player.x,savedY+PLAYER_HEIGHT);
         this.player.x=Math.max(10,Math.min(stageCfg.width-40,point.x));
         this.player.y=point.y-PLAYER_HEIGHT>=50&&point.y<=480?point.y-PLAYER_HEIGHT:stageCfg.spawnY;
@@ -913,7 +913,7 @@ export class GameEngine {
       }
       if(!this.puzzles.hasWatch)this.timeline='PRESENT';
       if (data.checkpoint) {
-        const oldY=data.checkpoint.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT);
+        const oldY=migrateCharacterY(data.checkpoint.y,data.characterScaleVersion);
         const point=data.sceneScaleVersion===2?{x:data.checkpoint.x,y:oldY+PLAYER_HEIGHT}:legacyScenePoint(data.checkpoint.chapter,data.checkpoint.x,oldY+PLAYER_HEIGHT);
         this.checkpoint={...data.checkpoint,x:point.x,y:point.y-PLAYER_HEIGHT};
       }
