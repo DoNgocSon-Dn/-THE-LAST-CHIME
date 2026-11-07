@@ -69,3 +69,6 @@ Chương 3 có ba ấn, theo thứ tự quá khứ → hiện tại → quá kh�
 Ở trận cuối, mỗi bẫy chỉ dùng được một lần. Nạp ở quá khứ, đổi sang hiện tại để dụ quái vào vùng bẫy, rồi xả cộng hưởng trong cửa sổ điểm yếu. Ba pha tăng tốc độ quái từ 140 lên 158 và 176; nhịp nạp giảm 12/10/8 giây, cửa sổ xả giảm 3/2,4/1,8 giây. HUD hiển thị nhịp còn lại, ba lớp vỏ và liên kết của An. Quá khứ chỉ ổn định sáu giây; đứng lâu hơn quái vẫn có thể chạm vào An. Mất ba nhịp liên kết sẽ quay lại điểm đầu trận với các bẫy được đặt lại. Lõi không cho chọn kết thúc trước khi phá đủ ba lớp vỏ.
 
 `campaignVersion: 2` chuyển bản lưu sáu chương cũ sang bốn chương mới. Bản lưu đang ở tuyến truy đuổi cũ được đưa về đầu tuyến để không bỏ lỡ các ấn vừa thêm. Menu chọn chương cũng ánh xạ đúng chương 3 tới rừng và chương 4 tới tâm điểm.
+
+
+An dùng atlas thống nhất `public/assets/pixel/an-unified.png` (8 cột × 6 hàng: đứng, đi, chạy, nhảy, tương tác, menu) và atlas cùng mẫu `an-seated.png` (8 cột × 2 hàng cho sửa đồng hồ, ngủ và đọc thư). Mọi trạng thái gameplay dùng chung tỷ lệ nguồn theo dáng đứng, không kéo giãn từng khung. Menu, chân dung, truyện và loading cũng dùng các atlas này; các sheet An trước đây chỉ còn lưu làm nguồn tham khảo, không được nạp khi chơi.

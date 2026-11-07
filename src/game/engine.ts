@@ -674,7 +674,7 @@ export class GameEngine {
       if(previousState==='idle')this.player.animTimer=0;
       const gait=advanceGait(this.player.animTimer,distanceMoved,this.player.isGrounded,stageCfg.stage===5);
       this.player.animTimer=gait.phase;
-      this.player.animFrame=Math.floor(gait.phase*(stageCfg.stage===5?5:8));
+      this.player.animFrame=Math.floor(gait.phase*8);
       if(gait.step)soundManager.playFootstep();
     }else if(this.player.state==='idle'){
       this.player.animTimer=0;this.player.animFrame=0;

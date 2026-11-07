@@ -1,11 +1,12 @@
+import {pixelAssets} from '../game/pixelAssets';
 import {useEffect,useRef} from 'react';
-import {prepareWorkshopSprites,workshopActorFrame} from '../game/workshopLoadingArt';
+import {prepareWorkshopSprites} from '../game/workshopLoadingArt';
 type Props={progress?:number;error?:string;shattering?:boolean};
 function WorkshopScene({progress,error}:Props){
  const ref=useRef<HTMLCanvasElement>(null),state=useRef({progress,error});
  useEffect(()=>{state.current={progress,error};},[progress,error]);
  useEffect(()=>{
-  const canvas=ref.current!,ctx=canvas.getContext('2d')!,plate=new Image(),sheet=new Image();
+  const canvas=ref.current!,ctx=canvas.getContext('2d')!,plate=new Image(),sheet=new Image(),actors=pixelAssets();
   let sprites:ReturnType<typeof prepareWorkshopSprites>|undefined,frame=0,last=0,alive=true,displayed=0;
   const motion=matchMedia('(prefers-reduced-motion: reduce)'),start=performance.now();
   sheet.onload=()=>{if(alive)sprites=prepareWorkshopSprites(sheet);};
@@ -14,8 +15,9 @@ function WorkshopScene({progress,error}:Props){
    if(!plate.complete||!plate.naturalWidth)return;const t=motion.matches?0:(now-start)/1000,{progress:p,error:err}=state.current;
    ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,1376,768);ctx.drawImage(plate,0,0,1376,768);
    if(sprites){
-    // Four seated repair poses, mirrored to face the existing workbench.
-    const i=motion.matches?0:workshopActorFrame(t),pivot=[87,91,92,95][i];ctx.save();ctx.translate(512,592);ctx.scale(-1.4,1.4);ctx.drawImage(sprites.actors[i],-pivot,-176);ctx.restore();
+    // Same An model as the game, seated companion atlas.
+    const key=`anSeatedRepair${motion.matches?0:Math.floor(t*4)%8}`,actor=actors.get(key),base=actors.get('anSeatedRepair0');
+    if(actor&&base){const scale=224/base.height;ctx.save();ctx.translate(512,592);ctx.scale(-scale,scale);ctx.drawImage(actor,-actors.getCharacterPivot(key),-actor.height);ctx.restore();}
     const pendulum=[0,1,2,3,4,5,4,3,2,1][Math.floor(t*7)%10];ctx.drawImage(sprites.pendulums[pendulum],478,205,108,100);
     const gear=Math.floor(t*6)%6;ctx.drawImage(sprites.gears[gear],241,446,44,30);ctx.drawImage(sprites.gears[5-gear],202,444,30,23);
    }

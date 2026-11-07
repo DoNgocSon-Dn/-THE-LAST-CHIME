@@ -28,26 +28,14 @@ const cuts:Record<string,Cut>={
   familyWork:['memories',130,298,255,165],familyWorkPresent:['memories',477,296,214,167],
   lock:['memories',38,1007,145,140],parts:['memories',205,1010,157,140],book:['memories',380,1010,162,135],seal:['memories',552,1007,165,140],redThread:['memories',730,1005,151,140],
 };
-for(let i=0;i<8;i++)cuts[`anWalkCycle${i}`]=['an-walk-smooth',i,0,1,1];
-// The user's revised sheet: omit all printed headings from each frame crop.
-const revisedColumns=[[55,135],[190,140],[330,125],[455,130],[585,130],[715,150]];
-for(let i=0;i<6;i++){
-  const [x,w]=revisedColumns[i];
-  cuts[`anV2Walk${i}`]=['an-v2',x,25,w,220];
-  const [cx,cw]=[[50,130],[180,135],[310,140],[450,140],[590,125],[710,155]][i];
-  cuts[`anV2Crouch${i}`]=['an-v2',cx,300,cw,195];
-  cuts[`anV2${i<3?'Idle':'Think'}${i%3}`]=['an-v2',x,560,w,225];
-}
-for(const [i,x,w]of [[0,60,160],[1,235,145],[2,385,150],[3,545,150],[4,705,160]])cuts[`anV2Run${i}`]=['an-v2',x,975,w,210];
+for(const [row,action]of ['Idle','Walk','Run','Jump','Interact','Menu'].entries())for(let i=0;i<8;i++)cuts[`anUnified${action}${i}`]=['an-unified',i,row,1,1];
+for(const [row,action]of ['Repair','Story'].entries())for(let i=0;i<8;i++)cuts[`anSeated${action}${i}`]=['an-seated',i,row,1,1];
 for(let i=0;i<6;i++){
   const x=i*200+35;
   cuts[`menuLinhWave${i}`]=['menu-actors',x,45,145,180];
   cuts[`menuLinhHappy${i}`]=['menu-actors',x,262,145,181];
-  cuts[`menuAnIdle${i}`]=['menu-actors',x,482,145,185];
-  cuts[`menuAnBag${i}`]=['menu-actors',x,706,145,188];
 }
 for(let i=0;i<9;i++){
-  cuts[`an${i}`]=['an',i%3*298,Math.floor(i/3)*400,298,400];
   cuts[`lost${i}`]=['pursuer',i%3*298,Math.floor(i/3)*400,298,400];
   cuts[`npc${i}`]=['npc',i%3*298,Math.floor(i/3)*400,298,400];
 }
@@ -110,18 +98,19 @@ export class PixelAssets{
     this.ready=Promise.all([...new Set(Object.values(cuts).map(c=>c[0]))].map(name=>new Promise<void>((resolve,reject)=>{
       const img=new Image();img.onload=()=>{try{
         for(const [key,[sheet,x,y,w,h]]of Object.entries(cuts))if(sheet===name){
-          const sx=sheet==='an-walk-smooth'?Math.round(x*img.width/8):x,sy=sheet==='an-walk-smooth'?0:y,sw=sheet==='an-walk-smooth'?Math.round((x+1)*img.width/8)-sx:w,sh=sheet==='an-walk-smooth'?img.height:h;
+          const gridRows=sheet==='an-unified'?6:sheet==='an-seated'?2:0;
+          const sx=gridRows?Math.round(x*img.width/8):x,sy=gridRows?Math.round(y*img.height/gridRows):y,sw=gridRows?Math.round((x+1)*img.width/8)-sx:w,sh=gridRows?Math.round((y+1)*img.height/gridRows)-sy:h;
           const canvas=document.createElement('canvas');canvas.width=sw;canvas.height=sh;
           canvas.getContext('2d')!.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
-          if(sheet==='an-walk-smooth'){
+          if(gridRows){
             const ctx=canvas.getContext('2d')!,pixels=ctx.getImageData(0,0,sw,sh);
             for(let j=3;j<pixels.data.length;j+=4)pixels.data[j]=pixels.data[j]<128?0:255;
             ctx.putImageData(pixels,0,0);
           }
-          const character=/^(menuLinh|menuAn|anWalkCycle|anV2|an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
+          const character=/^(menuLinh|anUnified|anSeated|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
           const sprite=removeSheetBackground(canvas,true,character);
           this.sprites.set(key,sprite);
-          if(key.startsWith('anWalkCycle')||key.startsWith('anV2')||key.startsWith('menu')||/^an[0-8]$/.test(key)){
+          if(key.startsWith('anUnified')||key.startsWith('anSeated')||key.startsWith('menu')){
             const headRows=Math.max(1,Math.floor(sprite.height*.23));
             const pixels=sprite.getContext('2d')!.getImageData(0,0,sprite.width,headRows).data;
             let sum=0,count=0;
@@ -130,7 +119,7 @@ export class PixelAssets{
           }
         }
         resolve();
-      }catch(error){reject(error);}};img.onerror=()=>reject(new Error(`Không tải được nhân vật ${name}.`));img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.${name==='menu-actors'||name==='an-walk-smooth'?'png':'jpg'}`;
+      }catch(error){reject(error);}};img.onerror=()=>reject(new Error(`Không tải được nhân vật ${name}.`));img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.${name==='menu-actors'||name==='an-unified'||name==='an-seated'?'png':'jpg'}`;
     }))).then(()=>undefined);
   }
   isReady(){return this.sprites.size===Object.keys(cuts).length;}

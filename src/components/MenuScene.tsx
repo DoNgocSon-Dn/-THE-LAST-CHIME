@@ -31,9 +31,8 @@ export function MenuScene({reaction}:{reaction:TitleReaction}){
    const girlFrame=girlActive?Math.min(5,Math.floor((react?.who==='linh'&&recent<2.4?recent:t%11)*5)) : 0;
    const girl=assets.get(`menuLinh${girlMode}${girlFrame}`),girlBase=assets.get('menuLinhWave0');
    if(girl&&girlBase){const scale=96/girlBase.height;ctx.drawImage(girl,341-assets.getCharacterPivot(`menuLinh${girlMode}${girlFrame}`)*scale,639-girl.height*scale,girl.width*scale,girl.height*scale);}
-   const idlePhase=t%6;
-   const anFrame=motion.matches?0:anActive?Math.min(5,Math.floor((react?.who==='an'&&recent<2.6?recent:(t+4)%13)*3)):idlePhase<.16?1:idlePhase<.24?2:idlePhase>3&&idlePhase<3.7?3:idlePhase>=3.7&&idlePhase<4.4?4:0;
-   const key=anActive?`menuAnBag${anFrame}`:`menuAnIdle${anFrame}`,sprite=assets.get(key),base=assets.get('menuAnIdle0');
+   const anFrame=motion.matches?0:anActive?Math.min(7,Math.floor((react?.who==='an'&&recent<2.6?recent:(t+4)%13)*3)):Math.floor(t*2)%8;
+   const key=anActive?`anUnifiedMenu${anFrame}`:`anUnifiedIdle${anFrame}`,sprite=assets.get(key),base=assets.get('anUnifiedIdle0');
    if(sprite&&base){const scale=130/base.height;ctx.save();ctx.translate(1075,647);ctx.scale(-1,1);ctx.drawImage(sprite,-assets.getCharacterPivot(key)*scale,-sprite.height*scale,sprite.width*scale,sprite.height*scale);ctx.restore();}
    if(mechanics)paintMenuMechanics(ctx,mechanics,t);
   };

@@ -6,13 +6,13 @@ import {anFrame} from './characterAtlas';
 import {removeExteriorMattePixels} from './pixelWorld';
 import {STAGE_CONFIGS} from './levelData';
 
-test('An actions use only An sprites; revised poses remain for idle, jumps and interactions',()=>{
+test('Every An gameplay action uses the same unified model sheet',()=>{
  for(const tick of [0,.2,1,12]){
-  assert.match(anFrame('walk',tick),/^anWalkCycle[0-7]$/);
-  for(const state of ['jump','fall','idle','interact','warp'] as const)assert.match(anFrame(state,tick),/^anV2/);
-  assert.match(anFrame('walk',tick,0,true),/^anV2Run/);
-  assert.match(anFrame('interact',tick,0,false,'crouch'),/^anV2Crouch/);
-  assert.match(anFrame('interact',tick,0,false,'think'),/^anV2Think/);
+  assert.match(anFrame('walk',tick),/^anUnifiedWalk[0-7]$/);
+  for(const state of ['jump','fall','idle','interact','warp'] as const)assert.match(anFrame(state,tick),/^anUnified/);
+  assert.match(anFrame('walk',tick,0,true),/^anUnifiedRun/);
+  assert.match(anFrame('interact',tick,0,false,'crouch'),/^anUnifiedInteract5$/);
+  assert.match(anFrame('interact',tick,0,false,'think'),/^anUnifiedInteract3$/);
  }
 });
 

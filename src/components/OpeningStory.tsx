@@ -1,14 +1,22 @@
+import {pixelAssets} from '../game/pixelAssets';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight} from 'lucide-react';
 function StoryScene({scene}:{scene:'dream'|'letter'|'home'}){
  const ref=useRef<HTMLCanvasElement>(null);
- useEffect(()=>{const canvas=ref.current!,ctx=canvas.getContext('2d')!,sheet=new Image(),art=new Image();let raf=0,last=0;const start=performance.now(),motion=matchMedia('(prefers-reduced-motion: reduce)');
- sheet.src=`${import.meta.env.BASE_URL}assets/story/opening-animations.png`;art.src=`${import.meta.env.BASE_URL}assets/story/opening-reference.png`;
- const draw=(now:number)=>{raf=requestAnimationFrame(draw);if(document.hidden||now-last<100)return;last=now;const t=motion.matches?4:(now-start)/1000;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#202b2c';ctx.fillRect(0,0,400,200);
- if(scene==='home'){if(art.complete&&art.naturalWidth)ctx.drawImage(art,665,610,345,165,0,0,400,200);return;}
- if(!sheet.complete||!sheet.naturalWidth)return;
- if(scene==='dream'){const sequence=[0,0,1,1,2,3,4,4,5,2];const i=sequence[Math.floor(t*1.6)%sequence.length];ctx.drawImage(sheet,38+i*188.5,52,181,142,73,0,255,200);}
- else{const sequence=[0,1,2,3,4,5];const step=Math.min(5,Math.floor(t*1.15));const i=sequence[step];ctx.drawImage(sheet,38+i*188.5,251,181,142,0,0,255,200);const lawyer=[1,2,3,3,4,0][step];ctx.save();ctx.translate(395,10);ctx.scale(-1,1);ctx.drawImage(sheet,162+lawyer*147.5,632,140,179,0,0,148,190);ctx.restore();}
+ useEffect(()=>{const canvas=ref.current!,ctx=canvas.getContext('2d')!,sheet=new Image(),home=new Image(),workshop=new Image(),assets=pixelAssets();let raf=0,last=0;const start=performance.now(),motion=matchMedia('(prefers-reduced-motion: reduce)');
+ sheet.src=`${import.meta.env.BASE_URL}assets/story/opening-animations.png`;home.src=`${import.meta.env.BASE_URL}assets/pixel/map-1.jpg`;workshop.src=`${import.meta.env.BASE_URL}assets/loading/workshop-plate.png`;
+ const draw=(now:number)=>{raf=requestAnimationFrame(draw);if(document.hidden||now-last<100)return;last=now;const t=motion.matches?3:(now-start)/1000;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#202b2c';ctx.fillRect(0,0,400,200);
+ const actor=(key:string,x:number,bottom:number,height:number,flip=false)=>{const s=assets.get(key),base=assets.get('anSeatedStory0');if(!s||!base)return;const scale=height/base.height;ctx.save();ctx.translate(x,bottom);if(flip)ctx.scale(-1,1);ctx.drawImage(s,-assets.getCharacterPivot(key)*scale,-s.height*scale,s.width*scale,s.height*scale);ctx.restore();};
+ if(scene==='home'){if(home.complete&&home.naturalWidth)ctx.drawImage(home,0,348,1600,298,0,0,400,200);assets.feet(ctx,'anUnifiedIdle0',115,190,88);return;}
+ // Retain the detailed workshop artwork, replacing only An's character.
+ if(workshop.complete&&workshop.naturalWidth)ctx.drawImage(workshop,30,305,620,300,0,0,400,200);
+ if(scene==='dream'){
+   const step=motion.matches?3:[0,1,2,3,3,3,3,4][Math.floor(t*.8)%8];actor(`anSeatedStory${step}`,303,195,150,true);
+   if(step===3){ctx.save();ctx.globalAlpha=.68;ctx.fillStyle='#e4dab566';ctx.beginPath();ctx.arc(231,49,35,0,Math.PI*2);ctx.fill();assets.feet(ctx,`menuLinhWave${motion.matches?0:Math.floor(t*4)%6}`,231,79,59);ctx.restore();}
+ }else{
+   const step=Math.min(7,Math.floor(t*1.1)+4);actor(`anSeatedStory${step}`,303,195,150,true);
+   if(sheet.complete&&sheet.naturalWidth){const lawyer=step<6?3:0;ctx.save();ctx.translate(12,15);ctx.drawImage(sheet,162+lawyer*147.5,632,140,179,0,0,130,181);ctx.restore();}
+ }
  };raf=requestAnimationFrame(draw);return()=>cancelAnimationFrame(raf);},[scene]);
  return <canvas ref={ref} width={400} height={200} role="img" aria-label={scene==='dream'?'An ngủ gục bên bàn đồng hồ và mơ thấy Linh':scene==='letter'?'Luật sư trao thư, An mở ra đọc':'An trở về trước cổng ngôi nhà cũ'}/>;
 }

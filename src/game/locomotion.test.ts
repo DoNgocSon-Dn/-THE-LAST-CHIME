@@ -15,12 +15,12 @@ test('Standing, walls and airborne movement never advance ground steps',()=>{
  assert.deepEqual(advanceGait(.3,20,false),{phase:.3,step:false});
  assert.equal(advanceGait(.2,-24,true).phase,advanceGait(.2,24,true).phase);
 });
-test('Animation samples are independent of the world clock and idle does not flicker',()=>{
+test('Walk phase is distance-driven; idle breathes slowly within the same character model',()=>{
  for(const tick of [0,.2,1,100]){
-  assert.equal(anFrame('walk',tick,0,false,'think',.4),'anWalkCycle3');
-  assert.equal(anFrame('idle',tick),'anV2Idle0');
+  assert.equal(anFrame('walk',tick,0,false,'think',.4),'anUnifiedWalk3');
+  assert.match(anFrame('idle',tick),/^anUnifiedIdle[0-7]$/);
  }
- assert.equal(anFrame('walk',0,0,true,'think',.8),'anV2Run4');
+ assert.equal(anFrame('walk',0,0,true,'think',.8),'anUnifiedRun6');
 });
 
 test('Walking uses eight distinct stride poses and never the standing pose',()=>{
