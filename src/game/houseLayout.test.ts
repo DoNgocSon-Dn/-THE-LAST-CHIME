@@ -10,7 +10,7 @@ import type {Player} from '../types/game';
 const hub=STAGE_CONFIGS[2];
 test('Entering the house leads to the corridor; each interior is reached and left through its door',()=>{
  assert.equal(currentPixelRoom(2,hub.spawnX).map,3);
- for(const [out,back,map]of [['hall_living','living_return',2],['hall_workshop','workshop_return',5],['hall_kitchen','kitchen_return',6]]as const){
+ for(const [out,back,map]of [['hall_living','living_return',2],['hall_workshop','workshop_return_right',5],['hall_kitchen','kitchen_return',6]]as const){
   const entry=hub.interactables.find(o=>o.id===out)!,exit=hub.interactables.find(o=>o.id===back)!;
   assert.equal(currentPixelRoom(2,entry.x).map,3);
   assert.equal(currentPixelRoom(2,entry.destination!.x).map,map);
@@ -46,10 +46,10 @@ test('Old saves migrate by physical room, not by the old chapter number alone',(
 });
 
 test('Painted open doorways on both sides of living room and workshop have return routes',()=>{
- for(const id of ['living_return','living_return_right','workshop_return','workshop_return_right']){
+ for(const [id,map]of [['living_return',3],['living_return_right',5],['workshop_return',2],['workshop_return_right',3]]as const){
   const obj=hub.interactables.find(o=>o.id===id)!;assert.ok(obj,id);
   const route=houseDestination(obj,INITIAL_PUZZLE_STATE,'PAST')!;
-  assert.equal(route.locked,false);assert.equal(currentPixelRoom(route.destination.stage,route.destination.x).map,3);
+  assert.equal(route.locked,false);assert.equal(currentPixelRoom(route.destination.stage,route.destination.x).map,map);
  }
 });
 
@@ -60,7 +60,7 @@ test('The first corridor door is the living room; bedroom occupies the barricade
 });
 test('Collapsed bedroom and workshop doors require the past on entry and return',()=>{
  const keyed={...INITIAL_PUZZLE_STATE,hasWatch:true,motherDiaryCh3Read:true};
- for(const [stage,id]of [[2,'hall_bedroom'],[2,'hall_workshop'],[2,'workshop_return'],[2,'workshop_return_right'],[4,'bedroom_return']]as const){
+ for(const [stage,id]of [[2,'hall_bedroom'],[2,'hall_workshop'],[2,'living_return_right'],[2,'workshop_return'],[2,'workshop_return_right'],[4,'bedroom_return']]as const){
   const door=STAGE_CONFIGS[stage].interactables.find(o=>o.id===id)!;
   assert.equal(houseDestination(door,keyed,'PRESENT')!.locked,true,id);
   assert.equal(houseDestination(door,keyed,'PAST')!.locked,false,id);
@@ -69,4 +69,12 @@ test('Collapsed bedroom and workshop doors require the past on entry and return'
  assert.equal(houseDestination(bedroom,INITIAL_PUZZLE_STATE,'PAST')!.locked,true,'The key is still needed in the past');
  const workshop=hub.interactables.find(o=>o.id==='hall_workshop')!;
  assert.doesNotMatch(houseDestination(workshop,INITIAL_PUZZLE_STATE,'PRESENT')!.lockedMessage??'',/Nhấn Q/,'Do not reveal the power before collecting the watch');
+});
+
+test('Living room and workshop doorways form reciprocal paths at the same doorway',()=>{
+ for(const [entry,back]of [['hall_living','living_return'],['hall_workshop','workshop_return_right'],['living_return_right','workshop_return'],['hall_kitchen','kitchen_return']]){
+  const a=hub.interactables.find(o=>o.id===entry)!,b=hub.interactables.find(o=>o.id===back)!;
+  assert.ok(Math.abs(a.destination!.x-b.x)<=50,entry);
+  assert.ok(Math.abs(b.destination!.x-a.x)<=50,back);
+ }
 });

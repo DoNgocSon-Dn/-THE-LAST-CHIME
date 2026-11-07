@@ -75,3 +75,6 @@ An dùng atlas thống nhất `public/assets/pixel/an-unified.png` (8 cột × 6
 
 
 Hành lang: cửa phòng khách ở vị trí đầu (228), phòng Linh ở cửa bị đóng ván (427). Cửa phòng Linh và xưởng bị sập ở hiện tại, chỉ đi qua được trong quá khứ, cả chiều vào lẫn chiều ra. Phòng Linh vẫn cần chìa khóa từ hộp sắt trong giếng. Người chơi lấy đồng hồ trong phòng khách trước nên không bị khóa tiến trình bởi điều kiện Q.
+
+
+Sơ đồ cửa phòng khách/xưởng: Hành lang ↔ cửa trái Phòng khách; cửa phải Phòng khách ↔ cửa trái Xưởng; cửa phải Xưởng ↔ Hành lang. Mỗi lối quay về đúng cửa đối diện. Cả hai lối vào xưởng đều bị sập ở hiện tại và cần trở về quá khứ.

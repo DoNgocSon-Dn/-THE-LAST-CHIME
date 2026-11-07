@@ -33,10 +33,10 @@ export function configureHouseLayout(stages:Record<number,StageConfig>){
  door(two,'hall_bedroom','Phòng của Linh',427,{stage:4,x:90,requiresTimeline:'PAST',timelineLockedMessage:'Cửa phòng Linh đã bị ván và khung gãy chặn kín. Nhấn Q về quá khứ để thử cánh cửa khi nó còn nguyên.',requiresPuzzle:'motherDiaryCh3Read',lockedMessage:'Cửa phòng Linh đang khóa. Trên ổ khóa có buộc một sợi chỉ đỏ.'});
  door(two,'hall_kitchen','Nhà bếp',326,{stage:2,x:2460});
  door(two,'hall_living','Phòng khách',228,{stage:2,x:860});
- door(two,'hall_workshop','Xưởng đồng hồ',702,{stage:2,x:1660,requiresTimeline:'PAST',timelineLockedMessage:'Khung cửa xưởng đã sập ở hiện tại. Nhấn Q về quá khứ để đi qua.'});
+ door(two,'hall_workshop','Xưởng đồng hồ',702,{stage:2,x:2320,requiresTimeline:'PAST',timelineLockedMessage:'Khung cửa xưởng đã sập ở hiện tại. Nhấn Q về quá khứ để đi qua.'});
  door(two,'living_return','Ra hành lang',830,{stage:2,x:250});
- door(two,'living_return_right','Ra hành lang',1520,{stage:2,x:250});
- door(two,'workshop_return','Ra hành lang',1635,{stage:2,x:695,requiresTimeline:'PAST',timelineLockedMessage:'Khung cửa đã sập ở hiện tại. Nhấn Q trở về quá khứ để ra hành lang.'});
+ door(two,'living_return_right','Sang xưởng đồng hồ',1520,{stage:2,x:1680,requiresTimeline:'PAST',timelineLockedMessage:'Lối sang xưởng đã sập phía bên kia cửa. Nhấn Q về quá khứ để đi qua.'});
+ door(two,'workshop_return','Sang phòng khách',1635,{stage:2,x:1485,requiresTimeline:'PAST',timelineLockedMessage:'Lối sang phòng khách bị khung cửa sập chặn lại. Nhấn Q về quá khứ để đi qua.'});
  door(two,'workshop_return_right','Ra hành lang',2340,{stage:2,x:695,requiresTimeline:'PAST',timelineLockedMessage:'Khung cửa đã sập ở hiện tại. Nhấn Q trở về quá khứ để ra hành lang.'});
  door(two,'kitchen_return','Ra hành lang',2435,{stage:2,x:340});
  door(two,'kitchen_yard','Mở cửa ra sân sau',3115,{stage:3,x:90,requiresPuzzle:'clockInspectedPresent',lockedMessage:'Chốt cửa sau vẫn bị dây cáp giữ. Sợi cáp chạy về phía phòng khách.'});
