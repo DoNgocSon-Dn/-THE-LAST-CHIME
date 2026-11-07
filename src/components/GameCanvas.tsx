@@ -23,6 +23,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef,
 
     // Create engine instance
     const engine = new GameEngine(canvas, {
+      onOpenMechanism: id=>callbacksRef.current.onOpenMechanism?.(id),
       onTimelineChange: (t) => callbacksRef.current.onTimelineChange(t),
       onCooldownChange: (r, s) => callbacksRef.current.onCooldownChange(r, s),
       onNearbyPrompt: (o) => callbacksRef.current.onNearbyPrompt(o),

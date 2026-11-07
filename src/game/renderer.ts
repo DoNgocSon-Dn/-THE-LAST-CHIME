@@ -141,7 +141,7 @@ export class GameRenderer {
     }
 
     // 7. Draw player character (An) with expressive character design & overhead speech bubble
-    this.drawPlayer(ctx, player, puzzles.hasWatch);
+    this.character.draw(ctx,player,this.animTick,stageCfg.stage===5);
     if(nearbyInteractableId)this.drawInteractPromptBadge(ctx,player.x+player.width/2,player.y-16,isPast);
 
     // 8. Draw foreground atmosphere, dust particles & rain
@@ -201,7 +201,7 @@ export class GameRenderer {
       ctx.fillStyle = isPast ? '#fff3bf' : '#81ecec';
       ctx.font = 'bold 12px "Be Vietnam Pro", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('♪ Mi - Sol - Đô ♪', targetX, targetY - 12);
+      ctx.fillText(isPast ? '☾  ★  ☀' : '☾ Mi · ☀ Đô · ★ Sol', targetX, targetY - 12);
       ctx.restore();
     }
   }

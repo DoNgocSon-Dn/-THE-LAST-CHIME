@@ -85,3 +85,12 @@ Importer nhân vật lọc cả nền xám sáng do nén JPG, nối vùng nền 
 ### Điện thoại
 
 Canvas tự điều chỉnh tỉ lệ theo màn hình, không còn khung 16:9 nằm giữa các khoảng đen lớn khi chơi dọc. Nút cảm ứng trái/phải và nhảy dùng cùng đầu vào với bàn phím; E và Q dùng các nút tương tác trên HUD. Đã kiểm tra khung 390×844 và thao tác giữ nút di chuyển.
+
+
+### Interactive puzzle update
+
+- Chapter 2: obtain the replacement gear, inspect the stopped clock, then manually set its hands and wind it in the past. Inspect the result in the present to release the hallway latch.
+- Chapter 4: inspect the lit wall in both timelines. One reveals the symbol order; the other reveals symbol-to-note associations. Enter a three-note melody with the six playable keys; incorrect entries leave the door locked.
+- Chapter 6: read the final diary and derive the three ring settings from the accident time. The core stays locked until the rings are aligned.
+- An's notebook records inspected clues, persists in saves, and can be reopened from the HUD or a mechanism. Future chapters stay locked in the chapter picker.
+- Revised user-supplied `an-v2.jpg`: 23 cropped poses for walking, crouching, idle, thinking and escape running. Every pose uses the same source-pixel scale and foot baseline; sheet headings are excluded.

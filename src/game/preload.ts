@@ -1,4 +1,4 @@
-const assetNames=[...Array.from({length:13},(_,i)=>`map-${i+1}`),'an','npc','pursuer','animations','furniture','objects','memories','scenes'];
+const assetNames=[...Array.from({length:13},(_,i)=>`map-${i+1}`),'an','an-v2','npc','pursuer','animations','furniture','objects','memories','scenes'];
 export async function preloadGameAssets(onProgress:(fraction:number)=>void):Promise<void>{
   let loaded=0;
   await Promise.all(assetNames.map(name=>new Promise<void>((resolve,reject)=>{

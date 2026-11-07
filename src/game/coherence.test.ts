@@ -6,13 +6,15 @@ import {anFrame} from './characterAtlas';
 import {removeExteriorMattePixels} from './pixelWorld';
 import {STAGE_CONFIGS} from './levelData';
 
-test('Character interactions and warp retain the idle identity without an unrelated held clock',()=>{
+test('Revised An sheet supplies distinct actions without switching character identity',()=>{
  for(const tick of [0,.2,1,12]){
-  assert.equal(anFrame('interact',tick),anFrame('idle',tick));
-  assert.equal(anFrame('warp',tick),anFrame('idle',tick));
-  for(const state of ['walk','jump','fall'] as const)assert.match(anFrame(state,tick),/^an[0-8]$/);
+  for(const state of ['walk','jump','fall','idle','interact','warp'] as const)assert.match(anFrame(state,tick),/^anV2/);
+  assert.match(anFrame('walk',tick,0,true),/^anV2Run/);
+  assert.match(anFrame('interact',tick,0,false,'crouch'),/^anV2Crouch/);
+  assert.match(anFrame('interact',tick,0,false,'think'),/^anV2Think/);
  }
 });
+
 test('Closed exterior white matte holes are transparent while colored architecture is retained',()=>{
  const pixels=new Uint8ClampedArray([255,255,255,255,237,238,236,255,70,95,68,255,224,185,120,255]);
  removeExteriorMattePixels(pixels);

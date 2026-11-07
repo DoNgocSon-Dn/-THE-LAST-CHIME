@@ -364,6 +364,15 @@ class SoundManager {
     this.musicTimer = window.setInterval(playNextBeat, 2400);
   }
 
+  public playPuzzleNote(index:number) {
+    this.init();if(!this.ctx||!this.sfxGain)return;
+    const frequencies=[261.63,293.66,329.63,349.23,392,523.25];
+    const now=this.ctx.currentTime;const osc=this.ctx.createOscillator();const gain=this.ctx.createGain();
+    osc.type='sine';osc.frequency.value=frequencies[index]??261.63;
+    gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.35,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+.8);
+    osc.connect(gain);gain.connect(this.sfxGain);osc.start(now);osc.stop(now+.85);
+  }
+
   public destroy() {
     if (this.musicTimer) clearInterval(this.musicTimer);
     if (this.ctx) {

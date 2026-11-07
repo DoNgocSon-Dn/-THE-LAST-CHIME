@@ -1,3 +1,5 @@
+import { MechanismPanel } from './components/MechanismPanel';
+import type { MechanismId } from './game/mechanisms';
 import { OpeningStory } from './components/OpeningStory';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -23,6 +25,7 @@ import { ClockLoader } from './components/ClockLoader';
 import { preloadGameAssets } from './game/preload';
 
 export default function App() {
+  const [activeMechanism,setActiveMechanism]=useState<MechanismId|null>(null);
   const [gameState, setGameState] = useState<GameState>('title');
   const [timeline, setTimeline] = useState<Timeline>('PRESENT');
   const [cooldownRatio, setCooldownRatio] = useState<number>(0);
@@ -133,6 +136,7 @@ export default function App() {
 
   // Stable engine callbacks ref
   const callbacksRef = useRef<EngineCallbacks>({
+    onOpenMechanism: setActiveMechanism,
     onTimelineChange: handleTimelineChange,
     onCooldownChange: handleCooldownChange,
     onNearbyPrompt: handleNearbyPrompt,
@@ -147,7 +151,8 @@ export default function App() {
 
   useEffect(() => {
     callbacksRef.current = {
-      onTimelineChange: handleTimelineChange,
+      onOpenMechanism: setActiveMechanism,
+    onTimelineChange: handleTimelineChange,
       onCooldownChange: handleCooldownChange,
       onNearbyPrompt: handleNearbyPrompt,
       onStartDialogue: handleStartDialogue,
@@ -194,6 +199,7 @@ export default function App() {
   };
 
   const handleSelectStage = (stageNum: number) => {
+    if(stageNum>(engineRef.current?.puzzles.furthestStage??puzzles.currentStage))return;
     if (engineRef.current) {
       setActiveDialogue(null);
       engineRef.current.loadStage(stageNum, true);
@@ -222,7 +228,7 @@ export default function App() {
       }
 
       // If dialogue is active, DialogueBox handles its own keys
-      if (activeDialogue) {
+      if (activeDialogue || activeMechanism) {
         return;
       }
 
@@ -243,7 +249,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKey);
     return () => window.removeEventListener('keydown', handleGlobalKey);
-  }, [gameState, activeDialogue]);
+  }, [gameState, activeDialogue, activeMechanism]);
 
   return (
     <div className="relative w-screen h-[100dvh] bg-[#060e0b] overflow-hidden flex flex-col items-center justify-center font-sans">
@@ -270,7 +276,7 @@ export default function App() {
               gameState === 'paused' ||
               gameState === 'choice' ||
               gameState === 'ending' ||
-              activeDialogue !== null
+              activeDialogue !== null || activeMechanism !== null
             }
           />
 
@@ -284,7 +290,7 @@ export default function App() {
               puzzles={puzzles}
               currentRoom={currentRoom}
               notification={notification}
-              isDialogueActive={activeDialogue !== null}
+              isDialogueActive={activeDialogue !== null || activeMechanism !== null}
               onPause={() => setGameState('paused')}
               onTimelineSwitch={() => engineRef.current?.switchTimeline()}
               onInteract={() => engineRef.current?.triggerInteract()}
@@ -302,6 +308,10 @@ export default function App() {
               onClose={() => setActiveDialogue(null)}
             />
           )}
+
+          {activeMechanism && <MechanismPanel id={activeMechanism} clues={puzzles.collectedClues??[]}
+            onClose={()=>{engineRef.current?.closeMechanism();setActiveMechanism(null);}}
+            onSubmit={values=>{const solved=engineRef.current?.submitMechanism(activeMechanism,values)===true;if(solved)setActiveMechanism(null);return solved;}}/>}
 
           {/* Pause Modal */}
           {gameState === 'paused' && (

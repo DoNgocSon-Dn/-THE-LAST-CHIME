@@ -41,7 +41,7 @@ test('Chapter 2 (Chiếc đồng hồ ngừng chạy): repairing clock in Past u
   state = gearRes.updatedPuzzles;
 
   // Repair clock in Past
-  const repairRes = processInteraction('clock', 'PAST', state);
+  const repairRes = processInteraction('clock', 'PAST', state, [3,15]);
   assert.equal(repairRes.success, true);
   assert.equal(repairRes.updatedPuzzles.clockRepaired, true);
   state = repairRes.updatedPuzzles;
@@ -87,7 +87,8 @@ test('Chapters 4 to 6: Study room puzzle, Chase door unlock, and Chapter 6 Final
   state = processInteraction('light_switch', 'PAST', state).updatedPuzzles;
   assert.equal(state.lightSwitchOn, true);
 
-  // Inspect light target in Present
+  // The two timelines reveal different halves of the music clue.
+  state = processInteraction('light_target', 'PAST', state).updatedPuzzles;
   state = processInteraction('light_target', 'PRESENT', state).updatedPuzzles;
   assert.equal(state.lightRuneFound, true);
 
@@ -96,7 +97,7 @@ test('Chapters 4 to 6: Study room puzzle, Chase door unlock, and Chapter 6 Final
   assert.equal(state.motherNoteCh4Read, true);
 
   // Play music box in Past
-  const mbRes = processInteraction('music_box', 'PAST', state);
+  const mbRes = processInteraction('music_box', 'PAST', state, [2,4,5]);
   assert.equal(mbRes.success, true);
   state = mbRes.updatedPuzzles;
   assert.equal(state.musicBoxPlayed, true);
@@ -113,7 +114,7 @@ test('Chapters 4 to 6: Study room puzzle, Chase door unlock, and Chapter 6 Final
   state = finalDiary.updatedPuzzles;
   assert.equal(state.finalDiaryCh6Read, true);
 
-  const anchorRes = processInteraction('temporal_anchor', 'PAST', state);
+  const anchorRes = processInteraction('temporal_anchor', 'PAST', state, [3,1,5]);
   assert.equal(anchorRes.success, true);
   state = anchorRes.updatedPuzzles;
   assert.equal(state.finalCoreAligned, true);
@@ -134,4 +135,38 @@ test('Discoveries do not reveal their author or puzzle solution before inspectio
   const clock=processInteraction('clock','PAST',watch.updatedPuzzles);
   assert.doesNotMatch(clock.messageVi,/xưởng|dự phòng/);
   assert.equal(clock.updatedPuzzles.clockRepaired,false);
+});
+
+test('Manual clock repair needs a complete correct time, not a single interaction',()=>{
+ const state={...INITIAL_PUZZLE_STATE,currentStage:2,hasWatch:true,clockGearFound:true};
+ for(const answer of [undefined,[],[3],[3,0],[3,15,0],[NaN,15]]){
+  const result=processInteraction('clock','PAST',state,answer);
+  assert.equal(result.challenge,'clock');assert.equal(result.updatedPuzzles.clockRepaired,false);
+ }
+ assert.equal(processInteraction('clock','PAST',state,[3,15]).updatedPuzzles.clockRepaired,true);
+ assert.equal(processInteraction('clock','PRESENT',state,[3,15]).updatedPuzzles.clockRepaired,false);
+});
+
+test('Melody must be entered in order; lighting alone cannot solve the box',()=>{
+ const state={...INITIAL_PUZZLE_STATE,currentStage:4,lightSwitchOn:true};
+ for(const answer of [undefined,[5,4,2],[2,4],[2,4,5,0]])assert.equal(processInteraction('music_box','PAST',state,answer).updatedPuzzles.musicBoxPlayed,false);
+ const past=processInteraction('light_target','PAST',state);
+ assert.equal(past.updatedPuzzles.lightRuneFound,false);
+ assert.equal(past.updatedPuzzles.collectedClues!.length,1);
+ const present=processInteraction('light_target','PRESENT',past.updatedPuzzles);
+ assert.equal(present.updatedPuzzles.lightRuneFound,true);
+ assert.equal(processInteraction('light_target','PRESENT',present.updatedPuzzles).updatedPuzzles.collectedClues!.length,2);
+ const solved=processInteraction('music_box','PAST',present.updatedPuzzles,[2,4,5]);
+ assert.equal(solved.updatedPuzzles.musicBoxPlayed,true);
+ assert.equal(processInteraction('music_box','PAST',solved.updatedPuzzles).challenge,undefined);
+});
+
+test('Anchor requires the diary and correctly ordered rings, and failed attempts preserve progression',()=>{
+ const state={...INITIAL_PUZZLE_STATE,currentStage:6};
+ assert.equal(processInteraction('temporal_anchor','PAST',state,[3,1,5]).updatedPuzzles.finalCoreAligned,false);
+ const diary=processInteraction('final_diary_ch6','PRESENT',state).updatedPuzzles;
+ assert.equal(diary.collectedClues!.length,1);
+ for(const answer of [undefined,[1,3,5],[3,5,1]])assert.equal(processInteraction('temporal_anchor','PAST',diary,answer).updatedPuzzles.finalCoreAligned,false);
+ assert.equal(processInteraction('temporal_anchor','PAST',diary,[3,1,5]).updatedPuzzles.finalCoreAligned,true);
+ assert.deepEqual(state,{...INITIAL_PUZZLE_STATE,currentStage:6});
 });

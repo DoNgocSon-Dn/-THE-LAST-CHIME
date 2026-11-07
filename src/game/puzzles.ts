@@ -1,3 +1,4 @@
+import { mechanismMatches, type MechanismId } from './mechanisms';
 import { DialogueLine, PuzzleState, Timeline } from '../types/game';
 
 export const INITIAL_PUZZLE_STATE: PuzzleState = {
@@ -25,6 +26,7 @@ export const INITIAL_PUZZLE_STATE: PuzzleState = {
 };
 
 export interface InteractionResult {
+  challenge?: MechanismId;
   success: boolean;
   messageVi: string;
   speechBubbleVi?: string;
@@ -48,22 +50,39 @@ export interface InteractionResult {
 export function processInteraction(
   objectId: string,
   timeline: Timeline,
-  currentPuzzles: PuzzleState
+  currentPuzzles: PuzzleState,
+  answer?: readonly number[]
 ): InteractionResult {
   const nextPuzzles = { ...currentPuzzles };
+  const remember=(clue:string)=>{nextPuzzles.collectedClues=[...new Set([...(nextPuzzles.collectedClues??[]),clue])];};
+  const needsMechanism = timeline==='PAST' && (
+    (objectId==='clock' && nextPuzzles.currentStage===2 && nextPuzzles.hasWatch && nextPuzzles.clockGearFound && !nextPuzzles.clockRepaired) ||
+    (objectId==='music_box' && !nextPuzzles.musicBoxPlayed) ||
+    (objectId==='temporal_anchor' && !nextPuzzles.finalCoreAligned && nextPuzzles.finalDiaryCh6Read)
+  );
+  if(needsMechanism && !mechanismMatches(objectId as MechanismId,answer??[]))return {
+    success:false,challenge:objectId as MechanismId,updatedPuzzles:nextPuzzles,
+    messageVi:answer?'Cơ cấu rung lên rồi dừng. Chưa khớp nhịp.':'An cúi xuống kiểm tra cơ cấu.'
+  };
+  if(objectId==='temporal_anchor' && timeline==='PAST' && !nextPuzzles.finalDiaryCh6Read)return {
+    success:false,messageVi:'Các vòng số đã mờ. Bên bệ đá còn một cuốn sổ.',updatedPuzzles:nextPuzzles
+  };
+  if(objectId==='clock' && timeline==='PRESENT')remember('Mặt đồng hồ vỡ: cả hai kim dừng ở 3 giờ 15.');
+  if(objectId==='final_diary_ch6')remember('Ghi cuối nhật ký: lấy giờ tai nạn. Vòng ngoài là giờ; hai vòng trong lần lượt là hàng chục và hàng đơn vị của phút.');
+
 
   const sideMemories:Record<string,{title:string;text:string}>={
-    memory_kitchen:{title:'Bữa cơm còn dang dở',text:'Trên bàn vẫn có ba chiếc cốc. Mẹ luôn để đèn bếp sáng khi An và Linh chưa về. Những điều nhỏ bé ấy mới là thứ cỗ máy giữ được lâu nhất.'},
-    memory_workshop:{title:'Ghi chép về chiếc kim',text:'Chỉ những vật cộng hưởng mới truyền được thay đổi giữa hai mốc ký ức: bánh răng, ròng rọc, ánh sáng và khúc nhạc. Chiếc kim không thể hồi sinh người đã mất.'},
-    memory_well:{title:'Sợi dây bên giếng',text:'Linh buộc một sợi chỉ đỏ lên thành giếng để đánh dấu đường về. Dấu nơ ấy còn lặp lại trong rừng ký ức, dẫn tới nơi em đang mắc kẹt.'},
+    memory_kitchen:{title:'Bữa cơm còn dang dở',text:'Ba chiếc cốc vẫn ở đây. Cái sứt quai là của mình... Mẹ cứ bảo đổi mà mình không chịu.'},
+    memory_workshop:{title:'Ghi chép về chiếc kim',text:'Bản vẽ có một đường cáp nối đồng hồ phòng khách với chốt cửa. Mẹ còn khoanh tròn trục bánh răng bị thiếu.'},
+    memory_well:{title:'Sợi dây bên giếng',text:'Một nút chỉ đỏ trên thành giếng... Linh từng buộc thế này mỗi khi chơi tìm đường. Không biết trong vườn còn dấu nào không.'},
     memory_garden:{title:'Chiếc nơ trong vườn',text:'Chiếc nơ đỏ của Linh mắc trên cành cây. Cái bóng trong hành lang cũng mang một vệt đỏ trước ngực. Vì sao một quái vật lại giữ kỷ vật của em?'},
-    memory_greenhouse:{title:'Bản đồ rừng ký ức',text:'Sau nhà kính, không gian bị xé thành những mảnh vườn và hang động. Hãy theo dấu nơ đỏ, nhảy qua các bệ còn nguyên và tìm trụ cộng hưởng ở tâm điểm.'}
+    memory_greenhouse:{title:'Bản đồ rừng ký ức',text:'Linh vẽ một đường đỏ xuyên qua mấy hình cây và tảng đá. Trông giống lối đi phía sau nhà kính.'}
   };
   if(sideMemories[objectId]){
     const memory=sideMemories[objectId];
     return {success:true,messageVi:memory.title,updatedPuzzles:nextPuzzles,soundEvent:'paper_rustle',dialogue:[{speaker:'AN',speakerName:'An',emotion:'normal',text:memory.text}],showNote:{title:memory.title,content:memory.text,author:'Dấu vết gia đình'}};
   }
-  if(objectId==='npc_grandfather')return {success:true,messageVi:'Ký ức xưởng đồng hồ của Ông Ngoại',updatedPuzzles:nextPuzzles,dialogue:[{speaker:'ONG',speakerName:'Ký ức Ông Ngoại',emotion:'normal',text:'Cỗ máy ghi lại những điều ta từng yêu thương. Nhưng ký ức là một nơi để trở về thăm, không phải nơi để sống thay phần đời còn lại.'}]};
+  if(objectId==='npc_grandfather')return {success:true,messageVi:'Ký ức xưởng đồng hồ của Ông Ngoại',updatedPuzzles:nextPuzzles,dialogue:[{speaker:'ONG',speakerName:'Ký ức Ông Ngoại',emotion:'normal',text:'An, xong rồi thì cất giúp ông cái kính nhé. Ông cứ để đâu là quên đấy.'}]};
   switch (objectId) {
     // =========================================================================
     // MÀN 1 (CHƯƠNG 1 — TRỞ VỀ)
@@ -454,7 +473,7 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'normal',
-                text: 'Đèn chùm pha lê đã bật sáng! Luồng ánh sáng chiếu xuyên qua lăng kính đang rọi thẳng vào mảng tường giữa phòng.'
+                text: 'Dưới ánh đèn mới thấy... Trên tường có nét vẽ.'
               }
             ]
           };
@@ -478,48 +497,14 @@ export function processInteraction(
     }
 
     case 'light_target': {
-      if (nextPuzzles.lightSwitchOn) {
-        nextPuzzles.lightRuneFound = true;
-        return {
-          success: true,
-          messageVi: 'Ánh sáng làm hiện rõ mật mã 3 nốt nhạc ru trên tường: Mi (E) - Sol (G) - Đô cao (C)!',
-          speechBubbleVi: 'Mật mã Hộp Nhạc: Mi - Sol - Đô cao!',
-          soundEvent: 'chime_success',
-          updatedPuzzles: nextPuzzles,
-          dialogue: [
-            {
-              speaker: 'AN',
-              speakerName: 'An',
-              emotion: 'surprised',
-              text: 'Nhìn kìa! Ánh sáng từ đèn chùm làm hiện lên những dòng chữ dạ quang mà Mẹ và bé Linh từng vẽ trên tường!'
-            },
-            {
-              speaker: 'LINH',
-              speakerName: 'Tiếng Ngân Nga Của Bé Linh',
-              emotion: 'normal',
-              text: '“Mi... Sol... Đô cao... Khúc hát ru mỗi tối Mẹ vẫn gảy trên chiếc Hộp Nhạc đồng cho hai anh em nghe!”'
-            },
-            {
-              speaker: 'AN',
-              speakerName: 'An',
-              emotion: 'determined',
-              text: 'Ba nốt nhạc mật mã là: Mi (E) — Sol (G) — Đô cao (C)! Mình có thể dùng nó để mở khóa chiếc Hộp Nhạc của Linh ở phía bên phải!'
-            }
-          ],
-          showNote: {
-            title: 'Bản Nhạc Ru Trên Tường',
-            content: 'Thứ tự phím Hộp Nhạc: Mi (E) — Sol (G) — Đô cao (C).',
-            author: 'Mật mã Ánh Sáng'
-          }
-        };
-      } else {
-        return {
-          success: false,
-          messageVi: 'Mảng tường này tối om. Hãy bật Công Tắc Đèn Chùm ở bên trái trong Quá Khứ [Q] trước!',
-          speechBubbleVi: 'Tối quá, phải bật Công Tắc Đèn Chùm ở Quá Khứ trước!',
-          updatedPuzzles: nextPuzzles
-        };
-      }
+      if(!nextPuzzles.lightSwitchOn)return {success:false,messageVi:'Những nét vẽ chìm trong bóng tối.',updatedPuzzles:nextPuzzles};
+      const past=timeline==='PAST';
+      if(past){nextPuzzles.lightOrderFound=true;remember('Nét vẽ lúc còn mới, từ trái sang phải: trăng — sao — mặt trời.');}
+      else {nextPuzzles.lightLegendFound=true;remember('Dưới lớp giấy bong: trăng = Mi; mặt trời = Đô cao; sao = Sol.');}
+      nextPuzzles.lightRuneFound=!!(nextPuzzles.lightOrderFound&&nextPuzzles.lightLegendFound);
+      return {success:true,messageVi:'Đã ghi lại nét vẽ vào sổ.',soundEvent:'paper_rustle',updatedPuzzles:nextPuzzles,dialogue:[
+        {speaker:'AN',speakerName:'An',emotion:'normal',text:past?'Ba hình vẽ: trăng, sao, rồi mặt trời. Linh còn tô cả viền cho chúng.':'Lớp giấy đã bong ra... Bên dưới có tên nốt nhạc cạnh mỗi hình. Mình ghi lại đã.'}
+      ]};
     }
 
     case 'mother_note_ch4': {
@@ -535,19 +520,19 @@ export function processInteraction(
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'surprised',
-            text: 'Đây là bản vẽ kỹ thuật trên bàn làm việc của Mẹ... Bấy lâu nay mình cứ ngỡ Mẹ vô tình gây ra tai nạn khi sửa đồng hồ, nhưng không phải!'
+            text: 'Có chữ ở lề bản vẽ... Mẹ viết cho mình?'
           },
           {
             speaker: 'ME',
             speakerName: 'Lời Nhắn Của Mẹ Trong Bản Vẽ',
             emotion: 'sad',
-            text: '“Gửi An — Đừng trách mẹ vì đã khóa chặt căn phòng cuối. Chiếc đồng hồ của Ông Ngoại đã tự rạn nứt từ trước. Đêm ấy, mẹ liều mình bẻ gãy chiếc kim đồng hồ chính là để NGĂN nó điểm 3 giờ 15 phút và đẩy hai con ra khỏi khe nứt...”'
+            text: '“An, mẹ đã khóa căn phòng cuối lại. Đêm ấy mặt kính nứt trước khi mẹ kịp chạm vào máy. Mẹ bẻ chiếc kim để ngăn tiếng chuông. Mẹ chỉ kịp kéo con ra...”'
           },
           {
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'sad',
-            text: 'Mẹ ơi... Vậy mà suốt mười năm qua con đã hiểu lầm Mẹ. Chính Mẹ là người đã gửi chiếc kim gãy và giấu nó lại để hôm nay con có thể chấm dứt chuyện này!'
+            text: 'Con cứ nghĩ chính mẹ đã làm nó hỏng... Mẹ ơi, con xin lỗi.'
           }
         ],
         showNote: {
@@ -570,21 +555,22 @@ export function processInteraction(
             speaker: 'LINH',
             speakerName: 'Ký Ức Bé Linh',
             emotion: 'normal',
-            text: '“Anh An! Anh còn nhớ chiếc Hộp Nhạc bằng đồng trên kệ cạnh giường em không? Mỗi lần gảy ba nốt Mi - Sol - Đô cao, ổ khóa cửa bí mật của Mẹ sẽ tự động mở ra đó!”'
+            text: '“Anh An, đừng xóa mấy hình em vẽ nhé! Không có chúng là anh quên bài hát ngay.”'
           },
           {
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'sad',
-            text: 'Anh nhớ chứ, Linh của anh... Chờ anh thêm một chút nữa thôi, anh sẽ mở cánh cửa cuối cùng và tìm ra em!'
+            text: 'Anh có xóa đâu... Vẫn còn đây này.'
           }
         ]
       };
     }
 
     case 'music_box': {
+      if(nextPuzzles.musicBoxPlayed)return {success:true,messageVi:'Ba chốt khóa đã rút vào. Hộp nhạc vẫn ngân khẽ.',updatedPuzzles:nextPuzzles};
       if (timeline === 'PAST') {
-        if (nextPuzzles.lightRuneFound || nextPuzzles.lightSwitchOn) {
+        if (mechanismMatches('music_box',answer??[])) {
           nextPuzzles.musicBoxPlayed = true;
           return {
             success: true,
@@ -597,7 +583,7 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'determined',
-                text: 'Mi... Sol... Đô cao... Tiếng chuông hộp nhạc vừa ngân vang, cả ba chốt sắt của Cánh Cửa Bị Khóa bên phải đã đồng loạt xoay mở!'
+                text: 'Đúng bài này rồi. Có tiếng gì vừa bật trong tường.'
               },
               {
                 speaker: 'KE_LAC_GIO',
@@ -705,7 +691,7 @@ export function processInteraction(
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'surprised',
-            text: 'Không thể nào... Vậy thực thể mang tên KẺ LẠC GIỜ đuổi theo mình suốt dọc hành lang... không phải là quái vật muốn hại mình!'
+            text: 'Cái bóng ấy... Là em sao, Linh?'
           },
           {
             speaker: 'LINH',
@@ -740,19 +726,20 @@ export function processInteraction(
             speaker: 'LINH',
             speakerName: 'Linh Hồn Bé Linh',
             emotion: 'sad',
-            text: '“Anh An... Nếu anh rút chiếc kim đồng hồ gãy khỏi Lõi Thời Gian, vòng lặp sẽ tan biến và em cùng Mẹ sẽ được siêu thoát về nơi bình yên.”'
+            text: '“Rút chiếc kim ra thì căn nhà này sẽ không còn nữa. Em cũng không ở lại được đâu, anh.”'
           },
           {
             speaker: 'LINH',
             speakerName: 'Linh Hồn Bé Linh',
             emotion: 'whisper',
-            text: '“Còn nếu anh khóa chặt chiếc kim vào Lõi, căn nhà sẽ dừng lại mãi mãi ở buổi chiều hoàng hôn trước đêm tai nạn... Dù anh chọn con đường nào, em vẫn yêu anh nhiều lắm.”'
+            text: '“Anh có thể giữ nó chạy... Nhưng mình sẽ cứ ở trong ngày hôm ấy. Anh sẽ không về được nữa.”'
           }
         ]
       };
     }
 
     case 'temporal_anchor': {
+      if(nextPuzzles.finalCoreAligned)return {success:true,messageVi:'Các vòng đang quay cùng nhịp.',updatedPuzzles:nextPuzzles};
       if (timeline === 'PAST') {
         nextPuzzles.finalCoreAligned = true;
         return {

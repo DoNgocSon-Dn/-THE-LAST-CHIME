@@ -59,6 +59,7 @@ export interface Player {
   facing: 'left' | 'right';
   isGrounded: boolean;
   state: PlayerAction;
+  interactionPose?: 'crouch'|'think';
   animFrame: number;
   animTimer: number;
   coyoteTimer: number;
@@ -116,6 +117,7 @@ export interface InteractableObject extends BoundingBox {
 export interface PuzzleState {
   // Current active stage (1 to 6)
   currentStage: number;
+  furthestStage?: number;
 
   // Chapter 1 — Trở về (Màn 1)
   motherNoteCh1Read: boolean;
@@ -133,6 +135,10 @@ export interface PuzzleState {
   // Chapter 3 — Hành lang ký ức (Màn 3)
   hallwayPassageCleared: boolean; // Activated pulley in Past -> clears debris in Present hallway
   motherDiaryCh3Read: boolean;    // Read Mother's diary & witnessed first omen of Kẻ Lạc Giờ
+
+  collectedClues?: string[];
+  lightOrderFound?: boolean;
+  lightLegendFound?: boolean;
 
   // Chapter 4 — Căn phòng bị khóa (Màn 4)
   lightSwitchOn: boolean;       // Past chandelier light illuminates wall code

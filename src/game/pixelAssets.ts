@@ -28,6 +28,16 @@ const cuts:Record<string,Cut>={
   familyWork:['memories',130,298,255,165],familyWorkPresent:['memories',477,296,214,167],
   lock:['memories',38,1007,145,140],parts:['memories',205,1010,157,140],book:['memories',380,1010,162,135],seal:['memories',552,1007,165,140],redThread:['memories',730,1005,151,140],
 };
+// The user's revised sheet: omit all printed headings from each frame crop.
+const revisedColumns=[[55,135],[190,140],[330,125],[455,130],[585,130],[715,150]];
+for(let i=0;i<6;i++){
+  const [x,w]=revisedColumns[i];
+  cuts[`anV2Walk${i}`]=['an-v2',x,25,w,220];
+  const [cx,cw]=[[50,130],[180,135],[310,140],[450,140],[590,125],[710,155]][i];
+  cuts[`anV2Crouch${i}`]=['an-v2',cx,300,cw,195];
+  cuts[`anV2${i<3?'Idle':'Think'}${i%3}`]=['an-v2',x,560,w,225];
+}
+for(const [i,x,w]of [[0,60,160],[1,235,145],[2,385,150],[3,545,150],[4,705,160]])cuts[`anV2Run${i}`]=['an-v2',x,975,w,210];
 for(let i=0;i<9;i++){
   cuts[`an${i}`]=['an',i%3*298,Math.floor(i/3)*400,298,400];
   cuts[`lost${i}`]=['pursuer',i%3*298,Math.floor(i/3)*400,298,400];
@@ -92,7 +102,7 @@ export class PixelAssets{
         for(const [key,[sheet,x,y,w,h]]of Object.entries(cuts))if(sheet===name){
           const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
           canvas.getContext('2d')!.drawImage(img,x,y,w,h,0,0,w,h);
-          const character=/^(an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
+          const character=/^(anV2|an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
           this.sprites.set(key,removeSheetBackground(canvas,true,character));
         }
       };img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.jpg`;

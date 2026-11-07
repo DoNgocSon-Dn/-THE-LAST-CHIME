@@ -1,3 +1,4 @@
+import type { MechanismId } from './mechanisms';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT } from './entityScale';
 import { GAME_ZOOM, currentPixelRoom, sceneZoom, legacyScenePoint } from './pixelLayout';
 import {
@@ -31,6 +32,7 @@ import { GameRenderer } from './renderer';
 export const SWITCH_COOLDOWN_TIME = 3.0; // 3 seconds cooldown as required
 
 export interface EngineCallbacks {
+  onOpenMechanism?: (id:MechanismId)=>void;
   onTimelineChange: (timeline: Timeline) => void;
   onCooldownChange: (cooldownRatio: number, secondsRemaining: number) => void;
   onNearbyPrompt: (object: InteractableObject | null) => void;
@@ -113,6 +115,13 @@ export class GameEngine {
   private viewZoom=GAME_ZOOM;
   public cameraX: number = 0;
   public nearbyInteractable: InteractableObject | null = null;
+  private mechanismContext:{id:MechanismId;stage:number;timeline:Timeline}|null=null;
+  public closeMechanism(){this.mechanismContext=null;}
+  public submitMechanism(id:MechanismId,answer:readonly number[]){
+    const context=this.mechanismContext;
+    if(!context||context.id!==id||context.stage!==this.puzzles.currentStage||context.timeline!==this.timeline)return false;
+    return this.triggerInteract(answer)===true;
+  }
 
   // Input states
   private keysPressed = new Set<string>();
@@ -142,6 +151,7 @@ export class GameEngine {
   }
 
   private handleKeyDown = (e: KeyboardEvent) => {
+    if(this.gameState!=='playing')return;
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
       return;
     }
@@ -217,7 +227,9 @@ export class GameEngine {
    * Transitions player to a specific Stage (Màn 1 -> Màn 6)
    */
   public loadStage(stageNum: number, showBanner: boolean = true) {
+    this.mechanismContext=null;
     const cfg = getStageConfig(stageNum);
+    this.puzzles.furthestStage=Math.max(this.puzzles.furthestStage??this.puzzles.currentStage,cfg.stage);
     this.puzzles.currentStage = cfg.stage;
 
     // Ensure prerequisite abilities are unlocked if jumping directly to later stages
@@ -396,17 +408,30 @@ export class GameEngine {
     this.saveGame();
   }
 
-  public triggerInteract() {
-    if (!this.nearbyInteractable || this.player.interactCooldown > 0) return;
+  public triggerInteract(answer?:readonly number[]) {
+    const objectId=answer?this.mechanismContext?.id:this.nearbyInteractable?.id;
+    if (!objectId || (!answer && this.player.interactCooldown > 0)) return;
 
     this.player.interactCooldown = 0.25;
     this.player.interactAnimTimer = 0.45;
     this.player.state = 'interact';
+    this.player.interactionPose=['mother_note_ch1','clock_gear'].includes(objectId)?'crouch':'think';
 
-    const result = processInteraction(this.nearbyInteractable.id, this.timeline, this.puzzles);
+    const result = processInteraction(objectId, this.timeline, this.puzzles, answer);
     this.puzzles = result.updatedPuzzles;
     this.callbacks.onPuzzleUpdate({ ...this.puzzles });
+    if(result.challenge){
+      if(!answer){
+        this.mechanismContext={id:result.challenge,stage:this.puzzles.currentStage,timeline:this.timeline};
+        this.gameState='paused';this.handleBlur();this.player.vx=0;
+        this.callbacks.onOpenMechanism?.(result.challenge);
+      }
+      else this.callbacks.onNotification(result.messageVi);
+      this.saveGame();return false;
+    }
 
+
+    if(answer)this.mechanismContext=null;
     if (result.speechBubbleVi) {
       this.setPlayerSpeech(result.speechBubbleVi, 3.5);
     }
@@ -466,6 +491,7 @@ export class GameEngine {
     }
 
     this.saveGame();
+    return result.success;
   }
 
   public completeWithEnding(ending: EndingType) {

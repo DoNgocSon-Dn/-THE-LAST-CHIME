@@ -571,7 +571,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
         height: 48,
         timeline: 'PAST',
         stage: 4,
-        ambientQuoteVi: '“Mi - Sol - Đô cao... bài hát mẹ ru tụi mình...”'
+        ambientQuoteVi: '“Anh đừng xóa hình em vẽ nhé...”'
       }
     ]
   },
