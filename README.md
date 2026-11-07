@@ -53,7 +53,7 @@ Asset nằm trong `public/assets/pixel` và `public/assets/menu`; game không ph
 
 Menu dùng tranh chia đôi quá khứ/hiện tại. Sheet `menu-actors.png` có 24 khung riêng: Linh vẫy tay/chào vui vẻ, An nhìn quanh/chỉnh túi. Hover hoặc chạm nhân vật kích hoạt phản ứng. Giảm chuyển động giữ hình tĩnh.
 
-Bắt đầu → loading đồng hồ pixel quay/vỡ/ghép lại → câu chuyện mở đầu → chương 1. Tiếp tục tải bản lưu. Chọn chương dùng ảnh xem trước hai thời điểm và khóa theo tiến độ; cùng một bảng được dùng ở menu và trong game. Âm lượng được lưu riêng. Bảng chọn chương và các cơ cấu tạm dừng gameplay, hỗ trợ Esc và giữ focus bàn phím.
+Bắt đầu → loading xưởng đồng hồ với An sửa máy, con lắc, bánh răng và thanh tải theo tiến độ tài nguyên thực → câu chuyện mở đầu → chương 1. Tiếp tục tải bản lưu. Chọn chương dùng ảnh xem trước hai thời điểm và khóa theo tiến độ; cùng một bảng được dùng ở menu và trong game. Âm lượng được lưu riêng. Bảng chọn chương và các cơ cấu tạm dừng gameplay, hỗ trợ Esc và giữ focus bàn phím.
 
 ## Xác minh và triển khai
 
