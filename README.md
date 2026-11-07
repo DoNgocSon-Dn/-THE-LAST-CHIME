@@ -94,3 +94,10 @@ Canvas tự điều chỉnh tỉ lệ theo màn hình, không còn khung 16:9 n�
 - Chapter 6: read the final diary and derive the three ring settings from the accident time. The core stays locked until the rings are aligned.
 - An's notebook records inspected clues, persists in saves, and can be reopened from the HUD or a mechanism. Future chapters stay locked in the chapter picker.
 - Revised user-supplied `an-v2.jpg`: 23 cropped poses for walking, crouching, idle, thinking and escape running. Every pose uses the same source-pixel scale and foot baseline; sheet headings are excluded.
+
+
+### Illustrated main menu
+
+The user-provided split-time title illustration is the visual reference. `public/assets/menu/title-plate.png` is its clean background plate; `title-reference.png` preserves the supplied art for Linh's clipped animation. The canvas animates Linh's breathing and wave, An's revised idle/thinking poses, pocket-watch hands, pollen and rain. Hovering or tapping either character triggers a reaction. Reduced-motion preferences keep the scene still.
+
+All four menu items are real controls. Continue requires a save, chapter selection respects saved progress, and audio preferences persist separately from the game save. New Game retains the loading → opening story → Chapter 1 flow. Portrait screens use larger controls below the illustration; short landscape screens use a four-button toolbar.

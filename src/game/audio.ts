@@ -16,7 +16,11 @@ class SoundManager {
   private chordIndex: number = 0;
 
   constructor() {
-    // AudioContext will be initialized on first user gesture
+    // AudioContext will be initialized on first user gesture.
+    try{if(typeof localStorage!=='undefined'){
+      const prefs=JSON.parse(localStorage.getItem('THE_LAST_CHIME_AUDIO')??'null');
+      if(prefs){this.isMuted=!!prefs.muted;if(Number.isFinite(prefs.music))this.musicVolume=Math.max(0,Math.min(1,prefs.music));if(Number.isFinite(prefs.sfx))this.sfxVolume=Math.max(0,Math.min(1,prefs.sfx));}
+    }}catch{/* Storage may be unavailable. */}
   }
 
   public init() {
@@ -58,8 +62,11 @@ class SoundManager {
     }
   }
 
+  private savePreferences(){try{localStorage.setItem('THE_LAST_CHIME_AUDIO',JSON.stringify({muted:this.isMuted,music:this.musicVolume,sfx:this.sfxVolume}));}catch{/* Storage may be unavailable. */}}
+
   public setMuted(muted: boolean) {
     this.isMuted = muted;
+    this.savePreferences();
     if (this.ctx && this.masterGain) {
       this.masterGain.gain.setValueAtTime(muted ? 0 : 1, this.ctx.currentTime);
     }
@@ -71,6 +78,7 @@ class SoundManager {
 
   public setMusicVolume(val: number) {
     this.musicVolume = Math.max(0, Math.min(1, val));
+    this.savePreferences();
     if (this.ctx && this.musicGain) {
       this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
     }
@@ -82,6 +90,7 @@ class SoundManager {
 
   public setSfxVolume(val: number) {
     this.sfxVolume = Math.max(0, Math.min(1, val));
+    this.savePreferences();
     if (this.ctx && this.sfxGain) {
       this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
     }

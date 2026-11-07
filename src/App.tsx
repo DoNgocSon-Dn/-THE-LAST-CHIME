@@ -25,6 +25,7 @@ import { ClockLoader } from './components/ClockLoader';
 import { preloadGameAssets } from './game/preload';
 
 export default function App() {
+  const pendingTitleChapter=useRef<number|null>(null);
   const [activeMechanism,setActiveMechanism]=useState<MechanismId|null>(null);
   const [gameState, setGameState] = useState<GameState>('title');
   const [timeline, setTimeline] = useState<Timeline>('PRESENT');
@@ -49,7 +50,7 @@ export default function App() {
     const timer=setTimeout(()=>{setEnteringGame(true);setGameState(loadingDestination);},2200);
     return()=>clearTimeout(timer);
   },[gameState,assetsReady,loadingDestination]);
-  const handleGameReady=useCallback(()=>setEnteringGame(false),[]);
+  const handleGameReady=useCallback(()=>{const stage=pendingTitleChapter.current;if(stage&&engineRef.current){engineRef.current.loadStage(stage,true);pendingTitleChapter.current=null;}setEnteringGame(false);},[]);
   useEffect(()=>{
     let disposed=false;
     preloadGameAssets(value=>{if(!disposed)setLoadProgress(value);}).then(async()=>{
@@ -177,6 +178,7 @@ export default function App() {
   ]);
 
   const startNewGame = () => {
+    pendingTitleChapter.current=null;
     localStorage.removeItem('THE_LAST_CHIME_PIXEL_SAVE_V1');
     setHasSave(false);
     setPuzzles({...INITIAL_PUZZLE_STATE});
@@ -192,6 +194,7 @@ export default function App() {
   };
 
   const enterGameplayDirectly=()=>{soundManager.init();setLoadingDestination('playing');setGameState('loading');};
+  const chooseTitleChapter=(stage:number)=>{soundManager.init();pendingTitleChapter.current=stage;setLoadingDestination('playing');setGameState('loading');};
   const continueGame=()=>{soundManager.init();setLoadingDestination('playing');setGameState('loading');};
   const restartGame=()=>{setEndingStats(null);startNewGame();};
   const returnToTitle=()=>{
@@ -221,7 +224,7 @@ export default function App() {
       const key = e.key.toLowerCase();
 
       // Title screen quick-start
-      if (gameState === 'title' && (key === 'enter' || key === ' ')) {
+      if (gameState === 'title' && (key === 'enter' || key === ' ') && !(e.target instanceof HTMLElement && e.target.closest('button,input,[role=dialog]'))) {
         e.preventDefault();
         startNewGame();
         return;
@@ -260,6 +263,7 @@ export default function App() {
         <TitleScreen
           onStart={startNewGame}
           onContinue={continueGame}
+          onSelectChapter={chooseTitleChapter}
           hasSave={hasSave}
         />
       )}
