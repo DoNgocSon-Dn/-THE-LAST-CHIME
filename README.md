@@ -72,3 +72,6 @@ Chương 3 có ba ấn, theo thứ tự quá khứ → hiện tại → quá kh�
 
 
 An dùng atlas thống nhất `public/assets/pixel/an-unified.png` (8 cột × 6 hàng: đứng, đi, chạy, nhảy, tương tác, menu) và atlas cùng mẫu `an-seated.png` (8 cột × 2 hàng cho sửa đồng hồ, ngủ và đọc thư). Mọi trạng thái gameplay dùng chung tỷ lệ nguồn theo dáng đứng, không kéo giãn từng khung. Menu, chân dung và loading cũng dùng các atlas này; ba cảnh mở đầu dùng tranh hoàn chỉnh: giấc mơ, nhận thư và chuyến xe buýt; căn nhà xuất hiện khi An xuống xe vào chương 1; các sheet An trước đây chỉ còn lưu làm nguồn tham khảo, không được nạp khi chơi.
+
+
+Hành lang: cửa phòng khách ở vị trí đầu (228), phòng Linh ở cửa bị đóng ván (427). Cửa phòng Linh và xưởng bị sập ở hiện tại, chỉ đi qua được trong quá khứ, cả chiều vào lẫn chiều ra. Phòng Linh vẫn cần chìa khóa từ hộp sắt trong giếng. Người chơi lấy đồng hồ trong phòng khách trước nên không bị khóa tiến trình bởi điều kiện Q.

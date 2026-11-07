@@ -1,11 +1,13 @@
 import {PLAYER_HEIGHT} from './entityScale';
 import type {StageConfig} from './levelData';
-import type {InteractableObject,PuzzleState} from '../types/game';
+import type {InteractableObject,PuzzleState,Timeline} from '../types/game';
 import {chapterRooms,currentPixelRoom} from './pixelLayout';
 
-export function houseDestination(obj:InteractableObject,puzzles:PuzzleState){
+export function houseDestination(obj:InteractableObject,puzzles:PuzzleState,timeline:Timeline='PRESENT'){
  const destination=obj.destination;if(!destination)return null;
- return {destination,locked:!!(destination.requiresPuzzle&&!puzzles[destination.requiresPuzzle])};
+ const wrongEra=!!destination.requiresTimeline&&destination.requiresTimeline!==timeline;
+ const puzzleLocked=!!destination.requiresPuzzle&&!puzzles[destination.requiresPuzzle];
+ return {destination,locked:wrongEra||puzzleLocked,lockedMessage:wrongEra?(puzzles.hasWatch?destination.timelineLockedMessage:'Cánh cửa đã sập, không thể đi qua. Mình cần tìm một lối khác.'):destination.lockedMessage};
 }
 export function migrateHouseLocation(stage:number,x:number){
  if(stage===2){const oldRoom=Math.min(2,Math.max(0,Math.floor(x/800)));return {stage:2,x:oldRoom===0?x+800:oldRoom===1?x+1600:x};}
@@ -28,14 +30,14 @@ export function configureHouseLayout(stages:Record<number,StageConfig>){
  two.platforms=two.platforms.filter(p=>p.id!=='living_hallway_door');
  const door=(cfg:StageConfig,id:string,name:string,x:number,destination:NonNullable<InteractableObject['destination']>)=>cfg.interactables.push({id,name,nameVi:name,descriptionVi:name,promptVi:name,x,y:370,width:32,height:104,timeline:'both',room:`stage_${cfg.stage}`,chapter:cfg.stage,type:'room_door',bakedIntoMap:true,destination});
  door(two,'hall_front','Ra hiên nhà',45,{stage:1,x:1050});
- door(two,'hall_bedroom','Phòng của Linh',228,{stage:4,x:90,requiresPuzzle:'motherDiaryCh3Read',lockedMessage:'Cửa phòng Linh đang khóa. Trên ổ khóa có buộc một sợi chỉ đỏ.'});
+ door(two,'hall_bedroom','Phòng của Linh',427,{stage:4,x:90,requiresTimeline:'PAST',timelineLockedMessage:'Cửa phòng Linh đã bị ván và khung gãy chặn kín. Nhấn Q về quá khứ để thử cánh cửa khi nó còn nguyên.',requiresPuzzle:'motherDiaryCh3Read',lockedMessage:'Cửa phòng Linh đang khóa. Trên ổ khóa có buộc một sợi chỉ đỏ.'});
  door(two,'hall_kitchen','Nhà bếp',326,{stage:2,x:2460});
- door(two,'hall_living','Phòng khách',427,{stage:2,x:860});
- door(two,'hall_workshop','Xưởng đồng hồ',702,{stage:2,x:1660});
- door(two,'living_return','Ra hành lang',830,{stage:2,x:445});
- door(two,'living_return_right','Ra hành lang',1520,{stage:2,x:445});
- door(two,'workshop_return','Ra hành lang',1635,{stage:2,x:695});
- door(two,'workshop_return_right','Ra hành lang',2340,{stage:2,x:695});
+ door(two,'hall_living','Phòng khách',228,{stage:2,x:860});
+ door(two,'hall_workshop','Xưởng đồng hồ',702,{stage:2,x:1660,requiresTimeline:'PAST',timelineLockedMessage:'Khung cửa xưởng đã sập ở hiện tại. Nhấn Q về quá khứ để đi qua.'});
+ door(two,'living_return','Ra hành lang',830,{stage:2,x:250});
+ door(two,'living_return_right','Ra hành lang',1520,{stage:2,x:250});
+ door(two,'workshop_return','Ra hành lang',1635,{stage:2,x:695,requiresTimeline:'PAST',timelineLockedMessage:'Khung cửa đã sập ở hiện tại. Nhấn Q trở về quá khứ để ra hành lang.'});
+ door(two,'workshop_return_right','Ra hành lang',2340,{stage:2,x:695,requiresTimeline:'PAST',timelineLockedMessage:'Khung cửa đã sập ở hiện tại. Nhấn Q trở về quá khứ để ra hành lang.'});
  door(two,'kitchen_return','Ra hành lang',2435,{stage:2,x:340});
  door(two,'kitchen_yard','Mở cửa ra sân sau',3115,{stage:3,x:90,requiresPuzzle:'clockInspectedPresent',lockedMessage:'Chốt cửa sau vẫn bị dây cáp giữ. Sợi cáp chạy về phía phòng khách.'});
  // Separate interiors cannot be crossed by walking through the image boundary.
@@ -48,7 +50,7 @@ export function configureHouseLayout(stages:Record<number,StageConfig>){
  const diary=three.interactables.find(o=>o.id==='mother_diary_ch3')!;Object.assign(diary,{nameVi:'Hộp sắt trong gàu giếng',promptVi:'Mở hộp sắt trong gàu',bakedIntoMap:true});
  door(three,'yard_kitchen','Trở vào nhà bếp',65,{stage:2,x:3070});
  door(three,'yard_garden','Mở cổng ra vườn',1080,{stage:4,x:900,requiresPuzzle:'motherDiaryCh3Read',lockedMessage:'Cổng vườn bị khóa. Sợi chỉ đỏ vướng trên tay quay giếng.'});
- door(four,'bedroom_return','Ra hành lang',55,{stage:2,x:250});
+ door(four,'bedroom_return','Ra hành lang',55,{stage:2,x:445,requiresTimeline:'PAST',timelineLockedMessage:'Ván và khung cửa gãy chặn lối ra ở hiện tại. Nhấn Q về quá khứ để ra hành lang.'});
  door(four,'garden_yard','Trở lại sân sau',835,{stage:3,x:1030});
  door(four,'garden_greenhouse','Vào nhà kính',1910,{stage:4,x:2050});
  door(four,'greenhouse_garden','Ra khu vườn',2030,{stage:4,x:1850});

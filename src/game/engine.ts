@@ -448,8 +448,8 @@ export class GameEngine {
     this.cameraX=Math.max(bounds.min,Math.min(bounds.max,this.player.x+this.player.width/2-view/2));
   }
   private enterRoomDoor(obj:InteractableObject){
-    const route=houseDestination(obj,this.puzzles);if(!route)return false;
-    if(route.locked){this.callbacks.onNotification(route.destination.lockedMessage??'Cửa đang khóa.');this.player.interactCooldown=.3;return true;}
+    const route=houseDestination(obj,this.puzzles,this.timeline);if(!route)return false;
+    if(route.locked){this.callbacks.onNotification(route.lockedMessage??'Cửa đang khóa.');this.player.interactCooldown=.3;return true;}
     const era=this.timeline,story=this.puzzles.storyChapter??this.puzzles.currentStage,d=route.destination;
     if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,chapterForArea(d.stage)>story,true,era);
     this.timeline=this.puzzles.hasWatch?era:'PRESENT';
@@ -925,6 +925,12 @@ export class GameEngine {
       if (stageCfg.stage === 5 && !this.puzzles.chaseCompleted) {
         this.pursuer.active = true;
         this.pursuer.x = Math.max(10, this.player.x - 140);
+      }
+      // Older saves could enter the now-collapsed workshop before collecting the watch.
+      if(stageCfg.stage===2&&!this.puzzles.hasWatch&&currentPixelRoom(2,this.player.x).map===5){
+        this.player.x=250;this.player.y=480-PLAYER_HEIGHT;this.timeline='PRESENT';
+        this.checkpoint={x:250,y:this.player.y,timeline:'PRESENT',chapter:2,labelVi:'Hành lang trong nhà'};
+        this.viewZoom=sceneZoom(2,250);this.snapRoomCamera();
       }
       this.callbacks.onTimelineChange(this.timeline);
       this.callbacks.onPuzzleUpdate({ ...this.puzzles });

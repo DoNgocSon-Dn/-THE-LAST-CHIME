@@ -19,7 +19,7 @@ test('Entering the house leads to the corridor; each interior is reached and lef
  }
  const bedroom=hub.interactables.find(o=>o.id==='hall_bedroom')!;
  assert.equal(houseDestination(bedroom,INITIAL_PUZZLE_STATE)!.locked,true);
- assert.equal(houseDestination(bedroom,{...INITIAL_PUZZLE_STATE,motherDiaryCh3Read:true})!.locked,false);
+ assert.equal(houseDestination(bedroom,{...INITIAL_PUZZLE_STATE,motherDiaryCh3Read:true},'PAST')!.locked,false);
  const back=STAGE_CONFIGS[4].interactables.find(o=>o.id==='bedroom_return')!.destination!;
  assert.equal(currentPixelRoom(back.stage,back.x).map,3);
 });
@@ -48,7 +48,25 @@ test('Old saves migrate by physical room, not by the old chapter number alone',(
 test('Painted open doorways on both sides of living room and workshop have return routes',()=>{
  for(const id of ['living_return','living_return_right','workshop_return','workshop_return_right']){
   const obj=hub.interactables.find(o=>o.id===id)!;assert.ok(obj,id);
-  const route=houseDestination(obj,INITIAL_PUZZLE_STATE)!;
+  const route=houseDestination(obj,INITIAL_PUZZLE_STATE,'PAST')!;
   assert.equal(route.locked,false);assert.equal(currentPixelRoom(route.destination.stage,route.destination.x).map,3);
  }
+});
+
+test('The first corridor door is the living room; bedroom occupies the barricaded doorway',()=>{
+ const living=hub.interactables.find(o=>o.id==='hall_living')!,bed=hub.interactables.find(o=>o.id==='hall_bedroom')!;
+ assert.equal(living.x,228);assert.equal(bed.x,427);
+ assert.equal(houseDestination(living,INITIAL_PUZZLE_STATE,'PRESENT')!.locked,false);
+});
+test('Collapsed bedroom and workshop doors require the past on entry and return',()=>{
+ const keyed={...INITIAL_PUZZLE_STATE,hasWatch:true,motherDiaryCh3Read:true};
+ for(const [stage,id]of [[2,'hall_bedroom'],[2,'hall_workshop'],[2,'workshop_return'],[2,'workshop_return_right'],[4,'bedroom_return']]as const){
+  const door=STAGE_CONFIGS[stage].interactables.find(o=>o.id===id)!;
+  assert.equal(houseDestination(door,keyed,'PRESENT')!.locked,true,id);
+  assert.equal(houseDestination(door,keyed,'PAST')!.locked,false,id);
+ }
+ const bedroom=hub.interactables.find(o=>o.id==='hall_bedroom')!;
+ assert.equal(houseDestination(bedroom,INITIAL_PUZZLE_STATE,'PAST')!.locked,true,'The key is still needed in the past');
+ const workshop=hub.interactables.find(o=>o.id==='hall_workshop')!;
+ assert.doesNotMatch(houseDestination(workshop,INITIAL_PUZZLE_STATE,'PRESENT')!.lockedMessage??'',/Nhấn Q/,'Do not reveal the power before collecting the watch');
 });

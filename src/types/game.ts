@@ -114,7 +114,7 @@ export interface InteractableObject extends BoundingBox {
     | 'fireplace'
     | 'portrait'
     | 'bookshelf';
-  destination?: {stage:number;x:number;y?:number;requiresPuzzle?:keyof PuzzleState;lockedMessage?:string};
+  destination?: {stage:number;x:number;y?:number;requiresPuzzle?:keyof PuzzleState;requiresTimeline?:Timeline;timelineLockedMessage?:string;lockedMessage?:string};
   bakedIntoMap?: boolean;
   isSolved?: boolean;
   isActive?: boolean;
