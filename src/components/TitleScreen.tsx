@@ -4,11 +4,7 @@ import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {Volume2,VolumeX} from 'lucide-react';
 import {soundManager} from '../game/audio';
 import {MenuScene,type TitleReaction} from './MenuScene';
-function MenuLabel({text}:{text:string}){
- const ref=useRef<HTMLCanvasElement>(null);
- useEffect(()=>{let alive=true;Promise.all([document.fonts.ready,document.fonts.load('900 30px "Be Vietnam Pro"','BẮT ĐẦU TIẾP TỤC CHỌN CHƯƠNG CÀI ĐẶT')]).then(()=>{if(!alive||!ref.current)return;const c=ref.current.getContext('2d')!;c.clearRect(0,0,300,46);c.font='900 30px "Be Vietnam Pro", sans-serif';c.textAlign='center';c.textBaseline='alphabetic';c.lineJoin='miter';c.strokeStyle='#10150e';c.lineWidth=6;c.strokeText(text.toLocaleUpperCase('vi'),150,35);c.strokeStyle='#694123';c.lineWidth=3;c.strokeText(text.toLocaleUpperCase('vi'),150,33);c.fillStyle='#e6bf79';c.fillText(text.toLocaleUpperCase('vi'),150,33);});return()=>{alive=false;};},[text]);
- return <><span className="sr-only">{text}</span><canvas ref={ref} width={300} height={46} aria-hidden="true"/></>;
-}
+function MenuLabel({text}:{text:string}){return <span className="menu-action-label">{text}</span>;}
 function readChapterProgress(){try{const data=JSON.parse(localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1')??'null');return savedChapterProgress(data?.puzzles??{},data?.campaignVersion);}catch{return {current:1,unlocked:1};}}
 function unlockedChapter(){return readChapterProgress().unlocked;}
 function currentSavedChapter(){return readChapterProgress().current;}
