@@ -1,4 +1,4 @@
-import {useEffect,useRef} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {ArrowRight} from 'lucide-react';
 function StoryScene({scene}:{scene:'dream'|'letter'|'home'}){
  const ref=useRef<HTMLCanvasElement>(null);
@@ -12,12 +12,19 @@ function StoryScene({scene}:{scene:'dream'|'letter'|'home'}){
  };raf=requestAnimationFrame(draw);return()=>cancelAnimationFrame(raf);},[scene]);
  return <canvas ref={ref} width={400} height={200} role="img" aria-label={scene==='dream'?'An ngủ gục bên bàn đồng hồ và mơ thấy Linh':scene==='letter'?'Luật sư trao thư, An mở ra đọc':'An trở về trước cổng ngôi nhà cũ'}/>;
 }
+const pages=[
+ {scene:'dream' as const,title:'Giấc mơ chưa khép',text:'Đêm đã khuya. An ngủ gục bên bàn sửa đồng hồ. Trong mơ, Linh lại đứng trước hiên nhà, vẫy tay gọi anh — như thể đêm bão mười năm trước chưa từng xảy ra.',quote:'Mười năm rồi, anh vẫn nhớ tiếng em gọi.'},
+ {scene:'letter' as const,title:'Di vật của Mẹ',text:'Hôm sau, người luật sư tìm đến, trao cho An một phong thư Mẹ để lại. Bên trong là chiếc kim đồng hồ gãy và một dòng chữ:',quote:'“Đừng để nó điểm giờ lần nữa.”'},
+ {scene:'home' as const,title:'Một cuộc trở về',text:'An nhận ra chiếc kim ấy. Nó thuộc về chiếc đồng hồ trong căn nhà cũ — nơi Linh đã biến mất. Anh trở về, mang theo lá thư và câu hỏi chưa ai trả lời.',quote:'Sau cánh cổng cũ, một nhịp tích tắc vẫn đang chờ.'}
+];
 export function OpeningStory({onContinue}:{onContinue:()=>void}){
- return <section className="opening-comic" aria-labelledby="opening-title"><article className="opening-comic-paper">
- <header><span>TRƯỚC TIẾNG CHUÔNG CUỐI</span><h1 id="opening-title">Một cuộc trở về</h1><div className="story-wax" aria-hidden="true">◷</div></header>
- <div className="opening-comic-row"><p>Đêm đã khuya. An ngủ gục bên bàn sửa đồng hồ. Trong mơ, Linh lại đứng trước hiên nhà, vẫy tay gọi anh — như thể đêm bão mười năm trước chưa từng xảy ra.</p><figure><StoryScene scene="dream"/><figcaption>Giấc mơ cũ</figcaption></figure></div>
- <div className="opening-comic-row reverse"><figure><StoryScene scene="letter"/><figcaption>Di vật của Mẹ</figcaption></figure><p>Hôm sau, người luật sư tìm đến, trao cho An một phong thư Mẹ để lại. Bên trong là chiếc kim đồng hồ gãy và một dòng chữ: <em>“Đừng để nó điểm giờ lần nữa.”</em></p></div>
- <div className="opening-comic-row"><p>An nhận ra chiếc kim ấy. Nó thuộc về chiếc đồng hồ trong căn nhà cũ — nơi Linh đã biến mất. Anh trở về, mang theo lá thư và câu hỏi chưa ai trả lời.</p><figure><StoryScene scene="home"/><figcaption>Ngôi nhà vẫn đợi</figcaption></figure></div>
- <footer><span>CHƯƠNG I — TRỞ VỀ</span><button onClick={onContinue}>Trở về ngôi nhà <ArrowRight size={20}/></button></footer>
+ const [page,setPage]=useState(0),current=pages[page];
+ return <section className="opening-comic story-book" aria-labelledby="opening-title"><article className="opening-comic-paper">
+ <header><span>THE LAST CHIME · TRƯỚC TIẾNG CHUÔNG CUỐI</span><div className="story-book-rule" aria-hidden="true">◆</div></header>
+ <div className="story-book-spread" key={page}>
+ <figure><StoryScene scene={current.scene}/><figcaption>KÝ ỨC {['I','II','III'][page]}</figcaption></figure>
+ <div className="story-book-copy" aria-live="polite"><span className="story-book-number">0{page+1} / 03</span><h1 id="opening-title">{current.title}</h1><p>{current.text}</p><blockquote>{current.quote}</blockquote></div>
+ </div>
+ <footer><button className="story-book-back" disabled={page===0} onClick={()=>setPage(page-1)}>← Trang trước</button><span>CHƯƠNG I — TRỞ VỀ</span><button onClick={()=>page<2?setPage(page+1):onContinue()}>{page<2?'Lật trang':'Trở về ngôi nhà'}<ArrowRight size={18}/></button></footer>
  </article></section>;
 }

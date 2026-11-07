@@ -1,3 +1,5 @@
+import '@fontsource-variable/noto-serif';
+import '@fontsource-variable/noto-serif/wght-italic.css';
 import '@fontsource/be-vietnam-pro/400.css';
 import '@fontsource/be-vietnam-pro/500.css';
 import '@fontsource/be-vietnam-pro/600.css';
