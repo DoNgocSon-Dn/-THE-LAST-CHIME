@@ -117,7 +117,7 @@ export class GameRenderer {
     ctx.save();
     ctx.imageSmoothingEnabled = false;
 
-    ctx.translate(-Math.floor(cameraX), 0);
+    ctx.translate(-cameraX, 0);
 
     const isPast = timeline === 'PAST';
     const stageCfg = getStageConfig(puzzles.currentStage || 1);

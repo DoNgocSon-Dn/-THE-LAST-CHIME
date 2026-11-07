@@ -1,3 +1,4 @@
+import { advanceGait } from './locomotion';
 import type { MechanismId } from './mechanisms';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT } from './entityScale';
 import { GAME_ZOOM, currentPixelRoom, sceneZoom, legacyScenePoint } from './pixelLayout';
@@ -126,7 +127,7 @@ export class GameEngine {
   // Input states
   private keysPressed = new Set<string>();
   private justPressed = new Set<string>();
-  private footstepTimer: number = 0;
+
 
   constructor(canvas: HTMLCanvasElement, callbacks: EngineCallbacks) {
     this.canvas = canvas;
@@ -264,6 +265,7 @@ export class GameEngine {
     this.player.vy = 0;
     this.player.facing = 'right';
     this.player.state = 'idle';
+    this.player.animTimer=0;this.player.animFrame=0;
     this.player.isGrounded = true;
     this.player.speechBubbleText = '';
     this.player.speechBubbleTimer = 0;
@@ -552,8 +554,6 @@ export class GameEngine {
       inputX += 1;
     }
 
-    if (inputX > 0) this.player.facing = 'right';
-    if (inputX < 0) this.player.facing = 'left';
 
     const jumpRequested =
       this.justPressed.has(' ') ||
@@ -569,6 +569,8 @@ export class GameEngine {
     // 4. Update physics against current stage's platforms
     const activePlatforms = getActivePlatforms(stageCfg.platforms, this.timeline, this.puzzles);
 
+    const previousX=this.player.x;
+    const previousState=this.player.state;
     const prevGrounded = this.player.isGrounded;
     const prevVy = this.player.vy;
 
@@ -607,15 +609,11 @@ export class GameEngine {
       soundManager.playJump();
     }
 
-    if (this.player.isGrounded && Math.abs(this.player.vx) > 30) {
-      this.footstepTimer += dt;
-      if (this.footstepTimer > 0.32) {
-        soundManager.playFootstep();
-        this.footstepTimer = 0;
-      }
-    } else {
-      this.footstepTimer = 0.2;
-    }
+    const distanceMoved=this.player.x-previousX;
+    // Face the actual movement while decelerating through a direction change.
+    if(this.player.vx>5)this.player.facing='right';
+    else if(this.player.vx < -5)this.player.facing='left';
+    else if(inputX)this.player.facing=inputX>0?'right':'left';
 
     // Animation state
     if (this.player.interactAnimTimer > 0) {
@@ -623,10 +621,20 @@ export class GameEngine {
       this.player.state = 'interact';
     } else if (!this.player.isGrounded) {
       this.player.state = this.player.vy < 0 ? 'jump' : 'fall';
-    } else if (Math.abs(this.player.vx) > 15) {
+    } else if (Math.abs(this.player.vx) > 5 && Math.abs(distanceMoved)>.001) {
       this.player.state = 'walk';
     } else {
       this.player.state = 'idle';
+    }
+
+    if(this.player.state==='walk'){
+      if(previousState==='idle')this.player.animTimer=0;
+      const gait=advanceGait(this.player.animTimer,distanceMoved,this.player.isGrounded,stageCfg.stage===5);
+      this.player.animTimer=gait.phase;
+      this.player.animFrame=Math.floor(gait.phase*(stageCfg.stage===5?5:6));
+      if(gait.step)soundManager.playFootstep();
+    }else if(this.player.state==='idle'){
+      this.player.animTimer=0;this.player.animFrame=0;
     }
 
     if(this.player.y>640){this.respawnAtCheckpoint();return;}

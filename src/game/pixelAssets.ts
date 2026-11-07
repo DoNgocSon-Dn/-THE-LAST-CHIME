@@ -96,6 +96,7 @@ export function removeSheetBackground(canvas:HTMLCanvasElement,trim=true,charact
 
 export class PixelAssets{
   private sprites=new Map<string,HTMLCanvasElement>();
+  private characterPivots=new Map<string,number>();
   constructor(){
     for(const name of new Set(Object.values(cuts).map(c=>c[0]))){
       const img=new Image();img.onload=()=>{
@@ -103,12 +104,21 @@ export class PixelAssets{
           const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
           canvas.getContext('2d')!.drawImage(img,x,y,w,h,0,0,w,h);
           const character=/^(anV2|an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
-          this.sprites.set(key,removeSheetBackground(canvas,true,character));
+          const sprite=removeSheetBackground(canvas,true,character);
+          this.sprites.set(key,sprite);
+          if(key.startsWith('anV2')){
+            const headRows=Math.max(1,Math.floor(sprite.height*.23));
+            const pixels=sprite.getContext('2d')!.getImageData(0,0,sprite.width,headRows).data;
+            let sum=0,count=0;
+            for(let y=0;y<headRows;y++)for(let x=0;x<sprite.width;x++)if(pixels[(y*sprite.width+x)*4+3]>128){sum+=x+.5;count++;}
+            this.characterPivots.set(key,count?sum/count:sprite.width/2);
+          }
         }
       };img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.jpg`;
     }
   }
   isReady(){return this.sprites.size===Object.keys(cuts).length;}
+  getCharacterPivot(key:string){return this.characterPivots.get(key)??(this.get(key)?.width??0)/2;}
   get(key:string){return this.sprites.get(key);}
   draw(ctx:CanvasRenderingContext2D,key:string,x:number,y:number,w:number,h:number):boolean{
     const sprite=this.get(key);if(!sprite)return false;
