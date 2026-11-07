@@ -228,7 +228,7 @@ export default function App() {
       const key = e.key.toLowerCase();
 
       // Title screen quick-start
-      if (gameState === 'title' && (key === 'enter' || key === ' ') && !(e.target instanceof HTMLElement && e.target.closest('button,input,[role=dialog]'))) {
+      if (assetsReady && gameState === 'title' && (key === 'enter' || key === ' ') && !(e.target instanceof HTMLElement && e.target.closest('button,input,[role=dialog]'))) {
         e.preventDefault();
         startNewGame();
         return;
@@ -256,14 +256,14 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKey);
     return () => window.removeEventListener('keydown', handleGlobalKey);
-  }, [gameState, activeDialogue, activeMechanism,chapterPicker]);
+  }, [gameState, activeDialogue, activeMechanism,chapterPicker,assetsReady]);
 
   return (
     <div className="relative w-screen h-[100dvh] bg-[#060e0b] overflow-hidden flex flex-col items-center justify-center font-sans">
-      {(gameState==='loading'||(enteringGame&&gameState==='playing'))&&<ClockLoader progress={gameState==='loading'?loadProgress:undefined} error={loadError} shattering={gameState==='loading'}/>}
+      {(!assetsReady||gameState==='loading'||(enteringGame&&gameState==='playing'))&&<ClockLoader progress={!assetsReady||gameState==='loading'?loadProgress:undefined} error={loadError} shattering={gameState==='loading'}/>}
       {gameState==='prologue'&&<OpeningStory onContinue={()=>setGameState('playing')}/>}
       {/* Title Screen */}
-      {gameState === 'title' && (
+      {assetsReady && gameState === 'title' && (
         <TitleScreen
           onStart={startNewGame}
           onContinue={continueGame}

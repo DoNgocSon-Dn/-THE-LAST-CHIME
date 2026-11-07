@@ -104,9 +104,10 @@ export function removeSheetBackground(canvas:HTMLCanvasElement,trim=true,charact
 export class PixelAssets{
   private sprites=new Map<string,HTMLCanvasElement>();
   private characterPivots=new Map<string,number>();
+  readonly ready:Promise<void>;
   constructor(){
-    for(const name of new Set(Object.values(cuts).map(c=>c[0]))){
-      const img=new Image();img.onload=()=>{
+    this.ready=Promise.all([...new Set(Object.values(cuts).map(c=>c[0]))].map(name=>new Promise<void>((resolve,reject)=>{
+      const img=new Image();img.onload=()=>{try{
         for(const [key,[sheet,x,y,w,h]]of Object.entries(cuts))if(sheet===name){
           const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
           canvas.getContext('2d')!.drawImage(img,x,y,w,h,0,0,w,h);
@@ -121,8 +122,9 @@ export class PixelAssets{
             this.characterPivots.set(key,count?sum/count:sprite.width/2);
           }
         }
-      };img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.${name==='menu-actors'?'png':'jpg'}`;
-    }
+        resolve();
+      }catch(error){reject(error);}};img.onerror=()=>reject(new Error(`Không tải được nhân vật ${name}.`));img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.${name==='menu-actors'?'png':'jpg'}`;
+    }))).then(()=>undefined);
   }
   isReady(){return this.sprites.size===Object.keys(cuts).length;}
   getCharacterPivot(key:string){return this.characterPivots.get(key)??(this.get(key)?.width??0)/2;}
