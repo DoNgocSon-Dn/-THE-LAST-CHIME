@@ -114,7 +114,7 @@ export class PixelAssets{
           const character=/^(menuLinh|menuAn|anV2|an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
           const sprite=removeSheetBackground(canvas,true,character);
           this.sprites.set(key,sprite);
-          if(key.startsWith('anV2')||key.startsWith('menu')){
+          if(key.startsWith('anV2')||key.startsWith('menu')||/^an[0-8]$/.test(key)){
             const headRows=Math.max(1,Math.floor(sprite.height*.23));
             const pixels=sprite.getContext('2d')!.getImageData(0,0,sprite.width,headRows).data;
             let sum=0,count=0;

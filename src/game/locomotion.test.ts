@@ -17,8 +17,14 @@ test('Standing, walls and airborne movement never advance ground steps',()=>{
 });
 test('Animation samples are independent of the world clock and idle does not flicker',()=>{
  for(const tick of [0,.2,1,100]){
-  assert.equal(anFrame('walk',tick,0,false,'think',.4),'anV2Walk2');
+  assert.equal(anFrame('walk',tick,0,false,'think',.4),'an3');
   assert.equal(anFrame('idle',tick),'anV2Idle0');
  }
  assert.equal(anFrame('walk',0,0,true,'think',.8),'anV2Run4');
+});
+
+test('Walking uses six distinct stride poses and never the standing pose',()=>{
+ const frames=Array.from({length:6},(_,i)=>anFrame('walk',0,0,false,'think',(i+.1)/6));
+ assert.equal(new Set(frames).size,6);
+ assert.ok(frames.every(frame=>frame!==anFrame('idle',0)));
 });

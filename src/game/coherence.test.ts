@@ -6,9 +6,10 @@ import {anFrame} from './characterAtlas';
 import {removeExteriorMattePixels} from './pixelWorld';
 import {STAGE_CONFIGS} from './levelData';
 
-test('Revised An sheet supplies distinct actions without switching character identity',()=>{
+test('An actions use only An sprites; revised poses remain for idle, jumps and interactions',()=>{
  for(const tick of [0,.2,1,12]){
-  for(const state of ['walk','jump','fall','idle','interact','warp'] as const)assert.match(anFrame(state,tick),/^anV2/);
+  assert.match(anFrame('walk',tick),/^an[3-8]$/);
+  for(const state of ['jump','fall','idle','interact','warp'] as const)assert.match(anFrame(state,tick),/^anV2/);
   assert.match(anFrame('walk',tick,0,true),/^anV2Run/);
   assert.match(anFrame('interact',tick,0,false,'crouch'),/^anV2Crouch/);
   assert.match(anFrame('interact',tick,0,false,'think'),/^anV2Think/);
