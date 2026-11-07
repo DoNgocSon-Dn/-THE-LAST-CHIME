@@ -32,7 +32,9 @@ export function configureHouseLayout(stages:Record<number,StageConfig>){
  door(two,'hall_living','Phòng khách',427,{stage:2,x:860});
  door(two,'hall_workshop','Xưởng đồng hồ',702,{stage:2,x:1660});
  door(two,'living_return','Ra hành lang',830,{stage:2,x:445});
+ door(two,'living_return_right','Ra hành lang',1520,{stage:2,x:445});
  door(two,'workshop_return','Ra hành lang',1635,{stage:2,x:695});
+ door(two,'workshop_return_right','Ra hành lang',2340,{stage:2,x:695});
  door(two,'kitchen_return','Ra hành lang',2435,{stage:2,x:340});
  door(two,'kitchen_yard','Mở cửa ra sân sau',3115,{stage:3,x:90,requiresPuzzle:'clockInspectedPresent',lockedMessage:'Chốt cửa sau vẫn bị dây cáp giữ. Sợi cáp chạy về phía phòng khách.'});
  // Separate interiors cannot be crossed by walking through the image boundary.

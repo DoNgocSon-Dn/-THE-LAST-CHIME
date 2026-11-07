@@ -150,7 +150,7 @@ export class GameRenderer {
     // 7. Draw player character (An) with expressive character design & overhead speech bubble
     this.character.draw(ctx,player,this.animTick,stageCfg.stage===5);
     if(showHints){
-      const hint=puzzles.hasWatch&&!puzzles.testedTimelineSwitch?'Q · Chuyển thời gian':puzzles.currentStage===1&&!puzzles.tutorialMoved?'A / D  hoặc  ← / → · Di chuyển':puzzles.currentStage===1&&!puzzles.tutorialJumped&&!nearbyInteractableId?'Space / ↑ · Nhảy':null;
+      const hint=puzzles.hasWatch&&!puzzles.testedTimelineSwitch?'Q · Chạm vào chiếc kim':puzzles.currentStage===1&&!puzzles.tutorialMoved?'A / D  hoặc  ← / → · Di chuyển':puzzles.currentStage===1&&!puzzles.tutorialJumped&&!nearbyInteractableId?'Space / ↑ · Nhảy':null;
       if(hint){ctx.save();ctx.font='600 10px "Be Vietnam Pro",sans-serif';const w=ctx.measureText(hint).width+20,x=Math.max(cameraX+w/2+5,Math.min(cameraX+viewportWidth-w/2-5,player.x+player.width/2)),y=player.y-30;ctx.fillStyle='#142018eb';ctx.fillRect(x-w/2,y-16,w,24);ctx.strokeStyle='#b69b65';ctx.lineWidth=1;ctx.strokeRect(x-w/2,y-16,w,24);ctx.textAlign='center';ctx.fillStyle='#f0d79d';ctx.fillText(hint,x,y);ctx.restore();}
       else if(nearbyInteractableId)this.drawInteractPromptBadge(ctx,player.x+player.width/2,player.y-16,isPast);
     }

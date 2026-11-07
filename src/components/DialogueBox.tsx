@@ -10,7 +10,7 @@ interface CharacterPortraitProps {
   emotion: DialogueEmotion;
 }
 
-const CharacterPortrait:React.FC<CharacterPortraitProps>=({speaker})=><PixelPortrait speaker={speaker}/>;
+const CharacterPortrait:React.FC<CharacterPortraitProps>=({speaker,emotion})=><PixelPortrait speaker={speaker} emotion={emotion}/>;
 
 interface DialogueBoxProps {
   lines: DialogueLine[];

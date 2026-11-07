@@ -210,6 +210,7 @@ export class GameEngine {
   }
 
   public resetGame() {
+    this.firstWarpBeat=0;
     localStorage.removeItem(STORAGE_KEY);
     this.puzzles = { ...INITIAL_PUZZLE_STATE };
     this.timeline = 'PRESENT';
@@ -235,8 +236,8 @@ export class GameEngine {
   /**
    * Transitions player to a specific Stage (Màn 1 -> Màn 6)
    */
-  public loadStage(stageNum: number, showBanner: boolean = true,preserveProgress=false) {
-    this.mechanismContext=null;
+  public loadStage(stageNum: number, showBanner: boolean = true,preserveProgress=false,arrivalTimeline?:Timeline) {
+    this.firstWarpBeat=0;this.mechanismContext=null;
     const cfg = getStageConfig(stageNum);
     this.puzzles.storyChapter=preserveProgress?Math.max(this.puzzles.storyChapter??chapterForArea(this.puzzles.currentStage),chapterForArea(cfg.stage)):chapterForArea(cfg.stage);
     this.puzzles.furthestChapter=Math.max(this.puzzles.furthestChapter??1,this.puzzles.storyChapter);
@@ -281,7 +282,7 @@ export class GameEngine {
     this.player.speechBubbleTimer = 0;
     this.viewZoom=sceneZoom(cfg.stage,this.player.x);
     this.snapRoomCamera();
-    this.timeline = cfg.defaultTimeline;
+    this.timeline = this.puzzles.hasWatch?(arrivalTimeline??cfg.defaultTimeline):'PRESENT';
     this.switchCooldown = 0;
     this.nearbyInteractable = null;
 
@@ -352,7 +353,10 @@ export class GameEngine {
     this.saveGame();
   }
 
+  private firstWarpBeat=0;
+
   public switchTimeline() {
+    if(this.firstWarpBeat>0)return;
     if (!this.puzzles.hasWatch) {
       this.setPlayerSpeech('Đồng hồ bỏ túi ở trong phòng khách. Mình phải vào nhà trước.', 3.2);
       this.callbacks.onNotification(
@@ -371,7 +375,10 @@ export class GameEngine {
     const nextTimeline: Timeline = this.timeline === 'PAST' ? 'PRESENT' : 'PAST';
     const stageCfg = getStageConfig(this.puzzles.currentStage);
 
-    // Mark Chapter 1 tutorial switch complete
+    const firstShift=this.puzzles.currentStage===2&&(!this.puzzles.testedTimelineSwitch||this.puzzles.firstShiftReactionSeen===false);
+    if(firstShift)this.puzzles.firstShiftReactionSeen=false;
+
+    // Mark the first timeline switch complete
     if (!this.puzzles.testedTimelineSwitch) {
       this.puzzles.testedTimelineSwitch = true;
       this.callbacks.onPuzzleUpdate({ ...this.puzzles });
@@ -393,6 +400,7 @@ export class GameEngine {
     this.player.y = safePos.y;
     this.pursuer.phase=this.timeline;this.pursuer.phaseDelay=1.25;
     this.timeline = nextTimeline;
+    this.nearbyInteractable=null;this.mechanismContext=null;this.callbacks.onNearbyPrompt(null);
     this.switchCooldown = SWITCH_COOLDOWN_TIME;
     this.stats.timelineSwitches++;
 
@@ -402,6 +410,13 @@ export class GameEngine {
 
     this.callbacks.onTimelineChange(nextTimeline);
     this.callbacks.onCooldownChange(1.0, SWITCH_COOLDOWN_TIME);
+
+    if(firstShift){
+      this.callbacks.onNotification('');
+      this.player.vx=0;this.player.state='interact';this.player.interactionPose='think';this.player.interactAnimTimer=.7;
+      this.handleBlur();this.gameState='paused';this.firstWarpBeat=.95;
+      this.saveGame();return;
+    }
 
     if (safePos.shifted) {
       this.setPlayerSpeech('Có vật cản ở mốc thời gian này, mình vừa lách sang vị trí an toàn!', 3.0);
@@ -436,7 +451,7 @@ export class GameEngine {
     const route=houseDestination(obj,this.puzzles);if(!route)return false;
     if(route.locked){this.callbacks.onNotification(route.destination.lockedMessage??'Cửa đang khóa.');this.player.interactCooldown=.3;return true;}
     const era=this.timeline,story=this.puzzles.storyChapter??this.puzzles.currentStage,d=route.destination;
-    if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,chapterForArea(d.stage)>story,true);
+    if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,chapterForArea(d.stage)>story,true,era);
     this.timeline=this.puzzles.hasWatch?era:'PRESENT';
     Object.assign(this.player,{x:d.x,y:d.y??396,vx:0,vy:0,state:'idle',animTimer:0,animFrame:0,interactCooldown:.5,isGrounded:true});
     this.handleBlur();this.viewZoom=sceneZoom(d.stage,d.x);this.snapRoomCamera();this.nearbyInteractable=null;this.mechanismContext=null;this.roomFade=.24;
@@ -446,6 +461,10 @@ export class GameEngine {
   }
 
   public triggerInteract(answer?:readonly number[]) {
+    if(!answer){
+      if(this.gameState!=='playing')return;
+      this.checkNearbyInteractables(getStageConfig(this.puzzles.currentStage));
+    }
     if(!answer&&this.nearbyInteractable?.destination){if(this.player.interactCooldown<=0)this.enterRoomDoor(this.nearbyInteractable);return;}
     const objectId=answer?this.mechanismContext?.objectId:this.nearbyInteractable?.id;
     if (!objectId || (!answer && this.player.interactCooldown > 0)) return;
@@ -518,7 +537,7 @@ export class GameEngine {
 
     // Handle stage transition if player interacted with an unlocked stage exit door
     if (result.advanceToStage) {
-      this.loadStage(result.advanceToStage,chapterForArea(result.advanceToStage)>(this.puzzles.storyChapter??1),true);
+      this.loadStage(result.advanceToStage,chapterForArea(result.advanceToStage)>(this.puzzles.storyChapter??1),true,this.timeline);
       return true;
     }
 
@@ -555,7 +574,21 @@ export class GameEngine {
     this.lastTime = currentTime;
     const dt = Math.min(rawDt, 0.05);
 
-    if (this.gameState === 'playing') {
+    if(this.firstWarpBeat>0){
+      this.firstWarpBeat=Math.max(0,this.firstWarpBeat-dt);
+      this.renderer.update(dt,this.timeline);
+      if(this.firstWarpBeat===0){
+        this.puzzles.firstShiftReactionSeen=true;
+        this.callbacks.onPuzzleUpdate({...this.puzzles});
+        this.callbacks.onStartDialogue([
+          {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Khoan… Chuyện gì vừa xảy ra vậy?'},
+          {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'surprised',text:this.timeline==='PAST'?'Mùi trà… Ghế sofa còn nguyên. Cả ánh đèn này nữa… Rõ ràng ban nãy mọi thứ đã mục hết rồi mà.':'Căn phòng lại tối rồi… Vết nứt trên tường cũng trở lại. Mình vẫn đứng đúng chỗ này.'},
+          {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'whisper',text:'Chiếc kim… Mình chỉ vừa chạm vào nó. Không lẽ những gì mình đang thấy là thật?'},
+          {speaker:'AN',speakerName:'An',emotion:'determined',text:'Bình tĩnh đã. Nhìn kỹ xung quanh xem… Có lẽ ở đây vẫn còn điều gì đó về Linh.'}
+        ]);
+        this.saveGame();
+      }
+    }else if(this.gameState==='playing'){
       this.update(dt);
     }
 
@@ -586,6 +619,7 @@ export class GameEngine {
     // 2. Timeline switch key: Q
     if (this.justPressed.has('q')) {
       this.switchTimeline();
+      if(this.gameState!=='playing')return;
     }
 
     // 3. Movement input

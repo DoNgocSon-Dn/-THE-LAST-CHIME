@@ -172,3 +172,22 @@ test('Anchor requires the diary and correctly ordered rings, and failed attempts
  assert.equal(processInteraction('temporal_anchor','PAST',diary,[3,1,5]).updatedPuzzles.finalCoreAligned,true);
  assert.deepEqual(state,{...INITIAL_PUZZLE_STATE,currentStage:6,bossHits:[0,1,2]});
 });
+
+
+test('Well feedback follows the active era and preserves a bucket raised in the past',()=>{
+ const state={...INITIAL_PUZZLE_STATE,currentStage:3};
+ const past=processInteraction('mother_diary_ch3','PAST',state);
+ assert.match(past.messageVi,/tay quay bên cạnh/);
+ assert.doesNotMatch(past.messageVi,/đã gãy/);
+ const raised=processInteraction('hallway_pulley','PRESENT',{...state,hallwayPassageCleared:true});
+ assert.match(raised.messageVi,/miệng giếng/);assert.doesNotMatch(raised.messageVi,/kẹt dưới/);
+ const music=processInteraction('music_box','PRESENT',{...state,musicBoxPlayed:true});
+ assert.doesNotMatch(music.messageVi,/ngân khẽ/);
+});
+test('Family mementos describe their own era without revealing unvisited scenes',()=>{
+ for(const id of ['memory_kitchen','memory_workshop','memory_well','memory_garden','memory_greenhouse']){
+  const past=processInteraction(id,'PAST',INITIAL_PUZZLE_STATE),present=processInteraction(id,'PRESENT',INITIAL_PUZZLE_STATE);
+  assert.notEqual(past.dialogue?.[0].text,present.dialogue?.[0].text);
+  assert.doesNotMatch(past.dialogue?.[0].text??'',/quái vật|Cái bóng bên giếng/);
+ }
+});

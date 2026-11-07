@@ -144,6 +144,7 @@ export interface PuzzleState {
   tutorialJumped?: boolean;
   watchCollected?: boolean;
   hasWatch: boolean;            // Collected in Chapter 2, inside the living room
+  firstShiftReactionSeen?: boolean;
   testedTimelineSwitch: boolean; // Player presses [Q] to test switching between Past & Present
 
   // Chapter 2 — Chiếc đồng hồ ngừng chạy (Màn 2)

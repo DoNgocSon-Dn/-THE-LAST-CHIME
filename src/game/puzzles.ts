@@ -110,7 +110,15 @@ export function processInteraction(
     memory_greenhouse:{title:'Bản đồ rừng ký ức',text:'Linh vẽ một đường đỏ xuyên qua mấy hình cây và tảng đá. Trông giống lối đi phía sau nhà kính.'}
   };
   if(sideMemories[objectId]){
-    const memory=sideMemories[objectId];
+    const original=sideMemories[objectId];
+    const eraText:Record<string,[string,string]>={
+      memory_kitchen:['Ba chiếc cốc còn sạch trên bàn. Cái sứt quai là của mình… Mẹ cứ bảo đổi mà mình không chịu.','Bụi bám kín ba chiếc cốc. Cái sứt quai của mình vẫn còn, ngay chỗ cũ.'],
+      memory_workshop:['Bản vẽ còn mới. Mẹ đánh dấu đường cáp nối đồng hồ với chốt cửa sau và khoanh tròn trục bánh răng.','Mép bản vẽ đã mủn. Vẫn đọc được đường cáp nối đồng hồ với chốt cửa sau và dấu khoanh ở trục bánh răng.'],
+      memory_well:['Sợi chỉ đỏ còn tươi màu trên thành giếng. Linh thường buộc những nút thế này khi chơi tìm đường.','Sợi chỉ trên thành giếng đã bạc màu. Cách thắt nút này… là trò tìm đường của Linh ngày trước.'],
+      memory_garden:['Chiếc nơ của Linh mắc trên cành cây. Chắc em vừa chạy qua đây.','Chiếc nơ đã sờn, nhưng vẫn còn mắc trên cành. Mình nhớ Linh quý nó lắm.'],
+      memory_greenhouse:['Nét vẽ đỏ còn rõ: một đường đi xuyên qua cây và những tảng đá phía sau nhà kính.','Tờ giấy đã ố, còn sót một đường đỏ qua mấy hình cây và tảng đá. Có lẽ vẫn lần theo được.']
+    };
+    const memory={...original,text:eraText[objectId]?.[timeline==='PAST'?0:1]??original.text};
     return {success:true,messageVi:memory.title,updatedPuzzles:nextPuzzles,soundEvent:'paper_rustle',dialogue:[{speaker:'AN',speakerName:'An',emotion:'normal',text:memory.text}],showNote:{title:memory.title,content:memory.text,author:'Dấu vết gia đình'}};
   }
   if(objectId==='npc_grandfather')return {success:true,messageVi:'Ký ức xưởng đồng hồ của Ông Ngoại',updatedPuzzles:nextPuzzles,dialogue:[{speaker:'ONG',speakerName:'Ký ức Ông Ngoại',emotion:'normal',text:'An, xong rồi thì cất giúp ông cái kính nhé. Ông cứ để đâu là quên đấy.'}]};
@@ -161,7 +169,7 @@ export function processInteraction(
       if(nextPuzzles.currentStage!==2)return {success:false,messageVi:'An chưa vào phòng khách.',updatedPuzzles:nextPuzzles};
       if(nextPuzzles.hasWatch)return {success:false,messageVi:'An đã giữ chiếc đồng hồ.',updatedPuzzles:nextPuzzles};
       nextPuzzles.hasWatch=true;nextPuzzles.watchCollected=true;
-      return {success:true,messageVi:'Đã nhặt đồng hồ bỏ túi. Nhấn Q để thử chiếc kim.',soundEvent:'chime_success',updatedPuzzles:nextPuzzles,dialogue:[
+      return {success:true,messageVi:'Đồng hồ bỏ túi bắt đầu chạy.',soundEvent:'chime_success',updatedPuzzles:nextPuzzles,dialogue:[
         {speaker:'AN',speakerName:'An',emotion:'normal',text:'Đồng hồ của ông... Vẫn còn ở đây.'},
         {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Rãnh này vừa với chiếc kim trong phong thư. Thử đặt vào xem...'},
         {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Nó chạy rồi? Khoan... tiếng ai trong nhà vậy?'}
@@ -348,8 +356,8 @@ export function processInteraction(
     }
 
     case 'hallway_pulley': {
+      if(nextPuzzles.hallwayPassageCleared)return {success:true,messageVi:timeline==='PAST'?'Dây đã cuốn hết vào trục. Chiếc gàu đang nằm ở miệng giếng.':'Tay quay đã mục, nhưng chiếc gàu vẫn nằm ở miệng giếng.',updatedPuzzles:nextPuzzles};
       if(timeline!=='PAST')return {success:false,messageVi:'Tay quay giếng đã gãy. Chiếc gàu vẫn kẹt dưới đáy.',updatedPuzzles:nextPuzzles};
-      if(nextPuzzles.hallwayPassageCleared)return {success:true,messageVi:'Chiếc gàu đã lên tới miệng giếng. Hộp sắt vẫn còn trong cuộn dây.',updatedPuzzles:nextPuzzles};
       nextPuzzles.hallwayPassageCleared=true;
       return {success:true,messageVi:'Đã kéo chiếc gàu lên. Có một hộp sắt bên trong.',soundEvent:'door_unlock',updatedPuzzles:nextPuzzles,dialogue:[
         {speaker:'AN',speakerName:'An',emotion:'normal',text:'Nặng quá... Có cái gì mắc trong cuộn dây.'},
@@ -358,7 +366,7 @@ export function processInteraction(
     }
 
     case 'mother_diary_ch3': {
-      if(!nextPuzzles.hallwayPassageCleared)return {success:false,messageVi:'Chiếc gàu còn mắc dưới giếng. Tay quay đã gãy ở thời điểm này.',updatedPuzzles:nextPuzzles};
+      if(!nextPuzzles.hallwayPassageCleared)return {success:false,messageVi:timeline==='PAST'?'Chiếc gàu còn nằm dưới đáy giếng. Có thể dùng tay quay bên cạnh để kéo lên.':'Chiếc gàu còn mắc dưới giếng. Tay quay ở hiện tại đã gãy.',updatedPuzzles:nextPuzzles};
       const firstTime = !nextPuzzles.motherDiaryCh3Read;
       nextPuzzles.motherDiaryCh3Read = true;
       return {
@@ -512,7 +520,7 @@ export function processInteraction(
     }
 
     case 'music_box': {
-      if(nextPuzzles.musicBoxPlayed)return {success:true,messageVi:'Ba chốt khóa đã rút vào. Hộp nhạc vẫn ngân khẽ.',updatedPuzzles:nextPuzzles};
+      if(nextPuzzles.musicBoxPlayed)return {success:true,messageVi:timeline==='PAST'?'Ba chốt đã rút vào. Hộp nhạc vẫn ngân khẽ.':'Dây cót đã rỉ, hộp nhạc im tiếng. Nhưng chốt nhạc ở cổng đã rút.',updatedPuzzles:nextPuzzles};
       if (timeline === 'PAST') {
         if (mechanismMatches('music_box',answer??[])) {
           nextPuzzles.musicBoxPlayed = true;

@@ -43,3 +43,11 @@ test('Old saves migrate by physical room, not by the old chapter number alone',(
  assert.deepEqual(migrateHouseLocation(3,400),{stage:2,x:400});
  assert.deepEqual(migrateHouseLocation(3,1400),{stage:3,x:600});
 });
+
+test('Painted open doorways on both sides of living room and workshop have return routes',()=>{
+ for(const id of ['living_return','living_return_right','workshop_return','workshop_return_right']){
+  const obj=hub.interactables.find(o=>o.id===id)!;assert.ok(obj,id);
+  const route=houseDestination(obj,INITIAL_PUZZLE_STATE)!;
+  assert.equal(route.locked,false);assert.equal(currentPixelRoom(route.destination.stage,route.destination.x).map,3);
+ }
+});
