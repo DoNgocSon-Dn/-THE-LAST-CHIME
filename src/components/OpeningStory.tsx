@@ -8,7 +8,7 @@ function StoryScene({scene}:{scene:'dream'|'letter'|'home'}){
  if(scene==='home'){if(art.complete&&art.naturalWidth)ctx.drawImage(art,665,610,345,165,0,0,400,200);return;}
  if(!sheet.complete||!sheet.naturalWidth)return;
  if(scene==='dream'){const sequence=[0,0,1,1,2,3,4,4,5,2];const i=sequence[Math.floor(t*1.6)%sequence.length];ctx.drawImage(sheet,38+i*188.5,52,181,142,73,0,255,200);}
- else{const sequence=[0,1,2,3,4,5,5,5,4,5];const i=sequence[Math.floor(t*1.4)%sequence.length];ctx.drawImage(sheet,38+i*188.5,251,181,142,0,0,255,200);const lawyer=Math.min(5,Math.floor(t*.8)%6);ctx.drawImage(sheet,162+lawyer*147.5,632,140,179,247,10,148,190);}
+ else{const sequence=[0,1,2,3,4,5];const step=Math.min(5,Math.floor(t*1.15));const i=sequence[step];ctx.drawImage(sheet,38+i*188.5,251,181,142,0,0,255,200);const lawyer=[1,2,3,3,4,0][step];ctx.save();ctx.translate(395,10);ctx.scale(-1,1);ctx.drawImage(sheet,162+lawyer*147.5,632,140,179,0,0,148,190);ctx.restore();}
  };raf=requestAnimationFrame(draw);return()=>cancelAnimationFrame(raf);},[scene]);
  return <canvas ref={ref} width={400} height={200} role="img" aria-label={scene==='dream'?'An ngủ gục bên bàn đồng hồ và mơ thấy Linh':scene==='letter'?'Luật sư trao thư, An mở ra đọc':'An trở về trước cổng ngôi nhà cũ'}/>;
 }
