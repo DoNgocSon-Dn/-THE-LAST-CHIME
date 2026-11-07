@@ -78,3 +78,6 @@ Hành lang: cửa phòng khách ở vị trí đầu (228), phòng Linh ở cử
 
 
 Sơ đồ cửa phòng khách/xưởng: Hành lang ↔ cửa trái Phòng khách; cửa phải Phòng khách ↔ cửa trái Xưởng; cửa phải Xưởng ↔ Hành lang. Mỗi lối quay về đúng cửa đối diện. Cả hai lối vào xưởng đều bị sập ở hiện tại và cần trở về quá khứ.
+
+
+Ngoài trời ở quá khứ dùng ba bản phục hồi riêng trong `public/assets/pixel/past-restored` (cổng/hiên nhà, sân giếng, vườn). Ảnh có nền trời hoàn chỉnh và được giữ đục; không dùng bộ lọc nền trắng của sheet cũ. Bản hiện tại vẫn đọc từ asset gốc để giữ cảnh hoang phế. Các bản phục hồi được nạp trước khi bắt đầu chơi.

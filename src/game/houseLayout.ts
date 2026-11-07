@@ -50,6 +50,8 @@ export function configureHouseLayout(stages:Record<number,StageConfig>){
  const diary=three.interactables.find(o=>o.id==='mother_diary_ch3')!;Object.assign(diary,{nameVi:'Hộp sắt trong gàu giếng',promptVi:'Mở hộp sắt trong gàu',bakedIntoMap:true});
  door(three,'yard_kitchen','Trở vào nhà bếp',65,{stage:2,x:3070});
  door(three,'yard_garden','Mở cổng ra vườn',1080,{stage:4,x:900,requiresPuzzle:'motherDiaryCh3Read',lockedMessage:'Cổng vườn bị khóa. Sợi chỉ đỏ vướng trên tay quay giếng.'});
+ // The restored garden paints the ribbon on its shrub; avoid a second floating sprite.
+ const gardenRibbon=four.interactables.find(o=>o.id==='memory_garden');if(gardenRibbon)Object.assign(gardenRibbon,{x:1720,y:380,width:34,height:70,bakedIntoMap:true});
  door(four,'bedroom_return','Ra hành lang',55,{stage:2,x:445,requiresTimeline:'PAST',timelineLockedMessage:'Ván và khung cửa gãy chặn lối ra ở hiện tại. Nhấn Q về quá khứ để ra hành lang.'});
  door(four,'garden_yard','Trở lại sân sau',835,{stage:3,x:1030});
  door(four,'garden_greenhouse','Vào nhà kính',1910,{stage:4,x:2050});

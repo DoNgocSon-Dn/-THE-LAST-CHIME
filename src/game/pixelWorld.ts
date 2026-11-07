@@ -1,3 +1,4 @@
+import {RESTORED_OUTDOOR_MAPS,restoredOutdoorPath} from './outdoorAssets';
 import { Platform } from '../types/game';
 import { pixelAssets, removeSheetBackground } from './pixelAssets';
 import { chapterRooms, MAP_CROPS } from './pixelLayout';
@@ -7,13 +8,17 @@ export function removeExteriorMattePixels(d:Uint8ClampedArray){
     if(lo>220&&hi-lo<22)d[i+3]=0;
   }
 }
+const restoredPastCrop=(number:number)=>number===8?{...MAP_CROPS[number].past,y:0,h:336}:MAP_CROPS[number].past;
 export class PixelWorld {
   private maps=new Map<string,HTMLCanvasElement>();
   private assets=pixelAssets();
+  private pastSky=new Map<number,string>();
   constructor(){
+    for(const number of RESTORED_OUTDOOR_MAPS)this.loadRestoredPast(number);
     for(let number=1;number<=13;number++){
       const img=new Image();img.onload=()=>{
         for(const era of ['past','present']as const){
+          if(era==='past'&&(RESTORED_OUTDOOR_MAPS as readonly number[]).includes(number))continue;
           const c=MAP_CROPS[number][era],canvas=document.createElement('canvas');canvas.width=c.w;canvas.height=c.h;
           canvas.getContext('2d')!.drawImage(img,c.x,c.y,c.w,c.h,0,0,c.w,c.h);
           const clean=removeSheetBackground(canvas,false);
@@ -29,6 +34,26 @@ export class PixelWorld {
       };img.src=`${import.meta.env.BASE_URL}assets/pixel/map-${number}.jpg`;
     }
   }
+  private loadRestoredPast(number:number){
+    const image=new Image();image.onload=()=>{
+      const crop=restoredPastCrop(number),canvas=document.createElement('canvas');canvas.width=crop.w;canvas.height=crop.h;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true})!;ctx.imageSmoothingEnabled=false;
+      // Generated restoration retains the two-panel reference layout, normalized to its source grid.
+      const sx=image.naturalWidth/1600,sy=image.naturalHeight/672;
+      ctx.drawImage(image,crop.x*sx,crop.y*sy,crop.w*sx,crop.h*sy,0,0,crop.w,crop.h);
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),d=pixels.data;
+      const skyColors=new Map<string,{count:number;r:number;g:number;b:number}>();
+      for(let y=0;y<Math.min(24,canvas.height);y++)for(let x=0;x<canvas.width;x++){
+        const i=(y*canvas.width+x)*4,r=d[i],g=d[i+1],b=d[i+2];
+        if(r>160&&g>135&&b>80&&r>g&&g>b&&r-b>25){const key=`${r>>4},${g>>4},${b>>4}`,c=skyColors.get(key)??{count:0,r:0,g:0,b:0};c.count++;c.r+=r;c.g+=g;c.b+=b;skyColors.set(key,c);}
+      }
+      const color=[...skyColors.values()].sort((a,b)=>b.count-a.count)[0];
+      const rgb=color?[Math.round(color.r/color.count),Math.round(color.g/color.count),Math.round(color.b/color.count)]:[226,202,148];
+      // Keep restored memories opaque: never key the new sky back out as white matte.
+      for(let i=0;i<d.length;i+=4)if(Math.min(d[i],d[i+1],d[i+2])>235&&Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])<18){d[i]=rgb[0];d[i+1]=rgb[1];d[i+2]=rgb[2];d[i+3]=255;}
+      ctx.putImageData(pixels,0,0);this.pastSky.set(number,`rgb(${rgb.join(',')})`);this.maps.set(`${number}-past`,canvas);
+    };image.src=`${import.meta.env.BASE_URL}${restoredOutdoorPath(number)}`;
+  }
   isReady(){return this.maps.size===26;}
   background(ctx:CanvasRenderingContext2D,camera:number,viewport:number,width:number,past:boolean,stage:number){
     ctx.save();ctx.imageSmoothingEnabled=false;
@@ -36,9 +61,10 @@ export class PixelWorld {
     sky.addColorStop(0,past?'#c5a979':'#152e37');sky.addColorStop(1,past?'#6c7560':'#080f17');
     ctx.fillStyle=sky;ctx.fillRect(camera,0,viewport,600);
     const rooms=chapterRooms(stage);
+    if(past){const visible=rooms.find(room=>room.start<=camera+viewport/2&&room.start+room.width>camera+viewport/2),color=visible&&this.pastSky.get(visible.map);if(color){ctx.fillStyle=color;ctx.fillRect(camera,0,viewport,600);}}
     rooms.forEach((room,index)=>{
       const x=room.start,roomWidth=room.width;if(x>camera+viewport||x+roomWidth<camera)return;
-      const era=past?'past':'present',crop=MAP_CROPS[room.map][era],image=this.maps.get(`${room.map}-${era}`),scale=roomWidth/crop.w;
+      const era=past?'past':'present',crop=past&&(RESTORED_OUTDOOR_MAPS as readonly number[]).includes(room.map)?restoredPastCrop(room.map):MAP_CROPS[room.map][era],image=this.maps.get(`${room.map}-${era}`),scale=roomWidth/crop.w;
       if(image){
         const y=480-(crop.floor-crop.y)*scale;
         ctx.drawImage(image,x,y,roomWidth,crop.h*scale);
