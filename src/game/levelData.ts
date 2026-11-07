@@ -1,3 +1,4 @@
+import {configureHouseLayout} from './houseLayout';
 import { normalizeSceneScales } from './sceneScale';
 import { configurePixelCampaign } from './pixelCampaign';
 import { currentPixelRoom } from './pixelLayout';
@@ -36,7 +37,7 @@ export const ROOM_ZONES: RoomZone[] = [
   {
     id: 'stage_1',
     chapter: 1,
-    chapterTitleVi: 'Màn 1 — Chương 1: Trở Về',
+    chapterTitleVi: 'Chương 1 — Trở Về',
     nameVi: 'Hiên Nhà & Sảnh Đón',
     nameEn: 'Entrance Porch & Foyer',
     minX: 0,
@@ -45,7 +46,7 @@ export const ROOM_ZONES: RoomZone[] = [
   {
     id: 'stage_2',
     chapter: 2,
-    chapterTitleVi: 'Màn 2 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy',
+    chapterTitleVi: 'Chương 2 — Chiếc Đồng Hồ Ngừng Chạy',
     nameVi: 'Phòng Khách & Xưởng Đồng Hồ',
     nameEn: 'Family Living Room',
     minX: 0,
@@ -54,8 +55,8 @@ export const ROOM_ZONES: RoomZone[] = [
   {
     id: 'stage_3',
     chapter: 3,
-    chapterTitleVi: 'Màn 3 — Chương 3: Hành Lang Ký Ức',
-    nameVi: 'Hành Lang Gác Lửng',
+    chapterTitleVi: 'Chương 3 — Dấu Vết Bên Giếng',
+    nameVi: 'Sân Sau & Giếng Cũ',
     nameEn: 'Corridor of Memories',
     minX: 0,
     maxX: 1200
@@ -63,7 +64,7 @@ export const ROOM_ZONES: RoomZone[] = [
   {
     id: 'stage_4',
     chapter: 4,
-    chapterTitleVi: 'Màn 4 — Chương 4: Căn Phòng Bị Khóa',
+    chapterTitleVi: 'Chương 4 — Căn Phòng Bị Khóa',
     nameVi: 'Thư Phòng & Phòng Ngủ Của Linh',
     nameEn: 'Bedroom & Study',
     minX: 0,
@@ -72,7 +73,7 @@ export const ROOM_ZONES: RoomZone[] = [
   {
     id: 'stage_5',
     chapter: 5,
-    chapterTitleVi: 'Màn 5 — Chương 5: Cuộc Truy Đuổi',
+    chapterTitleVi: 'Chương 5 — Cuộc Truy Đuổi',
     nameVi: 'Hành Lang Sụp Đổ',
     nameEn: 'Shattered Gallery',
     minX: 0,
@@ -81,7 +82,7 @@ export const ROOM_ZONES: RoomZone[] = [
   {
     id: 'stage_6',
     chapter: 6,
-    chapterTitleVi: 'Màn 6 — Chương 6: Hai Phía Của Thời Gian',
+    chapterTitleVi: 'Chương 6 — Hai Phía Của Thời Gian',
     nameVi: 'Tâm Điểm Thời Gian',
     nameEn: 'Clockwork Sanctuary',
     minX: 0,
@@ -105,7 +106,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
   1: {
     stage: 1,
     id: 'stage_1',
-    chapterTitleVi: 'Màn 1 — Chương 1: Trở Về',
+    chapterTitleVi: 'Chương 1 — Trở Về',
     subtitleVi: 'Đêm mưa trở lại căn nhà cũ & chiếc kim đồng hồ gãy',
     roomNameVi: 'Hiên Nhà & Sảnh Đón',
     roomNameEn: 'Entrance Porch & Foyer',
@@ -167,10 +168,10 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
       {
         id: 'stage_exit_1',
         name: 'Door to Living Room (Stage 2)',
-        nameVi: 'Cửa Vào Phòng Khách (Qua Màn 2)',
+        nameVi: 'Cửa Vào Phòng Khách (Qua Chương 2)',
         descriptionVi: 'Cánh cửa dẫn sâu vào Phòng Khách & Xưởng Đồng Hồ.',
         timeline: 'both',
-        promptVi: 'Bước qua Màn 2: Phòng Khách',
+        promptVi: 'Bước qua Chương 2: Phòng Khách',
         room: 'stage_1',
         chapter: 1,
         type: 'stage_door',
@@ -189,7 +190,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
   2: {
     stage: 2,
     id: 'stage_2',
-    chapterTitleVi: 'Màn 2 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy',
+    chapterTitleVi: 'Chương 2 — Chiếc Đồng Hồ Ngừng Chạy',
     subtitleVi: 'Sửa chữa cỗ máy ở Quá Khứ để mở lối đi ở Hiện Tại',
     roomNameVi: 'Phòng Khách & Xưởng Đồng Hồ',
     roomNameEn: 'Family Living Room',
@@ -294,10 +295,10 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
       {
         id: 'stage_exit_2',
         name: 'Door to Corridor of Memories (Stage 3)',
-        nameVi: 'Cửa Sang Hành Lang Ký Ức (Qua Màn 3)',
-        descriptionVi: 'Dẫn sang Màn 3: Hành Lang Ký Ức.',
+        nameVi: 'Cửa Sang Hành Lang Ký Ức (Qua Chương 3)',
+        descriptionVi: 'Dẫn sang Chương 3: Hành Lang Ký Ức.',
         timeline: 'both',
-        promptVi: 'Bước qua Màn 3: Hành Lang Ký Ức',
+        promptVi: 'Bước qua Chương 3: Hành Lang Ký Ức',
         room: 'stage_2',
         chapter: 2,
         type: 'stage_door',
@@ -329,9 +330,9 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
   3: {
     stage: 3,
     id: 'stage_3',
-    chapterTitleVi: 'Màn 3 — Chương 3: Hành Lang Ký Ức',
+    chapterTitleVi: 'Chương 3 — Dấu Vết Bên Giếng',
     subtitleVi: 'Lối đi sụp đổ & dấu hiệu đầu tiên của Kẻ Lạc Giờ',
-    roomNameVi: 'Hành Lang Gác Lửng',
+    roomNameVi: 'Sân Sau & Giếng Cũ',
     roomNameEn: 'Corridor of Memories',
     width: 1200,
     spawnX: 85,
@@ -408,10 +409,10 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
       {
         id: 'stage_exit_3',
         name: 'Door to Locked Room (Stage 4)',
-        nameVi: 'Cửa Vào Thư Phòng & Phòng Ngủ (Qua Màn 4)',
-        descriptionVi: 'Cánh cửa dẫn sang Màn 4: Căn Phòng Bị Khóa.',
+        nameVi: 'Cửa Vào Thư Phòng & Phòng Ngủ (Qua Chương 4)',
+        descriptionVi: 'Cánh cửa dẫn sang Chương 4: Căn Phòng Bị Khóa.',
         timeline: 'both',
-        promptVi: 'Bước qua Màn 4: Căn Phòng Bị Khóa',
+        promptVi: 'Bước qua Chương 4: Căn Phòng Bị Khóa',
         room: 'stage_3',
         chapter: 3,
         type: 'stage_door',
@@ -443,7 +444,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
   4: {
     stage: 4,
     id: 'stage_4',
-    chapterTitleVi: 'Màn 4 — Chương 4: Căn Phòng Bị Khóa',
+    chapterTitleVi: 'Chương 4 — Căn Phòng Bị Khóa',
     subtitleVi: 'Mật mã ánh sáng, khúc nhạc ru của Linh và nỗi lòng của Mẹ',
     roomNameVi: 'Thư Phòng & Phòng Ngủ Của Linh',
     roomNameEn: 'Bedroom & Study',
@@ -547,10 +548,10 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
       {
         id: 'final_door',
         name: 'Locked Door to Stage 5',
-        nameVi: 'Cánh Cửa Bị Khóa (Qua Màn 5)',
-        descriptionVi: 'Mở cánh cửa ở Hiện Tại để bước sang Màn 5: Cuộc Truy Đuổi.',
+        nameVi: 'Cánh Cửa Bị Khóa (Qua Chương 5)',
+        descriptionVi: 'Mở cánh cửa ở Hiện Tại để bước sang Chương 5: Cuộc Truy Đuổi.',
         timeline: 'both',
-        promptVi: 'Mở Cánh Cửa & Bước Vào Màn 5',
+        promptVi: 'Mở Cánh Cửa & Bước Vào Chương 5',
         room: 'stage_4',
         chapter: 4,
         type: 'final_door',
@@ -582,7 +583,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
   5: {
     stage: 5,
     id: 'stage_5',
-    chapterTitleVi: 'Màn 5 — Chương 5: Cuộc Truy Đuổi',
+    chapterTitleVi: 'Chương 5 — Cuộc Truy Đuổi',
     subtitleVi: 'Chạy thoát khỏi Kẻ Lạc Giờ xuyên qua hai dòng thời gian',
     roomNameVi: 'Hành Lang Sụp Đổ',
     roomNameEn: 'Shattered Gallery',
@@ -623,10 +624,10 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
       {
         id: 'stage_exit_5',
         name: 'Sanctuary Portal (To Stage 6)',
-        nameVi: 'Cổng Vào Tâm Điểm Thời Gian (Qua Màn 6)',
-        descriptionVi: 'Chạy tới cổng ánh sáng để thoát khỏi Kẻ Lạc Giờ và vào Màn 6.',
+        nameVi: 'Cổng Vào Tâm Điểm Thời Gian (Qua Chương 6)',
+        descriptionVi: 'Chạy tới cổng ánh sáng để thoát khỏi Kẻ Lạc Giờ và vào Chương 6.',
         timeline: 'both',
-        promptVi: 'Bước vào Màn 6: Tâm Điểm Thời Gian',
+        promptVi: 'Bước vào Chương 6: Tâm Điểm Thời Gian',
         room: 'stage_5',
         chapter: 5,
         type: 'stage_door',
@@ -645,7 +646,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
   6: {
     stage: 6,
     id: 'stage_6',
-    chapterTitleVi: 'Màn 6 — Chương 6: Hai Phía Của Thời Gian',
+    chapterTitleVi: 'Chương 6 — Hai Phía Của Thời Gian',
     subtitleVi: 'Sự thật về em gái Linh và lựa chọn cuối cùng trước Lõi Đồng Hồ',
     roomNameVi: 'Tâm Điểm Thời Gian',
     roomNameEn: 'Clockwork Sanctuary',
@@ -739,6 +740,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
 
 configurePixelCampaign(STAGE_CONFIGS);
 normalizeSceneScales(STAGE_CONFIGS);
+configureHouseLayout(STAGE_CONFIGS);
 
 export function getStageConfig(stage: number): StageConfig {
   const clamped = Math.max(1, Math.min(6, Math.round(stage || 1)));
@@ -752,7 +754,7 @@ export function getCurrentRoom(playerX:number,stage:number=1):RoomZone {
 }
 
 export function getActiveChapter(puzzles: PuzzleState, _playerX: number = 0): { num: number; titleVi: string } {
-  const stageCfg = getStageConfig(puzzles.currentStage || 1);
+  const stageCfg = getStageConfig(puzzles.storyChapter ?? puzzles.currentStage ?? 1);
   return {
     num: stageCfg.stage,
     titleVi: stageCfg.chapterTitleVi

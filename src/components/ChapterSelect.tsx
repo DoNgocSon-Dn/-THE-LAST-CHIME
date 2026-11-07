@@ -3,7 +3,7 @@ import {Lock,ArrowLeft,ArrowUpRight} from 'lucide-react';
 import {MAP_CROPS,CHAPTER_ROOMS} from '../game/pixelLayout';
 import {removeExteriorMattePixels} from '../game/pixelWorld';
 const chapters=[
- ['Trở về','Cổng nhà & hiên trước'],['Chiếc đồng hồ ngừng chạy','Phòng khách & xưởng đồng hồ'],['Hành lang ký ức','Hành lang & sân sau'],['Căn phòng bị khóa','Phòng của Linh & khu vườn'],['Cuộc truy đuổi','Rừng ký ức & hang đồng hồ'],['Hai phía của thời gian','Tâm điểm thời gian']
+ ['Trở về','Cổng nhà & hiên trước'],['Chiếc đồng hồ ngừng chạy','Hành lang & các phòng trong nhà'],['Dấu vết bên giếng','Sân sau & giếng cũ'],['Căn phòng bị khóa','Phòng của Linh & khu vườn'],['Cuộc truy đuổi','Rừng ký ức & hang đồng hồ'],['Hai phía của thời gian','Tâm điểm thời gian']
 ];
 function ChapterPreview({stage}:{stage:number}){
  const ref=useRef<HTMLCanvasElement>(null);

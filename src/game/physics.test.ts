@@ -9,7 +9,6 @@ import {
   MOVE_SPEED
 } from './physics';
 import { INITIAL_PUZZLE_STATE } from './puzzles';
-import { LEVEL_PLATFORMS } from './levelData';
 import { Platform } from '../types/game';
 
 test('checkAABB detects overlapping and non-overlapping boxes', () => {
@@ -63,31 +62,12 @@ test('resolveSafeTimelinePosition shifts player out of solid obstacles safely an
   assert.ok(Math.abs(safePos.y - stuckPlayer.y) <= 64, 'Player y offset should be localized');
 });
 
-test('getActivePlatforms respects requiresPuzzleNotSolved for doors and debris', () => {
-  const initialPlatforms = getActivePlatforms(LEVEL_PLATFORMS, 'PRESENT', INITIAL_PUZZLE_STATE);
-  assert.ok(
-    initialPlatforms.some((p) => p.id === 'living_hallway_door'),
-    'Living hallway door should block path before clock is inspected in Present'
-  );
-  assert.ok(
-    initialPlatforms.some((p) => p.id === 'hallway_debris_pres'),
-    'Hallway debris should block Present path before pulley is activated'
-  );
-
-  const unlockedState = {
-    ...INITIAL_PUZZLE_STATE,
-    clockInspectedPresent: true,
-    hallwayPassageCleared: true
-  };
-  const afterPlatforms = getActivePlatforms(LEVEL_PLATFORMS, 'PRESENT', unlockedState);
-  assert.equal(
-    afterPlatforms.some((p) => p.id === 'living_hallway_door'),
-    false,
-    'Living hallway door should be removed once clockInspectedPresent is true'
-  );
-  assert.equal(
-    afterPlatforms.some((p) => p.id === 'hallway_debris_pres'),
-    false,
-    'Hallway debris should be removed once hallwayPassageCleared is true'
-  );
+test('getActivePlatforms respects puzzle-controlled barriers independently of room layout',()=>{
+ const fixtures:Platform[]=[
+  {id:'unsolved',x:0,y:0,width:10,height:100,type:'solid',timeline:'PRESENT',requiresPuzzleNotSolved:'clockInspectedPresent'},
+  {id:'solved',x:20,y:0,width:10,height:100,type:'solid',timeline:'PRESENT',requiresPuzzleSolved:'clockInspectedPresent'},
+  {id:'past',x:40,y:0,width:10,height:100,type:'solid',timeline:'PAST'}
+ ];
+ assert.deepEqual(getActivePlatforms(fixtures,'PRESENT',INITIAL_PUZZLE_STATE).map(p=>p.id),['unsolved']);
+ assert.deepEqual(getActivePlatforms(fixtures,'PRESENT',{...INITIAL_PUZZLE_STATE,clockInspectedPresent:true}).map(p=>p.id),['solved']);
 });

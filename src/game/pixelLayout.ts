@@ -4,8 +4,8 @@ export const CAMERA_TOP=195;
 export interface PixelRoom {map:number;name:string;}
 export const CHAPTER_ROOMS:Record<number,PixelRoom[]>={
   1:[{map:1,name:'Cổng nhà & hiên trước'}],
-  2:[{map:2,name:'Phòng khách'},{map:6,name:'Phòng ăn & nhà bếp'},{map:5,name:'Xưởng đồng hồ của Mẹ'}],
-  3:[{map:3,name:'Hành lang ký ức'},{map:7,name:'Sân sau & giếng cũ'}],
+  2:[{map:3,name:'Hành lang trong nhà'},{map:2,name:'Phòng khách'},{map:5,name:'Xưởng đồng hồ của Mẹ'},{map:6,name:'Phòng ăn & nhà bếp'}],
+  3:[{map:7,name:'Sân sau & giếng cũ'}],
   4:[{map:4,name:'Phòng ngủ của Linh'},{map:8,name:'Khu vườn gia đình'},{map:9,name:'Nhà kính bỏ quên'}],
   5:[{map:10,name:'Lối vào rừng ký ức'},{map:11,name:'Hang đồng hồ'},{map:12,name:'Ký ức đứt gãy'}],
   6:[{map:13,name:'Tâm điểm thời gian'}],

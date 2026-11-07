@@ -43,7 +43,7 @@ test('Old save positions retain the same room and floor after source-map scale c
   assert.equal(point.y,480);
   assert.ok(point.x>=room.start&&point.x<=room.start+room.width);
  }
- assert.equal(STAGE_CONFIGS[2].width,2400);
+ assert.equal(STAGE_CONFIGS[2].width,3200);
  assert.equal(STAGE_CONFIGS[1].width,1200);
 });
 

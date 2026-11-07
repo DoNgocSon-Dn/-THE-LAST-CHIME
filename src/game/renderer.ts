@@ -219,6 +219,13 @@ export class GameRenderer {
       glow.addColorStop(0, obj.bakedIntoMap||obj.id!==nearbyId ? '#00000000' : isPast ? '#f3ca6b26' : '#a8d8b922');
       glow.addColorStop(1, '#a8d8b900');
       ctx.fillStyle = glow; ctx.fillRect(obj.x - 115, obj.y - 115, obj.width + 230, obj.height + 230);
+      if(obj.type==='room_door'&&puzzles.currentStage===2&&obj.x<800){
+        ctx.font='bold 7px "Be Vietnam Pro", sans-serif';ctx.textAlign='center';
+        const width=ctx.measureText(obj.nameVi).width+10,cx=obj.x+obj.width/2;
+        ctx.fillStyle=isPast?'#513a22':'#243528';ctx.fillRect(cx-width/2,obj.y-20,width,12);
+        ctx.strokeStyle='#a5894c';ctx.lineWidth=.5;ctx.strokeRect(cx-width/2,obj.y-20,width,12);
+        ctx.fillStyle='#e3cd96';ctx.fillText(obj.nameVi,cx,obj.y-12);
+      }
       if(this.pixel.object(ctx,obj,isPast,puzzles,this.animTick)) {
 
         ctx.restore();continue;

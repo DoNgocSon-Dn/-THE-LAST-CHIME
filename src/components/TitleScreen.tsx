@@ -9,7 +9,7 @@ function MenuLabel({text}:{text:string}){
  return <><span className="sr-only">{text}</span><canvas ref={ref} width={300} height={46} aria-hidden="true"/></>;
 }
 function unlockedChapter(){try{const p=JSON.parse(localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1')??'null')?.puzzles;return Math.max(1,Math.min(6,p?.furthestStage??p?.currentStage??1));}catch{return 1;}}
-function currentSavedChapter(){try{return Math.max(1,Math.min(6,JSON.parse(localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1')??'null')?.puzzles?.currentStage??1));}catch{return 1;}}
+function currentSavedChapter(){try{return Math.max(1,Math.min(6,JSON.parse(localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1')??'null')?.puzzles?.storyChapter??JSON.parse(localStorage.getItem('THE_LAST_CHIME_PIXEL_SAVE_V1')??'null')?.puzzles?.currentStage??1));}catch{return 1;}}
 function MenuDialog({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
  const ref=useRef<HTMLDivElement>(null);
  useEffect(()=>{const before=document.activeElement as HTMLElement|null;ref.current?.focus();const key=(e:KeyboardEvent)=>{

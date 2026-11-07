@@ -156,7 +156,7 @@ export const StageTransitionBanner: React.FC<StageTransitionBannerProps> = ({ st
       <div className="text-center px-8 py-6 rounded-3xl bg-[#11150d]/90 border-2 border-amber-500/60 shadow-2xl max-w-lg">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono uppercase tracking-widest mb-2">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Chuyển Màn Chơi — {stageConfig.roomNameVi}</span>
+          <span>Chương mới — {stageConfig.roomNameVi}</span>
         </div>
         <h2 className="text-2xl md:text-3xl font-serif font-black text-amber-100 tracking-wide">
           {stageConfig.chapterTitleVi}

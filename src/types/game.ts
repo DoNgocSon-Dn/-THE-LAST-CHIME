@@ -93,6 +93,7 @@ export interface InteractableObject extends BoundingBox {
   room: string;
   chapter: number; // Stage number (1..6)
   type:
+    | 'room_door'
     | 'pocket_watch'
     | 'clock'
     | 'clock_gear'
@@ -109,6 +110,7 @@ export interface InteractableObject extends BoundingBox {
     | 'fireplace'
     | 'portrait'
     | 'bookshelf';
+  destination?: {stage:number;x:number;y?:number;requiresPuzzle?:keyof PuzzleState;lockedMessage?:string};
   bakedIntoMap?: boolean;
   isSolved?: boolean;
   isActive?: boolean;
@@ -117,6 +119,7 @@ export interface InteractableObject extends BoundingBox {
 export interface PuzzleState {
   // Current active stage (1 to 6)
   currentStage: number;
+  storyChapter?: number;
   furthestStage?: number;
 
   // Chapter 1 — Trở về (Màn 1)

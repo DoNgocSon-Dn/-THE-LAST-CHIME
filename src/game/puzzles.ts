@@ -73,9 +73,9 @@ export function processInteraction(
 
   const sideMemories:Record<string,{title:string;text:string}>={
     memory_kitchen:{title:'Bữa cơm còn dang dở',text:'Ba chiếc cốc vẫn ở đây. Cái sứt quai là của mình... Mẹ cứ bảo đổi mà mình không chịu.'},
-    memory_workshop:{title:'Ghi chép về chiếc kim',text:'Bản vẽ có một đường cáp nối đồng hồ phòng khách với chốt cửa. Mẹ còn khoanh tròn trục bánh răng bị thiếu.'},
+    memory_workshop:{title:'Ghi chép về chiếc kim',text:'Bản vẽ có một đường cáp nối đồng hồ phòng khách với chốt cửa sau. Mẹ còn khoanh tròn trục bánh răng bị thiếu.'},
     memory_well:{title:'Sợi dây bên giếng',text:'Một nút chỉ đỏ trên thành giếng... Linh từng buộc thế này mỗi khi chơi tìm đường. Không biết trong vườn còn dấu nào không.'},
-    memory_garden:{title:'Chiếc nơ trong vườn',text:'Chiếc nơ đỏ của Linh mắc trên cành cây. Cái bóng trong hành lang cũng mang một vệt đỏ trước ngực. Vì sao một quái vật lại giữ kỷ vật của em?'},
+    memory_garden:{title:'Chiếc nơ trong vườn',text:'Chiếc nơ đỏ của Linh mắc trên cành cây. Cái bóng bên giếng cũng mang một vệt đỏ trước ngực. Vì sao một quái vật lại giữ kỷ vật của em?'},
     memory_greenhouse:{title:'Bản đồ rừng ký ức',text:'Linh vẽ một đường đỏ xuyên qua mấy hình cây và tảng đá. Trông giống lối đi phía sau nhà kính.'}
   };
   if(sideMemories[objectId]){
@@ -138,7 +138,7 @@ export function processInteraction(
     }
     case 'clock': {
       if(nextPuzzles.currentStage<2||!nextPuzzles.hasWatch)return {success:false,messageVi:'Tìm và nhặt đồng hồ bỏ túi trên bàn cạnh đèn trong phòng khách trước.',updatedPuzzles:nextPuzzles};
-      // Màn 2 (Chương 2): Sửa đồng hồ ở QUÁ KHỨ & kiểm tra ở HIỆN TẠI
+      // Chương 2 (Chương 2): Sửa đồng hồ ở QUÁ KHỨ & kiểm tra ở HIỆN TẠI
       if (timeline === 'PAST') {
         nextPuzzles.hasWatch = true;
         nextPuzzles.testedTimelineSwitch = true;
@@ -169,7 +169,7 @@ export function processInteraction(
             ],
             showNote: {
               title: 'Đồng Hồ Đã Hoạt Động Trở Lại',
-              content: 'Hãy nhấn [Q] quay về HIỆN TẠI và kiểm tra đồng hồ để mở cửa sang Màn 3!',
+              content: 'Hãy nhấn [Q] quay về HIỆN TẠI và kiểm tra đồng hồ để mở cửa sang Chương 3!',
               author: 'Quan hệ Nhân - Quả Thời Gian'
             }
           };
@@ -183,14 +183,14 @@ export function processInteraction(
           updatedPuzzles: nextPuzzles
         };
       } else {
-        // PRESENT (Màn 2)
+        // PRESENT (Chương 2)
         if (nextPuzzles.clockRepaired) {
           if (!nextPuzzles.clockInspectedPresent) {
             nextPuzzles.clockInspectedPresent = true;
             return {
               success: true,
-              messageVi: 'Nhờ được sửa ở Quá Khứ, đồng hồ Hiện Tại đã kéo dây cáp mở khóa Cửa Sang Màn 3!',
-              speechBubbleVi: 'Cửa sang Màn 3 mở rồi!',
+              messageVi: 'Nhờ được sửa ở Quá Khứ, đồng hồ Hiện Tại đã kéo dây cáp mở khóa Cửa Sang Chương 3!',
+              speechBubbleVi: 'Cửa sang Chương 3 mở rồi!',
               soundEvent: 'door_unlock',
               updatedPuzzles: nextPuzzles,
               dialogue: [
@@ -204,7 +204,7 @@ export function processInteraction(
                   speaker: 'AN',
                   speakerName: 'An',
                   emotion: 'determined',
-                  text: 'Có tiếng chốt cửa bật ra trong hành lang.'
+                  text: 'Có tiếng chốt bật ra ở phía bếp. Sợi cáp này nối tới cửa sau.'
                 }
               ],
               showNote: {
@@ -216,8 +216,8 @@ export function processInteraction(
           }
           return {
             success: true,
-            messageVi: 'Cửa cơ khí đã mở! Hãy đi tới cánh cửa bên phải để qua Màn 3.',
-            speechBubbleVi: 'Tiến tới cửa bên phải để sang Màn 3!',
+            messageVi: 'Cửa cơ khí đã mở! Hãy đi tới cánh cửa bên phải để qua Chương 3.',
+            speechBubbleVi: 'Tiến tới cửa bên phải để sang Chương 3!',
             soundEvent: 'clock_tick',
             updatedPuzzles: nextPuzzles
           };
@@ -250,7 +250,7 @@ export function processInteraction(
       nextPuzzles.currentStage = 2;
       return {
         success: true,
-        messageVi: 'Chuyển sang Màn 2 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy!',
+        messageVi: 'Chuyển sang Chương 2 — Chiếc Đồng Hồ Ngừng Chạy!',
         soundEvent: 'door_unlock',
         updatedPuzzles: nextPuzzles,
         advanceToStage: 2
@@ -316,81 +316,24 @@ export function processInteraction(
       };
     }
 
-    case 'stage_exit_2': {
-      if (!nextPuzzles.clockInspectedPresent) {
-        return {
-          success: false,
-          messageVi: 'Cánh cửa cơ khí chưa mở hoàn toàn! Hãy sửa đồng hồ ở Quá Khứ rồi kiểm tra nó ở Hiện Tại [E].',
-          speechBubbleVi: 'Phải sửa đồng hồ ở Quá Khứ rồi kiểm tra lại ở Hiện Tại trước!',
-          updatedPuzzles: nextPuzzles
-        };
-      }
-      nextPuzzles.currentStage = 3;
-      return {
-        success: true,
-        messageVi: 'Chuyển sang Màn 3 — Chương 3: Hành Lang Ký Ức!',
-        soundEvent: 'door_unlock',
-        updatedPuzzles: nextPuzzles,
-        advanceToStage: 3
-      };
-    }
-
-    // =========================================================================
-    // MÀN 3 (CHƯƠNG 3 — HÀNH LANG KÝ ỨC)
-    // =========================================================================
     case 'hallway_pulley': {
-      if (timeline === 'PAST') {
-        if (!nextPuzzles.hallwayPassageCleared) {
-          nextPuzzles.hallwayPassageCleared = true;
-          return {
-            success: true,
-            messageVi: 'Kẽo kẹt! Bạn kéo cần trục ròng rọc trong Quá Khứ, gia cố dầm trần nhà! Đống đổ nát ở Hiện Tại đã biến mất!',
-            speechBubbleVi: 'Đã khóa cáp gia cố trần nhà! Lối đi Hiện Tại thông thoáng rồi!',
-            soundEvent: 'door_unlock',
-            updatedPuzzles: nextPuzzles,
-            dialogue: [
-              {
-                speaker: 'AN',
-                speakerName: 'An',
-                emotion: 'determined',
-                text: 'Nặng quá... Được rồi. Sợi cáp này giữ được thanh dầm.'
-              },
-              {
-                speaker: 'AN',
-                speakerName: 'An',
-                emotion: 'normal',
-                text: 'Nếu giữ nó lại từ lúc này... Có khi lối bên dưới sẽ không bị sập.'
-              }
-            ],
-            showNote: {
-              title: 'Thay Đổi Quá Khứ — Mở Đường Hiện Tại',
-              content: 'Đống đổ nát ở Hiện Tại đã biến mất!',
-              author: 'Cơ chế Ròng Rọc'
-            }
-          };
-        }
-        return {
-          success: true,
-          messageVi: 'Trục ròng rọc đã được khóa chặt, hành lang ở cả hai thời điểm đều đã thông suốt.',
-          speechBubbleVi: 'Dầm trần nhà đã được gia cố chắc chắn.',
-          soundEvent: 'switch_flip',
-          updatedPuzzles: nextPuzzles
-        };
-      }
-      return {
-        success: false,
-        messageVi: 'Trục ròng rọc ở Hiện Tại đã gãy rời. Hãy kích hoạt nó trong Quá Khứ!',
-        updatedPuzzles: nextPuzzles
-      };
+      if(timeline!=='PAST')return {success:false,messageVi:'Tay quay giếng đã gãy. Chiếc gàu vẫn kẹt dưới đáy.',updatedPuzzles:nextPuzzles};
+      if(nextPuzzles.hallwayPassageCleared)return {success:true,messageVi:'Chiếc gàu đã lên tới miệng giếng. Hộp sắt vẫn còn trong cuộn dây.',updatedPuzzles:nextPuzzles};
+      nextPuzzles.hallwayPassageCleared=true;
+      return {success:true,messageVi:'Đã kéo chiếc gàu lên. Có một hộp sắt bên trong.',soundEvent:'door_unlock',updatedPuzzles:nextPuzzles,dialogue:[
+        {speaker:'AN',speakerName:'An',emotion:'normal',text:'Nặng quá... Có cái gì mắc trong cuộn dây.'},
+        {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Một cái hộp. Trên nắp có buộc chỉ đỏ, giống sợi chỉ ở cửa phòng Linh.'}
+      ]};
     }
 
     case 'mother_diary_ch3': {
+      if(!nextPuzzles.hallwayPassageCleared)return {success:false,messageVi:'Chiếc gàu còn mắc dưới giếng. Tay quay đã gãy ở thời điểm này.',updatedPuzzles:nextPuzzles};
       const firstTime = !nextPuzzles.motherDiaryCh3Read;
       nextPuzzles.motherDiaryCh3Read = true;
       return {
         success: true,
-        messageVi: 'Khi An đọc nhật ký của Mẹ, bóng hình Kẻ Lạc Giờ thoáng hiện ra cuối hành lang!',
-        speechBubbleVi: 'Ai đó vừa xuất hiện trong bóng tối cuối hành lang...!',
+        messageVi: 'Trong hộp sắt có nhật ký và hai chìa khóa: phòng Linh và cổng vườn.',
+        speechBubbleVi: 'Ai đó vừa xuất hiện trong bóng tối bên giếng cũ...!',
         soundEvent: 'paper_rustle',
         updatedPuzzles: nextPuzzles,
         triggerOmen: firstTime,
@@ -417,47 +360,17 @@ export function processInteraction(
             speaker: 'AN',
             speakerName: 'An',
             emotion: 'surprised',
-            text: 'Ai ở đó...? Giọng vừa rồi... giống Linh quá.'
+            text: 'Hai chiếc chìa khóa buộc chỉ đỏ... Một chiếc có khắc tên Linh. Nhưng giọng vừa rồi là ai?'
           }
         ],
         showNote: {
           title: 'Nhật Ký Của Mẹ & Dấu Hiệu Kẻ Lạc Giờ',
-          content: 'Một bóng hình méo mó — Kẻ Lạc Giờ — vừa lướt qua cuối hành lang!',
+          content: 'Một bóng hình méo mó — Kẻ Lạc Giờ — vừa lướt qua bên giếng cũ!',
           author: 'Nhật ký của Mẹ'
         }
       };
     }
 
-    case 'stage_exit_3': {
-      if (!nextPuzzles.hallwayPassageCleared) {
-        return {
-          success: false,
-          messageVi: 'Hành lang phía trước còn bị chặn. Hãy kéo Trục Ròng Rọc trên gác lửng ở Quá Khứ trước!',
-          speechBubbleVi: 'Mình cần kéo Trục Ròng Rọc trên gác lửng ở Quá Khứ trước!',
-          updatedPuzzles: nextPuzzles
-        };
-      }
-      if (!nextPuzzles.motherDiaryCh3Read) {
-        return {
-          success: false,
-          messageVi: 'Có cuốn Nhật Ký Của Mẹ đang phát sáng trên bục ngay bên trái cửa. Hãy đọc nó trước khi vào phòng!',
-          speechBubbleVi: 'Đọc cuốn Nhật Ký Của Mẹ ngay bên trái cửa trước đã!',
-          updatedPuzzles: nextPuzzles
-        };
-      }
-      nextPuzzles.currentStage = 4;
-      return {
-        success: true,
-        messageVi: 'Chuyển sang Màn 4 — Chương 4: Căn Phòng Bị Khóa!',
-        soundEvent: 'door_unlock',
-        updatedPuzzles: nextPuzzles,
-        advanceToStage: 4
-      };
-    }
-
-    // =========================================================================
-    // MÀN 4 (CHƯƠNG 4 — CĂN PHÒNG BỊ KHÓA)
-    // =========================================================================
     case 'light_switch': {
       if (timeline === 'PAST') {
         nextPuzzles.lightSwitchOn = !nextPuzzles.lightSwitchOn;
@@ -574,7 +487,7 @@ export function processInteraction(
           nextPuzzles.musicBoxPlayed = true;
           return {
             success: true,
-            messageVi: 'An gảy ba nốt Mi - Sol - Đô cao trên Hộp Nhạc của Linh! Cánh cửa khóa sang Màn 5 đã mở chốt!',
+            messageVi: 'An gảy ba nốt Mi - Sol - Đô cao trên Hộp Nhạc của Linh! Cánh cửa khóa sang Chương 5 đã mở chốt!',
             speechBubbleVi: 'Khúc nhạc ngân vang rồi! Giờ chuyển về Hiện Tại [Q] mở cửa thôi!',
             soundEvent: 'chime_success',
             updatedPuzzles: nextPuzzles,
@@ -629,7 +542,7 @@ export function processInteraction(
           nextPuzzles.currentStage = 5;
           return {
             success: true,
-            messageVi: 'Cánh cửa mở toang! Bước vào Màn 5 — Chương 5: Cuộc Truy Đuổi!',
+            messageVi: 'Cánh cửa mở toang! Bước vào Chương 5 — Cuộc Truy Đuổi!',
             speechBubbleVi: 'Cửa mở rồi! Chạy thôi!',
             soundEvent: 'door_unlock',
             updatedPuzzles: nextPuzzles,
@@ -662,7 +575,7 @@ export function processInteraction(
       nextPuzzles.currentStage = 6;
       return {
         success: true,
-        messageVi: 'Bạn đã thoát khỏi Kẻ Lạc Giờ và tiến vào Màn 6 — Tâm Điểm Thời Gian!',
+        messageVi: 'Bạn đã thoát khỏi Kẻ Lạc Giờ và tiến vào Chương 6 — Tâm Điểm Thời Gian!',
         soundEvent: 'chime_success',
         updatedPuzzles: nextPuzzles,
         advanceToStage: 6

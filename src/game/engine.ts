@@ -1,3 +1,4 @@
+import {houseDestination,houseCamera,migrateHouseLocation} from './houseLayout';
 import { advanceGait } from './locomotion';
 import type { MechanismId } from './mechanisms';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT } from './entityScale';
@@ -59,6 +60,7 @@ export class GameEngine {
   private lastTime: number = 0;
 
   // Game state
+  private roomFade=0;
   public gameState: GameState = 'playing';
   public timeline: Timeline = 'PRESENT';
   public switchCooldown: number = 0; // in seconds
@@ -227,35 +229,36 @@ export class GameEngine {
   /**
    * Transitions player to a specific Stage (Màn 1 -> Màn 6)
    */
-  public loadStage(stageNum: number, showBanner: boolean = true) {
+  public loadStage(stageNum: number, showBanner: boolean = true,preserveProgress=false) {
     this.mechanismContext=null;
     const cfg = getStageConfig(stageNum);
+    this.puzzles.storyChapter=preserveProgress?Math.max(this.puzzles.storyChapter??this.puzzles.currentStage,cfg.stage):cfg.stage;
     this.puzzles.furthestStage=Math.max(this.puzzles.furthestStage??this.puzzles.currentStage,cfg.stage);
     this.puzzles.currentStage = cfg.stage;
 
     // Ensure prerequisite abilities are unlocked if jumping directly to later stages
-    if(cfg.stage===1){this.puzzles.hasWatch=false;this.puzzles.watchCollected=false;this.puzzles.testedTimelineSwitch=false;}
-    if (cfg.stage >= 3) {
+    if(!preserveProgress&&cfg.stage===1){this.puzzles.hasWatch=false;this.puzzles.watchCollected=false;this.puzzles.testedTimelineSwitch=false;}
+    if (!preserveProgress && cfg.stage >= 3) {
       this.puzzles.hasWatch = true;
       this.puzzles.watchCollected = true;
       this.puzzles.testedTimelineSwitch = true;
     }
-    if (cfg.stage >= 3) {
+    if (!preserveProgress && cfg.stage >= 3) {
       this.puzzles.clockGearFound = true;
       this.puzzles.clockRepaired = true;
       this.puzzles.clockInspectedPresent = true;
     }
-    if (cfg.stage >= 4) {
+    if (!preserveProgress && cfg.stage >= 4) {
       this.puzzles.hallwayPassageCleared = true;
       this.puzzles.motherDiaryCh3Read = true;
     }
-    if (cfg.stage >= 5) {
+    if (!preserveProgress && cfg.stage >= 5) {
       this.puzzles.lightSwitchOn = true;
       this.puzzles.lightRuneFound = true;
       this.puzzles.musicBoxPlayed = true;
       this.puzzles.finalDoorUnlocked = true;
     }
-    if (cfg.stage >= 6) {
+    if (!preserveProgress && cfg.stage >= 6) {
       this.puzzles.chaseCompleted = true;
     }
 
@@ -270,7 +273,7 @@ export class GameEngine {
     this.player.speechBubbleText = '';
     this.player.speechBubbleTimer = 0;
     this.viewZoom=sceneZoom(cfg.stage,this.player.x);
-    this.cameraX=Math.max(0,Math.min(cfg.width-this.canvas.width/this.viewZoom,this.player.x+this.player.width/2-this.canvas.width/this.viewZoom/2));
+    this.snapRoomCamera();
     this.timeline = cfg.defaultTimeline;
     this.switchCooldown = 0;
     this.nearbyInteractable = null;
@@ -410,7 +413,26 @@ export class GameEngine {
     this.saveGame();
   }
 
+  private snapRoomCamera(){
+    const cfg=getStageConfig(this.puzzles.currentStage),view=this.canvas.width/this.viewZoom;
+    const bounds=houseCamera(cfg.stage,this.player.x,view,cfg.width);
+    this.cameraX=Math.max(bounds.min,Math.min(bounds.max,this.player.x+this.player.width/2-view/2));
+  }
+  private enterRoomDoor(obj:InteractableObject){
+    const route=houseDestination(obj,this.puzzles);if(!route)return false;
+    if(route.locked){this.callbacks.onNotification(route.destination.lockedMessage??'Cửa đang khóa.');this.player.interactCooldown=.3;return true;}
+    const era=this.timeline,story=this.puzzles.storyChapter??this.puzzles.currentStage,d=route.destination;
+    if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,d.stage>story,true);
+    this.timeline=this.puzzles.hasWatch?era:'PRESENT';
+    Object.assign(this.player,{x:d.x,y:d.y??396,vx:0,vy:0,state:'idle',animTimer:0,animFrame:0,interactCooldown:.5,isGrounded:true});
+    this.handleBlur();this.viewZoom=sceneZoom(d.stage,d.x);this.snapRoomCamera();this.nearbyInteractable=null;this.mechanismContext=null;this.roomFade=.24;
+    const room=getCurrentRoom(d.x,d.stage);this.checkpoint={x:d.x,y:this.player.y,timeline:this.timeline,chapter:d.stage,labelVi:room.nameVi};
+    this.callbacks.onTimelineChange(this.timeline);soundManager.setTimeline(this.timeline);soundManager.playDoorUnlock();
+    this.callbacks.onNearbyPrompt(null);this.callbacks.onRoomChange(room);this.callbacks.onPuzzleUpdate({...this.puzzles});this.callbacks.onNotification(room.nameVi);this.saveGame();return true;
+  }
+
   public triggerInteract(answer?:readonly number[]) {
+    if(!answer&&this.nearbyInteractable?.destination){if(this.player.interactCooldown<=0)this.enterRoomDoor(this.nearbyInteractable);return;}
     const objectId=answer?this.mechanismContext?.id:this.nearbyInteractable?.id;
     if (!objectId || (!answer && this.player.interactCooldown > 0)) return;
 
@@ -477,7 +499,7 @@ export class GameEngine {
 
     // Handle stage transition if player interacted with an unlocked stage exit door
     if (result.advanceToStage) {
-      this.loadStage(result.advanceToStage, true);
+      this.loadStage(result.advanceToStage,result.advanceToStage>(this.puzzles.storyChapter??this.puzzles.currentStage),true);
       return;
     }
 
@@ -524,6 +546,7 @@ export class GameEngine {
   };
 
   public update(dt: number) {
+    this.roomFade=Math.max(0,this.roomFade-dt);
     this.stats.timeElapsed += dt;
     const stageCfg = getStageConfig(this.puzzles.currentStage);
 
@@ -652,6 +675,7 @@ export class GameEngine {
     // 6. Interact key: E
     if (this.justPressed.has('e')) {
       this.triggerInteract();
+      if(stageCfg.stage!==this.puzzles.currentStage)return;
     }
 
     // 7. Stage 3 Omen & Stage 5 Chase Logic (Kẻ Lạc Giờ)
@@ -660,8 +684,8 @@ export class GameEngine {
     // 8. Camera follow within current stage bounds
     this.viewZoom+=(sceneZoom(stageCfg.stage,this.player.x)-this.viewZoom)*Math.min(dt*6,1);
     const targetCamX = this.player.x + this.player.width / 2 - this.canvas.width / this.viewZoom / 2;
-    const maxCamX = Math.max(0, stageCfg.width - this.canvas.width / this.viewZoom);
-    const clampedCamX = Math.max(0, Math.min(maxCamX, targetCamX));
+    const cameraBounds=houseCamera(stageCfg.stage,this.player.x,this.canvas.width/this.viewZoom,stageCfg.width);
+    const clampedCamX = Math.max(cameraBounds.min,Math.min(cameraBounds.max,targetCamX));
     this.cameraX += (clampedCamX - this.cameraX) * Math.min(dt * 8, 1);
 
     // 9. Update renderer animations & particles
@@ -710,6 +734,7 @@ export class GameEngine {
     let closestDist = 68;
 
     for (const obj of stageCfg.interactables) {
+      if((stageCfg.stage===2||stageCfg.stage===4)&&currentPixelRoom(stageCfg.stage,obj.x+obj.width/2).index!==currentPixelRoom(stageCfg.stage,this.player.x).index)continue;
       if (obj.timeline !== 'both' && obj.timeline !== this.timeline) {
         continue;
       }
@@ -759,6 +784,7 @@ export class GameEngine {
       this.pursuer
     );
     this.ctx.restore();
+    if(this.roomFade>0){this.ctx.fillStyle=`rgba(4,12,8,${this.roomFade/.24})`;this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);}
   }
 
   // --- SAVE / LOAD SYSTEM ---
@@ -766,6 +792,7 @@ export class GameEngine {
   public saveGame() {
     try {
       const data = {
+        houseLayoutVersion:1,
         characterScaleVersion:2,
         spawnVersion:3,
         sceneScaleVersion:2,
@@ -786,11 +813,17 @@ export class GameEngine {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return false;
       const data = JSON.parse(raw);
+      if(!data.houseLayoutVersion&&data.sceneScaleVersion===2&&data.puzzles){
+        const oldStage=data.puzzles.currentStage??1;data.puzzles.storyChapter=oldStage;
+        const moved=migrateHouseLocation(oldStage,data.player?.x??80);data.puzzles.currentStage=moved.stage;if(data.player)data.player.x=moved.x;
+        if(data.checkpoint){const cp=migrateHouseLocation(data.checkpoint.chapter,data.checkpoint.x);data.checkpoint.chapter=cp.stage;data.checkpoint.x=cp.x;}
+      }
       if (data.puzzles) {
         this.puzzles = { ...this.puzzles, ...data.puzzles };
+        this.puzzles.storyChapter??=this.puzzles.currentStage;
       }
       const stageCfg = getStageConfig(this.puzzles.currentStage || 1);
-      if(stageCfg.stage===1||(stageCfg.stage===2&&!this.puzzles.watchCollected)){this.puzzles.hasWatch=false;this.puzzles.testedTimelineSwitch=false;this.timeline='PRESENT';}
+      if((stageCfg.stage===1&&(this.puzzles.storyChapter??1)<=1)||(stageCfg.stage===2&&!this.puzzles.watchCollected)){this.puzzles.hasWatch=false;this.puzzles.testedTimelineSwitch=false;this.timeline='PRESENT';}
       if (data.player && typeof data.player.x === 'number') {
         const savedY=data.player.y+(data.characterScaleVersion===2?0:44-PLAYER_HEIGHT);
         const point=data.sceneScaleVersion===2?{x:data.player.x,y:savedY+PLAYER_HEIGHT}:legacyScenePoint(stageCfg.stage,data.player.x,savedY+PLAYER_HEIGHT);
@@ -799,7 +832,7 @@ export class GameEngine {
       }
       if(stageCfg.stage===1&&data.spawnVersion!==3){this.player.x=stageCfg.spawnX;this.player.y=stageCfg.spawnY;}
       this.viewZoom=sceneZoom(stageCfg.stage,this.player.x);
-      this.cameraX=Math.max(0,Math.min(stageCfg.width-this.canvas.width/this.viewZoom,this.player.x+this.player.width/2-this.canvas.width/this.viewZoom/2));
+      this.snapRoomCamera();
       if (data.timeline) {
         this.timeline = data.timeline;
       }

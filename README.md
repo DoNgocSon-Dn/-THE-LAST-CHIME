@@ -1,106 +1,63 @@
 # THE LAST CHIME — Tiếng chuông dưới tán rêu
 
-Bản làm lại từ repo DoNgocSon-Dn/-THE-LAST-CHIME, tích hợp bộ pixel THE LAST CHIME người dùng cung cấp: 13 map và các sheet nhân vật, nội thất, đồ vật, ký ức.
+Game phiêu lưu giải đố, dùng 13 map và các sheet nhân vật/đồ vật người dùng cung cấp.
 
-## Chạy game
+## Chạy và kiểm tra
 
-Cần Node.js 22.12+ hoặc 24.
+Cần Node.js 24. Chạy `npm ci`, sau đó `npm run dev` và mở http://localhost:3000.
 
-```sh
-npm ci
-npm run dev
-```
+- A/D hoặc ←/→: di chuyển; Space: nhảy.
+- E: kiểm tra đồ vật hoặc đi qua cửa. Nút E hiện tên điểm tương tác gần nhất.
+- Nhặt đồng hồ trong phòng khách để dùng Q chuyển quá khứ/hiện tại; hồi 3 giây.
+- Esc: tạm dừng. Điện thoại có nút di chuyển, nhảy, E và Q.
+- `npm run lint`, `npm test`, `npm run build` kiểm tra mã và tạo bản production trong `dist`.
 
-Mở http://localhost:3000. A/D hoặc mũi tên để đi, Space để nhảy, E tương tác, màn 1 học đi/nhảy/E; màn 2 nhặt đồng hồ bỏ túi để mở Q, Esc tạm dừng.
+## Chương là cốt truyện, phòng là địa điểm
 
-```sh
-npm run lint
-npm test
-npm run build
-```
+Luồng vào nhà: **cổng ngoài → cửa chính → hành lang**. Hành lang có bốn cửa tương tác:
 
-## Cốt truyện
+- Phòng khách: đồng hồ bỏ túi và đồng hồ lớn.
+- Xưởng đồng hồ: bánh răng thay thế và ký ức của Mẹ, Ông Ngoại.
+- Nhà bếp: ghi chép gia đình và cửa ra sân sau.
+- Phòng Linh: khóa cho tới khi tìm được chìa trong hộp sắt ở giếng.
 
-Mười năm sau tai nạn, An nhận di vật Mẹ gửi luật sư giữ hộ. Điều kiện trao lại là tiếng chuông vang lên từ căn nhà bỏ hoang. Trong hiện tại, rêu đã nuốt chửng căn nhà; trong quá khứ, cỗ máy tái hiện buổi chiều cuối cùng của gia đình.
+Mỗi phòng có cửa quay lại hành lang. Không thể đi ngang xuyên ranh giới ảnh để sang phòng bên cạnh. Từ bếp ra sân sau, từ sân ra vườn, từ vườn vào nhà kính bằng cửa/cổng tương ứng. Phòng Linh và khu vườn không nối thẳng với nhau qua mép ảnh.
 
-Đồng hồ bỏ túi nhận được trong phòng khách là vật dẫn, kết hợp với chiếc kim gãy trong thư. Chỉ các vật cộng hưởng giữ được thay đổi giữa hai thời điểm: bánh răng, ròng rọc, ánh sáng và hộp nhạc. Đây là lý do hành động trong quá khứ mở đường ở hiện tại; người chơi không thể viết lại toàn bộ lịch sử hay hồi sinh người đã mất.
+`currentStage` là chỉ số cấu hình khu vực nội bộ; `storyChapter` là chương đang diễn ra. Đi trở về hành lang hoặc bếp không làm lùi chương, không tự hoàn thành câu đố và không làm mất đồng hồ. `houseLayoutVersion` chuyển vị trí bản lưu từ bố cục cũ sang đúng phòng mới.
 
-Sáu chương: trở về và đánh thức kim; sửa bộ máy; gia cố hành lang và đọc nhật ký; tìm khúc ru Mi–Sol–Đô; chạy khỏi Kẻ Lạc Giờ; đồng bộ lõi và lựa chọn.
-
-Kẻ Lạc Giờ là nỗi sợ bị bỏ lại của Linh bị lõi máy biến dạng. Linh không điều khiển được lớp vỏ ấy, nên An vẫn phải tránh nó. Đồng bộ trụ giúp tháo kim an toàn: giải phóng ký ức và bước tiếp, hoặc tự nguyện ở lại bản sao buổi chiều cũ. Kết thúc thứ hai là sự đánh đổi, không phải hồi sinh gia đình.
-
-## Bộ pixel người dùng cung cấp
-
-Bản hiện tại dùng 13 map và các sheet JPG trong bộ `thelasrchime`: An, hoạt ảnh An/Linh, NPC Mẹ/Linh/Ông Ngoại, Kẻ Lạc Giờ, đồ vật, nội thất và ký ức.
-
-| Chương | Các map và khu vực |
+| Chương cốt truyện | Nội dung |
 |---|---|
-| 1 | Map 1 — Cổng nhà và hiên trước |
-| 2 | Map 2 → 6 → 5 — Phòng khách, phòng ăn, xưởng đồng hồ |
-| 3 | Map 3 → 7 — Hành lang và sân sau |
-| 4 | Map 4 → 8 → 9 — Phòng Linh, vườn, nhà kính |
-| 5 | Map 10 → 11 → 12 — Rừng ký ức, hang và không gian đứt gãy |
-| 6 | Map 13 — Tâm điểm thời gian |
+| 1 — Trở về | Cổng và hiên nhà; di chuyển, nhặt mẩu giấy, vào hành lang |
+| 2 — Chiếc đồng hồ ngừng chạy | Khám phá các cửa phòng khách, xưởng và bếp; sửa đồng hồ để mở chốt cửa sau |
+| 3 — Dấu vết bên giếng | Kéo gàu trong quá khứ; mở hộp sắt lấy nhật ký và chìa khóa |
+| 4 — Căn phòng bị khóa | Quay lại hành lang vào phòng Linh; giải hộp nhạc; khám phá vườn và nhà kính |
+| 5 — Cuộc truy đuổi | Rừng ký ức, hang đồng hồ và không gian đứt gãy |
+| 6 — Hai phía của thời gian | Đồng bộ lõi và chọn kết thúc |
 
-Đi sang phải để chuyển khu trong cùng chương. Nút la bàn ở góc trên mở danh sách 6 chương. Các map 1–9 đổi giữa hai phần quá khứ/hiện tại thật của ảnh khi nhấn Q; map 10–13 là không gian ký ức chỉ có một bản vẽ nền, vẫn cho phép đổi trạng thái câu đố.
+13 map xuất hiện đúng một lần trong cấu hình khu vực: map 1 là bên ngoài; map 3 là hành lang; map 2/5/6 là các phòng mở từ hành lang; map 7 là sân sau; map 4 là phòng Linh; map 8/9 là vườn và nhà kính; map 10–13 là tuyến kết thúc. Tên file ảnh không quyết định trình tự đi qua các cửa.
 
-Importer canvas tách từng ô sprite và xóa vùng trắng thông với biên, giữ màu bên trong nhân vật. Riêng map ngoại cảnh, cả các mảng trắng khép kín bên trong vòm cây/hàng rào được bỏ. Các tiêu đề/chú thích được loại bằng vùng cắt. Dùng nearest-neighbor để giữ nét pixel. Sheet gốc giữ nguyên trong `public/assets/pixel`; không phụ thuộc ổ D khi chạy game.
+## Giải đố và cốt truyện
 
-Các nền dài nối thành nhiều khu trong chương; tên khu, camera và dấu hồi sinh cập nhật khi đi qua ranh giới. Các bệ ở hang và tâm điểm có va chạm theo hình; ván bổ sung hiện rõ ở chỗ cần bắc cầu. Rơi khỏi bệ sẽ trở về dấu mốc gần nhất.
+An trở về sau mười năm, mang chiếc kim gãy Mẹ để luật sư giữ hộ. Đồng hồ bỏ túi kết hợp với chiếc kim để đi vào các mốc ký ức. Những vật cộng hưởng giữ được thay đổi giữa hai thời điểm; cỗ máy không thể hồi sinh người đã mất.
 
-Bản cốt truyện vẫn có 6 chương và 2 kết thúc. Các ghi chép phụ ở nhà bếp, giếng, vườn và nhà kính bổ sung dấu vết về Linh. Xưởng có NPC ký ức Ông Ngoại. Hình An mới dùng cách xưng hô anh/em với Linh.
+- Đồng hồ lớn: tìm bánh răng, quan sát giờ dừng ở hiện tại, tự chỉnh kim và lên dây cót ở quá khứ.
+- Giếng: tay quay ở hiện tại đã gãy; dùng bản còn nguyên trong quá khứ để kéo gàu và tìm hộp sắt.
+- Hộp nhạc: quá khứ cho thứ tự hình vẽ, hiện tại cho liên hệ giữa hình và nốt. Người chơi tự gảy ba nốt trên sáu phím; sai không mở chốt.
+- Trụ cộng hưởng: đọc nhật ký và suy ra ba vòng số từ giờ tai nạn. Lõi vẫn khóa khi các vòng chưa khớp.
+- Sổ tay chỉ lưu những manh mối đã kiểm tra; có thể xem từ HUD hoặc bảng cơ cấu.
 
-Ảnh tham khảo phân cảnh và nội thất được dùng để đối chiếu bố trí, không biến chữ chú thích thành giao diện trò chơi. Các asset tự tạo của bản trước được giữ trong `public/assets/art` nhưng bộ pixel là hình ảnh đang được sử dụng.
+Kẻ Lạc Giờ là nỗi sợ của Linh bị cỗ máy biến dạng. Kết thúc cho phép giải phóng ký ức để bước tiếp hoặc ở lại trong bản sao ngày cũ.
 
-## Luồng hướng dẫn và ghép cảnh
+## Hình ảnh và menu
 
-Menu chính dùng cảnh sân và đồng hồ pixel từ bộ asset, chữ và nút phẳng gọn. Bấm **Chơi** → màn tải đồng hồ xoay/vỡ/ghép lại → truyện mở đầu → màn 1. Bấm **Tiếp tục** sẽ tải bản lưu mà không kể lại truyện. Tiến độ tải dựa trên 21 ảnh thật, không dùng số phần trăm giả.
+Asset nằm trong `public/assets/pixel` và `public/assets/menu`; game không phụ thuộc đường dẫn ổ D. Importer canvas cắt bỏ chữ chú thích, lọc nền trắng/nhiễu JPG và giữ màu bên trong nhân vật. Nội thất rộng 800 đơn vị, cảnh ngoài rộng 1200; An cao 84 đơn vị với chung tỷ lệ và đường chân giữa các động tác. Nhịp chân đi theo quãng đường thực tế.
 
-Menu tạm dừng, âm lượng, hội thoại, chọn kết thúc và màn kết thúc dùng cùng bảng màu vàng cổ, nâu rỉ và rêu; nút tối thiểu 42–48 px, chữ chức năng 14–18 px. Âm lượng, tắt tiếng, tiếp tục, chơi lại, lưu khi về menu và hai nút kết thúc đã được kiểm tra trên trình duyệt.
+Menu dùng tranh chia đôi quá khứ/hiện tại. Sheet `menu-actors.png` có 24 khung riêng: Linh vẫy tay/chào vui vẻ, An nhìn quanh/chỉnh túi. Hover hoặc chạm nhân vật kích hoạt phản ứng. Giảm chuyển động giữ hình tĩnh.
 
-Màn 1 chỉ giới thiệu A/D, Space và E: đọc lời nhắn trên ghế, tới cửa chính có sẵn trong map để vào nhà. Ngoài sân không có đồng hồ cổ hoặc cửa gỗ rời. Màn 2 mới nhặt đồng hồ bỏ túi trên bàn cạnh đèn, nhận hướng dẫn Q và thời gian hồi ba giây. Từ màn 3 không hiện bảng hướng dẫn điều khiển/mục tiêu chi tiết.
+Bắt đầu → loading đồng hồ pixel quay/vỡ/ghép lại → câu chuyện mở đầu → chương 1. Tiếp tục tải bản lưu. Chọn chương dùng ảnh xem trước hai thời điểm và khóa theo tiến độ; cùng một bảng được dùng ở menu và trong game. Âm lượng được lưu riêng. Bảng chọn chương và các cơ cấu tạm dừng gameplay, hỗ trợ Esc và giữ focus bàn phím.
 
-Các cửa và đồng hồ đã vẽ trong map chỉ có vùng tương tác, không bị vẽ thêm bản sao. Ảnh gia đình ở quá khứ dùng khung trên tường; ở hiện tại là khung hỏng nhỏ trên bàn. Gợi ý E đặt trên An, tên hành động hiển thị phía dưới. Màn 1 bắt đầu phía ngoài cổng sân ở x=220, camera đặt theo điểm bắt đầu. An dùng một sheet thống nhất và cùng tỉ lệ pixel ở các tư thế, không chuyển sang ảnh cầm đồng hồ khi đọc giấy. Thân An cao 84 đơn vị trong cả hình vẽ và va chạm; người lớn cùng tỉ lệ, Linh cao 60. Điểm xuất phát và bản lưu cũ được chỉnh theo cùng vị trí bàn chân.
+## Xác minh và triển khai
 
-## Xác minh
+31 kiểm thử gồm vật lý, câu đố, đầy đủ 13 map, cửa hai chiều, ranh giới phòng, di chuyển camera và chuyển vị trí bản lưu cũ. Edge headless đã kiểm tra luồng cổng → hành lang → các phòng → sân sau → phòng Linh → vườn/nhà kính, giữ chương khi quay về, và 24 khung menu. Chưa chơi thủ công trọn cả hai kết thúc trong bố cục mới.
 
-- TypeScript và production build đạt.
-- 20 bài kiểm tra đạt: vật lý, chuỗi câu đố, đủ 13 map, vị trí tương tác/spawn và giới hạn nhảy của tuyến hang/tâm điểm.
-- Edge headless: đi, nhảy, màn 1 vào nhà không cần Q; màn 2 nhặt đồng hồ bỏ túi rồi mới dùng Q, chuyển thời gian, tên khu và checkpoint, rơi/hồi sinh, cuộc truy đuổi không kết thúc sớm tại mốc cũ, bắt đầu lại về chương 1.
-- Đã xem ảnh chụp menu, hiên nhà, phòng khách ở hai thời điểm, xưởng, phòng Linh, hang và tâm điểm. Không có page error hoặc ảnh 404 trong lượt kiểm tra.
-- Chưa chơi thủ công trọn cả hai kết thúc trong bản đồ mới. Một số chuỗi dùng ít khung vì sheet nguồn là ảnh tổng hợp JPG; ảnh nền đã chứa sẵn nhiều đồ nội thất nên không phải đồ vật nào trong nền cũng tương tác được.
-
-Nguồn: bộ ảnh người dùng cung cấp. Thông tin giấy phép/tác giả gốc chưa được đính kèm. Prompt tạo ảnh của phiên bản trước ở [ASSET-PROMPTS.md](ASSET-PROMPTS.md).
-
-## Triển khai
-
-Ứng dụng Vite tĩnh, build bằng `npm run build`, thư mục đầu ra `dist`, dùng Node.js 24. Vercel đọc cấu hình trong `vercel.json`. Không cần API key hoặc biến môi trường để chơi.
-
-### Tỉ lệ và viền sprite
-
-Các map nội thất (2–6 và 9) dùng chiều rộng phòng 800 đơn vị; cảnh ngoài trời dùng 1200. Map, bệ, cửa và điểm tương tác được chuyển cùng một phép biến đổi theo đường chân sàn. Thân An vẫn cao 84 ở mọi cảnh; camera chuyển độ phóng mượt khi qua cửa. Bản lưu cũ được chuyển tọa độ sang phòng tương ứng, không mất tiến độ.
-
-Importer nhân vật lọc cả nền xám sáng do nén JPG, nối vùng nền theo tám hướng và loại các mảnh nhiễu rời. Màu áo, da và điểm sáng bên trong thân được giữ. Đã kiểm tra sprite phóng lớn và đếm pixel viền trung tính sáng còn thừa: 0 ở khung An được kiểm tra.
-
-### Điện thoại
-
-Canvas tự điều chỉnh tỉ lệ theo màn hình, không còn khung 16:9 nằm giữa các khoảng đen lớn khi chơi dọc. Nút cảm ứng trái/phải và nhảy dùng cùng đầu vào với bàn phím; E và Q dùng các nút tương tác trên HUD. Đã kiểm tra khung 390×844 và thao tác giữ nút di chuyển.
-
-
-### Interactive puzzle update
-
-- Chapter 2: obtain the replacement gear, inspect the stopped clock, then manually set its hands and wind it in the past. Inspect the result in the present to release the hallway latch.
-- Chapter 4: inspect the lit wall in both timelines. One reveals the symbol order; the other reveals symbol-to-note associations. Enter a three-note melody with the six playable keys; incorrect entries leave the door locked.
-- Chapter 6: read the final diary and derive the three ring settings from the accident time. The core stays locked until the rings are aligned.
-- An's notebook records inspected clues, persists in saves, and can be reopened from the HUD or a mechanism. Future chapters stay locked in the chapter picker.
-- Revised user-supplied `an-v2.jpg`: 23 cropped poses for walking, crouching, idle, thinking and escape running. Every pose uses the same source-pixel scale and foot baseline; sheet headings are excluded.
-
-
-### Illustrated main menu
-
-The user-provided split-time title illustration is the visual reference. `public/assets/menu/title-plate.png` is its clean background plate; `title-reference.png` preserves the supplied art for Linh's clipped animation. The canvas animates Linh's breathing and wave, An's revised idle/thinking poses, pocket-watch hands, pollen and rain. Hovering or tapping either character triggers a reaction. Reduced-motion preferences keep the scene still.
-
-All four menu items are real controls. Continue requires a save, chapter selection respects saved progress, and audio preferences persist separately from the game save. New Game retains the loading → opening story → Chapter 1 flow. Portrait screens use larger controls below the illustration; short landscape screens use a four-button toolbar.
-
-
-Loading and chapter selection share the split-time menu palette. Loading uses the pocket watch sampled from the title reference, with spinning hands and an eight-piece break/reassembly cycle; reduced motion keeps it still and the progress bar reports real asset progress. The same six-card chapter picker is available from the title and HUD, with paired timeline previews, saved chapter locks, focus trapping and gameplay pause/resume.
+Ứng dụng Vite tĩnh, Node.js 24, deploy bằng `vercel.json`. Không cần API key để chơi. Nguồn hình: bộ người dùng cung cấp và nền menu sạch được dựng từ tranh tham khảo. Các prompt cũ nằm trong `ASSET-PROMPTS.md`.

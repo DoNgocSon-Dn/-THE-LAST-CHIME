@@ -37,93 +37,35 @@ export const HUD: React.FC<HUDProps> = ({
   const isReady = cooldownRatio <= 0;
   const [isMuted, setMuted] = useState(soundManager.getMuted());
   const [journalOpen,setJournalOpen]=useState(false);
-  const activeStage = puzzles.currentStage || 1;
+  const activeStage = puzzles.storyChapter ?? puzzles.currentStage ?? 1;
 
   const getObjectiveHint = (): { chapterLabel: string; hint: string } => {
     switch (activeStage) {
       case 1:
-        return {chapterLabel:'Màn 1 / 6 — Trở về',hint:!puzzles.tutorialMoved?'Bắt đầu từ cổng. Dùng A/D hoặc các nút ← → để đi sang phải.':!puzzles.tutorialJumped?'Thử nhảy bằng Space hoặc nút ↑, rồi đi tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần đồ vật, nhấn E khi biểu tượng tương tác xuất hiện.':'Đến cửa chính của ngôi nhà, nhấn E để vào màn 2.'};
+        return {chapterLabel:'Chương 1 / 6 — Trở về',hint:!puzzles.tutorialMoved?'Bắt đầu từ cổng. Dùng A/D hoặc các nút ← → để đi sang phải.':!puzzles.tutorialJumped?'Thử nhảy bằng Space hoặc nút ↑, rồi đi tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần đồ vật, nhấn E khi biểu tượng tương tác xuất hiện.':'Đến cửa chính, nhấn E để vào hành lang.'};
 
       case 2:
-        if(!puzzles.hasWatch)return {chapterLabel:'Màn 2 — Đồng hồ của Ông Ngoại',hint:'Nhặt đồng hồ bỏ túi trên bàn cạnh đèn trong phòng khách [E].'};
-        if(!puzzles.testedTimelineSwitch)return {chapterLabel:'Màn 2 — Hai mốc thời gian',hint:'Nhấn Q để thử chuyển sang Quá Khứ. Chờ 3 giây sau mỗi lần chuyển.'};
+        if(!puzzles.hasWatch)return {chapterLabel:'Chương 2 — Đồng hồ của Ông Ngoại',hint:currentRoom.nameVi.includes('Hành lang')?'Bạn đang ở hành lang. Tới cửa Phòng khách và nhấn E để vào.':'Tìm chiếc đồng hồ bỏ túi trong phòng khách. Dùng cửa để quay lại hành lang.'};
+        if(!puzzles.testedTimelineSwitch)return {chapterLabel:'Chương 2 — Hai mốc thời gian',hint:'Nhấn Q để thử chuyển sang Quá Khứ. Chờ 3 giây sau mỗi lần chuyển.'};
         if (!puzzles.clockRepaired) {
           return {
-            chapterLabel: 'Màn 2 / 6 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy',
+            chapterLabel: 'Chương 2 / 6 — Chiếc Đồng Hồ Ngừng Chạy',
             hint: 'Khám phá căn nhà trong Quá Khứ. Đến gần đồ vật và nhấn E để kiểm tra.'
           };
         }
         if (!puzzles.clockInspectedPresent) {
           return {
-            chapterLabel: 'Màn 2 / 6 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy',
-            hint: 'Nhấn [Q] về Hiện Tại và kiểm tra Đồng Hồ Cổ [E] để mở chốt cửa cơ khí sang Màn 3.'
+            chapterLabel: 'Chương 2 / 6 — Chiếc Đồng Hồ Ngừng Chạy',
+            hint: 'Nhấn Q về Hiện Tại và kiểm tra đồng hồ ở phòng khách.'
           };
         }
         return {
-          chapterLabel: 'Màn 2 / 6 — Chương 2: Chiếc Đồng Hồ Ngừng Chạy',
-          hint: 'Cửa cơ khí đã mở! Hãy tiến tới cánh cửa bên phải [E] để bước sang Màn 3!'
+          chapterLabel: 'Chương 2 / 6 — Chiếc Đồng Hồ Ngừng Chạy',
+          hint: 'Cửa sau đã mở. Quay ra hành lang, vào nhà bếp để tới sân sau.'
         };
 
-      case 3:
-        if (!puzzles.hallwayPassageCleared) {
-          return {
-            chapterLabel: 'Màn 3 / 6 — Chương 3: Hành Lang Ký Ức',
-            hint: 'Hành lang Hiện Tại bị sập. Chuyển sang Quá Khứ [Q], leo cầu thang lên gác lửng và kéo Trục Ròng Rọc [E].'
-          };
-        }
-        if (!puzzles.motherDiaryCh3Read) {
-          return {
-            chapterLabel: 'Màn 3 / 6 — Chương 3: Hành Lang Ký Ức',
-            hint: 'Đi qua chỗ vừa thông đường, đọc Nhật Ký Của Mẹ [E] ở cuối hành lang trước khi qua Màn 4.'
-          };
-        }
-        return {
-          chapterLabel: 'Màn 3 / 6 — Chương 3: Hành Lang Ký Ức',
-          hint: 'Tiến tới Cửa Vào Thư Phòng ở cuối hành lang bên phải [E] để sang Màn 4!'
-        };
-
-      case 4:
-        if (!puzzles.lightSwitchOn) {
-          return {
-            chapterLabel: 'Màn 4 / 6 — Chương 4: Căn Phòng Bị Khóa',
-            hint: 'Trong Quá Khứ [Q], bật Công Tắc Đèn Chùm ở đầu phòng để chiếu sáng mật mã trên tường.'
-          };
-        }
-        if (!puzzles.lightRuneFound) {
-          return {
-            chapterLabel: 'Màn 4 / 6 — Chương 4: Căn Phòng Bị Khóa',
-            hint: 'Quan sát Vệt Sáng Lăng Kính trên tường [E] để biết 3 nốt nhạc ru của Mẹ.'
-          };
-        }
-        if (!puzzles.musicBoxPlayed) {
-          return {
-            chapterLabel: 'Màn 4 / 6 — Chương 4: Căn Phòng Bị Khóa',
-            hint: 'Đọc bản vẽ của Mẹ và gảy Hộp Nhạc Của Linh trong Quá Khứ [E] để mở khóa cửa.'
-          };
-        }
-        return {
-          chapterLabel: 'Màn 4 / 6 — Chương 4: Căn Phòng Bị Khóa',
-          hint: 'Chuyển về Hiện Tại [Q] và mở Cánh Cửa Bị Khóa bên phải [E] để bước vào Màn 5!'
-        };
-
-      case 5:
-        return {
-          chapterLabel: 'Màn 5 / 6 — Chương 5: Cuộc Truy Đuổi',
-          hint: 'CHẠY VỀ BÊN PHẢI! Nhảy [Space] qua thùng gỗ và nhấn [Q] đổi thời gian khi gặp tường sập để tới Cổng Màn 6!'
-        };
-
-      case 6:
       default:
-        if (!puzzles.finalCoreAligned) {
-          return {
-            chapterLabel: 'Màn 6 / 6 — Chương 6: Hai Phía Của Thời Gian',
-            hint: 'Đọc Nhật Ký Đêm Tai Nạn và đồng bộ Trụ Cộng Hưởng Thời Gian trong Quá Khứ [E].'
-          };
-        }
-        return {
-          chapterLabel: 'Màn 6 / 6 — Chương 6: Hai Phía Của Thời Gian',
-          hint: 'Tương tác với Lõi Đồng Hồ Giao Thời ở cuối phòng [E] để đưa ra Lựa Chọn Cuối Cùng!'
-        };
+        return {chapterLabel:`Chương ${activeStage} / 6`,hint:''};
     }
   };
 

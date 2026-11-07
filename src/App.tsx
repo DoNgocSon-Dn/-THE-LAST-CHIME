@@ -320,7 +320,7 @@ export default function App() {
             onClose={()=>{engineRef.current?.closeMechanism();setActiveMechanism(null);}}
             onSubmit={values=>{const solved=engineRef.current?.submitMechanism(activeMechanism,values)===true;if(solved)setActiveMechanism(null);return solved;}}/>}
 
-          {chapterPicker&&<ChapterSelect unlocked={puzzles.furthestStage??puzzles.currentStage} current={puzzles.currentStage} onSelect={handleSelectStage} onClose={()=>setChapterPicker(false)}/>}
+          {chapterPicker&&<ChapterSelect unlocked={puzzles.furthestStage??puzzles.currentStage} current={puzzles.storyChapter??puzzles.currentStage} onSelect={handleSelectStage} onClose={()=>setChapterPicker(false)}/>}
 
           {/* Pause Modal */}
           {gameState === 'paused' && (

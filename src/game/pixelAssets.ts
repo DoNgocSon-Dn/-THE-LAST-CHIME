@@ -38,6 +38,13 @@ for(let i=0;i<6;i++){
   cuts[`anV2${i<3?'Idle':'Think'}${i%3}`]=['an-v2',x,560,w,225];
 }
 for(const [i,x,w]of [[0,60,160],[1,235,145],[2,385,150],[3,545,150],[4,705,160]])cuts[`anV2Run${i}`]=['an-v2',x,975,w,210];
+for(let i=0;i<6;i++){
+  const x=i*200+35;
+  cuts[`menuLinhWave${i}`]=['menu-actors',x,45,145,180];
+  cuts[`menuLinhHappy${i}`]=['menu-actors',x,262,145,181];
+  cuts[`menuAnIdle${i}`]=['menu-actors',x,482,145,185];
+  cuts[`menuAnBag${i}`]=['menu-actors',x,706,145,188];
+}
 for(let i=0;i<9;i++){
   cuts[`an${i}`]=['an',i%3*298,Math.floor(i/3)*400,298,400];
   cuts[`lost${i}`]=['pursuer',i%3*298,Math.floor(i/3)*400,298,400];
@@ -103,10 +110,10 @@ export class PixelAssets{
         for(const [key,[sheet,x,y,w,h]]of Object.entries(cuts))if(sheet===name){
           const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
           canvas.getContext('2d')!.drawImage(img,x,y,w,h,0,0,w,h);
-          const character=/^(anV2|an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
+          const character=/^(menuLinh|menuAn|anV2|an\d|npc\d|walk\d|jump\d|interact\d|linhIdle\d|linhGesture\d|clockPast$|clockPresent$)/.test(key);
           const sprite=removeSheetBackground(canvas,true,character);
           this.sprites.set(key,sprite);
-          if(key.startsWith('anV2')){
+          if(key.startsWith('anV2')||key.startsWith('menu')){
             const headRows=Math.max(1,Math.floor(sprite.height*.23));
             const pixels=sprite.getContext('2d')!.getImageData(0,0,sprite.width,headRows).data;
             let sum=0,count=0;
@@ -114,7 +121,7 @@ export class PixelAssets{
             this.characterPivots.set(key,count?sum/count:sprite.width/2);
           }
         }
-      };img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.jpg`;
+      };img.src=`${import.meta.env.BASE_URL}assets/pixel/${name}.${name==='menu-actors'?'png':'jpg'}`;
     }
   }
   isReady(){return this.sprites.size===Object.keys(cuts).length;}
