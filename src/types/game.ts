@@ -71,6 +71,10 @@ export interface Player {
 }
 
 export interface PursuerEntity {
+  phase?:Timeline;
+  phaseDelay?:number;
+  exposed?:boolean;
+  stagger?:number;
   active: boolean;
   omenActive: boolean;
   omenTimer: number;
@@ -120,6 +124,17 @@ export interface PuzzleState {
   // Current active stage (1 to 6)
   currentStage: number;
   storyChapter?: number;
+  furthestChapter?: number;
+  porchDoorUnlocked?: boolean;
+  greenhouseAligned?: boolean;
+  chaseSeals?: number[];
+  chaseSealsComplete?: boolean;
+  bossHits?: number[];
+  bossArmedTrap?: number;
+  bossExposedTrap?: number;
+  bossWindowSeconds?: number;
+  pastSafetySeconds?: number;
+  playerResolve?: number;
   furthestStage?: number;
 
   // Chapter 1 — Trở về (Màn 1)

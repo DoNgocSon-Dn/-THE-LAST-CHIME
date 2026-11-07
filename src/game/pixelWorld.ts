@@ -54,6 +54,9 @@ export class PixelWorld {
     ctx.save();ctx.imageSmoothingEnabled=false;
     for(const p of platforms){
       if(p.bakedIntoMap||p.id.startsWith('ground')||p.id.startsWith('terrain_')||p.id==='ceiling'||p.id.startsWith('wall_'))continue;
+      if(p.id.startsWith('chase_')&&p.type==='solid'&&!p.id.includes('crate')&&!p.id.includes('barricade')){
+        ctx.fillStyle=past?'#745b3288':'#183c3fbb';ctx.fillRect(p.x,p.y,p.width,p.height);ctx.strokeStyle=past?'#c7a25a':'#5fa395';ctx.lineWidth=2;ctx.strokeRect(p.x,p.y,p.width,p.height);this.assets.draw(ctx,'vines',p.x-9,p.y,p.width+18,p.height);continue;
+      }
       if(p.type==='one-way'||p.id.includes('stairs')||p.id.includes('crate')){
         ctx.fillStyle=past?'#6d5335':'#394638';ctx.fillRect(p.x,p.y,p.width,p.height);
         ctx.fillStyle=past?'#a18453':'#6a7954';ctx.fillRect(p.x,p.y,p.width,3);

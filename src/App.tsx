@@ -1,3 +1,4 @@
+import {areaForChapter,chapterForArea} from './game/campaign';
 import {ChapterSelect} from './components/ChapterSelect';
 import { MechanismPanel } from './components/MechanismPanel';
 import type { MechanismId } from './game/mechanisms';
@@ -196,7 +197,7 @@ export default function App() {
   };
 
   const enterGameplayDirectly=()=>{soundManager.init();setLoadingDestination('playing');setGameState('loading');};
-  const chooseTitleChapter=(stage:number)=>{soundManager.init();pendingTitleChapter.current=stage;setLoadingDestination('playing');setGameState('loading');};
+  const chooseTitleChapter=(stage:number)=>{soundManager.init();pendingTitleChapter.current=areaForChapter(stage);setLoadingDestination('playing');setGameState('loading');};
   const continueGame=()=>{soundManager.init();setLoadingDestination('playing');setGameState('loading');};
   const restartGame=()=>{setEndingStats(null);startNewGame();};
   const returnToTitle=()=>{
@@ -205,10 +206,10 @@ export default function App() {
 
   const handleSelectStage = (stageNum: number) => {
     setChapterPicker(false);
-    if(stageNum>(engineRef.current?.puzzles.furthestStage??puzzles.currentStage))return;
+    if(stageNum>(engineRef.current?.puzzles.furthestChapter??chapterForArea(engineRef.current?.puzzles.furthestStage??puzzles.currentStage)))return;
     if (engineRef.current) {
       setActiveDialogue(null);
-      engineRef.current.loadStage(stageNum, true);
+      engineRef.current.loadStage(areaForChapter(stageNum), true);
     }
   };
 
@@ -283,6 +284,7 @@ export default function App() {
               gameState === 'paused' ||
               gameState === 'choice' ||
               gameState === 'ending' ||
+              transitionStage !== null ||
               activeDialogue !== null || activeMechanism !== null || chapterPicker
             }
           />
@@ -297,7 +299,7 @@ export default function App() {
               puzzles={puzzles}
               currentRoom={currentRoom}
               notification={notification}
-              isDialogueActive={activeDialogue !== null || activeMechanism !== null || chapterPicker}
+              isDialogueActive={activeDialogue !== null || activeMechanism !== null || chapterPicker || transitionStage !== null}
               onPause={() => setGameState('paused')}
               onTimelineSwitch={() => engineRef.current?.switchTimeline()}
               onInteract={() => engineRef.current?.triggerInteract()}
@@ -320,7 +322,7 @@ export default function App() {
             onClose={()=>{engineRef.current?.closeMechanism();setActiveMechanism(null);}}
             onSubmit={values=>{const solved=engineRef.current?.submitMechanism(activeMechanism,values)===true;if(solved)setActiveMechanism(null);return solved;}}/>}
 
-          {chapterPicker&&<ChapterSelect unlocked={puzzles.furthestStage??puzzles.currentStage} current={puzzles.storyChapter??puzzles.currentStage} onSelect={handleSelectStage} onClose={()=>setChapterPicker(false)}/>}
+          {chapterPicker&&<ChapterSelect unlocked={puzzles.furthestChapter??chapterForArea(puzzles.furthestStage??puzzles.currentStage)} current={puzzles.storyChapter??puzzles.currentStage} onSelect={handleSelectStage} onClose={()=>setChapterPicker(false)}/>}
 
           {/* Pause Modal */}
           {gameState === 'paused' && (

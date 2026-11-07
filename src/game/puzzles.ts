@@ -1,3 +1,4 @@
+import {bossDefeated,canReleaseTrap,CHASE_SEALS} from './encounters';
 import { mechanismMatches, type MechanismId } from './mechanisms';
 import { DialogueLine, PuzzleState, Timeline } from '../types/game';
 
@@ -55,6 +56,36 @@ export function processInteraction(
 ): InteractionResult {
   const nextPuzzles = { ...currentPuzzles };
   const remember=(clue:string)=>{nextPuzzles.collectedClues=[...new Set([...(nextPuzzles.collectedClues??[]),clue])];};
+  if(objectId==='stage_exit_1'&&!nextPuzzles.porchDoorUnlocked){
+    if(!mechanismMatches('porch_lock',answer??[]))return {success:false,challenge:'porch_lock',messageVi:'Hai vòng khắc hình đang giữ chốt cửa.',updatedPuzzles:nextPuzzles};
+    nextPuzzles.porchDoorUnlocked=true;
+  }
+  if(objectId==='hallway_pulley'&&timeline==='PRESENT')remember('Tay quay giếng ở hiện tại: nấc bên trái còn dấu II, bên phải còn dấu I.');
+  if(objectId==='hallway_pulley'&&timeline==='PAST'&&!nextPuzzles.hallwayPassageCleared&&!mechanismMatches('well_winch',answer??[]))return {success:false,challenge:'well_winch',messageVi:'Hai bánh răng chưa khớp dấu.',updatedPuzzles:nextPuzzles};
+  if(objectId==='greenhouse_console'){
+    if(timeline==='PRESENT'){remember('Tấm đồng nhà kính: chỉ dải I thông sáng; II và III bị bịt kín.');return {success:true,messageVi:'Đã ghi vị trí ba dải sáng vào sổ.',updatedPuzzles:nextPuzzles};}
+    if(nextPuzzles.greenhouseAligned)return {success:true,messageVi:'Mạch ánh sáng đã ổn định.',updatedPuzzles:nextPuzzles};
+    if(!mechanismMatches('greenhouse_console',answer??[]))return {success:false,challenge:'greenhouse_console',messageVi:'Các dải sáng chưa khớp.',updatedPuzzles:nextPuzzles};
+    nextPuzzles.greenhouseAligned=true;return {success:true,messageVi:'Ba cần đã đưa dòng sáng về đúng đường.',soundEvent:'chime_success',updatedPuzzles:nextPuzzles};
+  }
+  if(objectId.startsWith('chase_seal_')){
+    const index=Number(objectId.slice(-1)),seal=CHASE_SEALS[index];
+    if(!seal||timeline!==seal.era)return {success:false,messageVi:'Ấn không hiện rõ ở thời điểm này.',updatedPuzzles:nextPuzzles};
+    nextPuzzles.chaseSeals=[...new Set([...(nextPuzzles.chaseSeals??[]),index])];nextPuzzles.chaseSealsComplete=nextPuzzles.chaseSeals.length===3;
+    return {success:true,messageVi:`Đã giữ nhịp ấn ${nextPuzzles.chaseSeals.length}/3.`,soundEvent:'switch_flip',updatedPuzzles:nextPuzzles};
+  }
+  if(objectId.startsWith('boss_trap_')){
+    const index=Number(objectId.slice(-1));
+    if(index<0||index>2||!Number.isInteger(index))return {success:false,messageVi:'Bẫy không còn nguyên.',updatedPuzzles:nextPuzzles};
+    if(nextPuzzles.bossHits?.includes(index))return {success:false,messageVi:'Bẫy này đã cháy hết lõi cộng hưởng.',updatedPuzzles:nextPuzzles};
+    if(canReleaseTrap(nextPuzzles,index,timeline)){
+      nextPuzzles.bossHits=[...new Set([...(nextPuzzles.bossHits??[]),index])];delete nextPuzzles.bossArmedTrap;delete nextPuzzles.bossExposedTrap;
+      return {success:true,messageVi:bossDefeated(nextPuzzles)?'Lớp vỏ cuối đã tan. Tiếng gọi của Linh rõ trở lại.':`Đã phá ${nextPuzzles.bossHits.length}/3 lớp vỏ.`,soundEvent:'chime_success',updatedPuzzles:nextPuzzles};
+    }
+    if(timeline==='PAST'){nextPuzzles.bossArmedTrap=index;delete nextPuzzles.bossExposedTrap;return {success:true,messageVi:`Bẫy ${index+1} đã nạp. Dụ cái bóng vào bẫy ở hiện tại.`,soundEvent:'clock_wind',updatedPuzzles:nextPuzzles};}
+    return {success:false,messageVi:'Bẫy chưa giữ được cái bóng. Bản cơ cấu ở quá khứ còn nguyên.',updatedPuzzles:nextPuzzles};
+  }
+  if(['temporal_anchor','final_core','npc_linh_ch6'].includes(objectId)&&!bossDefeated(nextPuzzles))return {success:false,messageVi:'Lớp vỏ của Kẻ Lạc Giờ đang giữ lõi. Ba bẫy cộng hưởng quanh đây còn có thể dùng được.',updatedPuzzles:nextPuzzles};
   const needsMechanism = timeline==='PAST' && (
     (objectId==='clock' && nextPuzzles.currentStage===2 && nextPuzzles.hasWatch && nextPuzzles.clockGearFound && !nextPuzzles.clockRepaired) ||
     (objectId==='music_box' && !nextPuzzles.musicBoxPlayed) ||
@@ -122,7 +153,7 @@ export function processInteraction(
       return {success:true,messageVi:'Đã nhặt mẩu giấy cũ.',soundEvent:'paper_rustle',updatedPuzzles:nextPuzzles,dialogue:[
         {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Có gì kẹt dưới thanh ghế này... Một mẩu giấy?'},
         {speaker:'AN',speakerName:'An',emotion:'sad',text:'“An, vào nhà thì cất đồng hồ của ông giúp mẹ nhé. Mẹ để cạnh đèn phòng khách.” ...Chữ của mẹ.'},
-        {speaker:'AN',speakerName:'An',emotion:'normal',text:'Ngày ấy mình có đọc được không nhỉ...'}
+        {speaker:'AN',speakerName:'An',emotion:'normal',text:'Dưới dòng chữ còn có một câu: “Mặt trời theo sau trăng.” Chắc mẹ nhắc chốt cửa.'}
       ]};
     }
 
@@ -169,7 +200,7 @@ export function processInteraction(
             ],
             showNote: {
               title: 'Đồng Hồ Đã Hoạt Động Trở Lại',
-              content: 'Hãy nhấn [Q] quay về HIỆN TẠI và kiểm tra đồng hồ để mở cửa sang Chương 3!',
+              content: 'Quay về hiện tại và kiểm tra dây cáp nối đồng hồ với cửa sau.',
               author: 'Quan hệ Nhân - Quả Thời Gian'
             }
           };
@@ -189,8 +220,8 @@ export function processInteraction(
             nextPuzzles.clockInspectedPresent = true;
             return {
               success: true,
-              messageVi: 'Nhờ được sửa ở Quá Khứ, đồng hồ Hiện Tại đã kéo dây cáp mở khóa Cửa Sang Chương 3!',
-              speechBubbleVi: 'Cửa sang Chương 3 mở rồi!',
+              messageVi: 'Đồng hồ đã kéo sợi cáp và nhả chốt cửa sau trong bếp.',
+              speechBubbleVi: 'Chốt cửa sau đã nhả.',
               soundEvent: 'door_unlock',
               updatedPuzzles: nextPuzzles,
               dialogue: [
@@ -209,15 +240,15 @@ export function processInteraction(
               ],
               showNote: {
                 title: 'Cơ Chế Mở Cửa Hành Lang',
-                content: 'Lối đi sang Chương 3 đã mở!',
+                content: 'Cửa sau trong bếp đã mở.',
                 author: 'Đồng Hồ Cổ'
               }
             };
           }
           return {
             success: true,
-            messageVi: 'Cửa cơ khí đã mở! Hãy đi tới cánh cửa bên phải để qua Chương 3.',
-            speechBubbleVi: 'Tiến tới cửa bên phải để sang Chương 3!',
+            messageVi: 'Dây cáp đã nhả chốt. Cửa sau trong bếp có thể mở được rồi.',
+            speechBubbleVi: 'Mình có thể ra sân sau từ bếp.',
             soundEvent: 'clock_tick',
             updatedPuzzles: nextPuzzles
           };
@@ -487,7 +518,7 @@ export function processInteraction(
           nextPuzzles.musicBoxPlayed = true;
           return {
             success: true,
-            messageVi: 'An gảy ba nốt Mi - Sol - Đô cao trên Hộp Nhạc của Linh! Cánh cửa khóa sang Chương 5 đã mở chốt!',
+            messageVi: 'Khúc nhạc đã rút chốt nhạc ở cổng nhà kính.',
             speechBubbleVi: 'Khúc nhạc ngân vang rồi! Giờ chuyển về Hiện Tại [Q] mở cửa thôi!',
             soundEvent: 'chime_success',
             updatedPuzzles: nextPuzzles,
@@ -536,13 +567,14 @@ export function processInteraction(
     }
 
     case 'final_door': {
+      if(!nextPuzzles.motherNoteCh4Read||!nextPuzzles.greenhouseAligned)return {success:false,messageVi:'Cổng chưa nhận đủ dòng sáng. Bản vẽ của Mẹ và mạch trong nhà kính vẫn còn dấu vết.',updatedPuzzles:nextPuzzles};
       if (timeline === 'PRESENT') {
         if (nextPuzzles.musicBoxPlayed) {
           nextPuzzles.finalDoorUnlocked = true;
           nextPuzzles.currentStage = 5;
           return {
             success: true,
-            messageVi: 'Cánh cửa mở toang! Bước vào Chương 5 — Cuộc Truy Đuổi!',
+            messageVi: 'Cổng rừng mở ra. Tiếng bước chân dồn dập phía sau — chạy thôi!',
             speechBubbleVi: 'Cửa mở rồi! Chạy thôi!',
             soundEvent: 'door_unlock',
             updatedPuzzles: nextPuzzles,
@@ -571,11 +603,12 @@ export function processInteraction(
     // MÀN 5 (CHƯƠNG 5 — CUỘC TRUY ĐUỔI)
     // =========================================================================
     case 'stage_exit_5': {
+      if(!nextPuzzles.chaseSealsComplete)return {success:false,messageVi:'Cổng cần đủ ba ấn cộng hưởng.',updatedPuzzles:nextPuzzles};
       nextPuzzles.chaseCompleted = true;
       nextPuzzles.currentStage = 6;
       return {
         success: true,
-        messageVi: 'Bạn đã thoát khỏi Kẻ Lạc Giờ và tiến vào Chương 6 — Tâm Điểm Thời Gian!',
+        messageVi: 'Ba ấn mở đường vào tâm điểm. Cái bóng vẫn còn theo tới đây.',
         soundEvent: 'chime_success',
         updatedPuzzles: nextPuzzles,
         advanceToStage: 6
@@ -598,7 +631,7 @@ export function processInteraction(
             speaker: 'ME',
             speakerName: 'Trang Nhật Ký Cuối Cùng Của Mẹ',
             emotion: 'sad',
-            text: '“Đêm tai nạn 3 giờ 15 phút — Khi lồng kính đồng hồ vỡ tung, khe nứt thời gian đã kéo bé Linh vào khoảng không giữa Quá Khứ và Hiện Tại...”'
+            text: '“Ba bẫy cộng hưởng vẫn còn ở thời điểm cũ. Lên dây ở quá khứ, dụ cái bóng vào vùng bẫy trong hiện tại rồi xả xung khi vỏ nó sáng lên. Mỗi lõi chỉ chịu được một lần.”'
           },
           {
             speaker: 'AN',

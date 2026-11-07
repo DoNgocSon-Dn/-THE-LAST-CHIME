@@ -6,7 +6,7 @@ test('Chapter 1 teaches interaction and lets An enter the house without a watch 
   const note=processInteraction('mother_note_ch1','PRESENT',INITIAL_PUZZLE_STATE);
   assert.equal(note.updatedPuzzles.motherNoteCh1Read,true);
   assert.equal(note.updatedPuzzles.hasWatch,false);
-  const door=processInteraction('stage_exit_1','PRESENT',note.updatedPuzzles);
+  const door=processInteraction('stage_exit_1','PRESENT',note.updatedPuzzles,[1,2]);
   assert.equal(door.advanceToStage,2);
   assert.equal(door.updatedPuzzles.hasWatch,false);
   assert.equal(door.updatedPuzzles.testedTimelineSwitch,false);
@@ -61,7 +61,7 @@ test('Chapter 3 (Hành lang ký ức): pulley clears Present debris and diary tr
     clockInspectedPresent: true
   };
 
-  const pulleyRes = processInteraction('hallway_pulley', 'PAST', state);
+  const pulleyRes = processInteraction('hallway_pulley', 'PAST', state,[2,1]);
   assert.equal(pulleyRes.success, true);
   assert.equal(pulleyRes.updatedPuzzles.hallwayPassageCleared, true);
   state = pulleyRes.updatedPuzzles;
@@ -103,6 +103,7 @@ test('Chapters 4 to 6: Study room puzzle, Chase door unlock, and Chapter 6 Final
   assert.equal(state.musicBoxPlayed, true);
 
   // Unlock final door in Present -> opens path to Chapter 5 (Chase)
+  state=processInteraction('greenhouse_console','PAST',state,[1,0,0]).updatedPuzzles;
   const doorRes = processInteraction('final_door', 'PRESENT', state);
   assert.equal(doorRes.success, true);
   state = doorRes.updatedPuzzles;
@@ -114,6 +115,7 @@ test('Chapters 4 to 6: Study room puzzle, Chase door unlock, and Chapter 6 Final
   state = finalDiary.updatedPuzzles;
   assert.equal(state.finalDiaryCh6Read, true);
 
+  state={...state,bossHits:[0,1,2]};
   const anchorRes = processInteraction('temporal_anchor', 'PAST', state, [3,1,5]);
   assert.equal(anchorRes.success, true);
   state = anchorRes.updatedPuzzles;
@@ -162,11 +164,11 @@ test('Melody must be entered in order; lighting alone cannot solve the box',()=>
 });
 
 test('Anchor requires the diary and correctly ordered rings, and failed attempts preserve progression',()=>{
- const state={...INITIAL_PUZZLE_STATE,currentStage:6};
+ const state={...INITIAL_PUZZLE_STATE,currentStage:6,bossHits:[0,1,2]};
  assert.equal(processInteraction('temporal_anchor','PAST',state,[3,1,5]).updatedPuzzles.finalCoreAligned,false);
  const diary=processInteraction('final_diary_ch6','PRESENT',state).updatedPuzzles;
  assert.equal(diary.collectedClues!.length,1);
  for(const answer of [undefined,[1,3,5],[3,5,1]])assert.equal(processInteraction('temporal_anchor','PAST',diary,answer).updatedPuzzles.finalCoreAligned,false);
  assert.equal(processInteraction('temporal_anchor','PAST',diary,[3,1,5]).updatedPuzzles.finalCoreAligned,true);
- assert.deepEqual(state,{...INITIAL_PUZZLE_STATE,currentStage:6});
+ assert.deepEqual(state,{...INITIAL_PUZZLE_STATE,currentStage:6,bossHits:[0,1,2]});
 });

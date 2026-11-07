@@ -1,3 +1,5 @@
+import {configureDifficulty} from './difficulty';
+import {chapterForArea,STORY_CHAPTERS} from './campaign';
 import {configureHouseLayout} from './houseLayout';
 import { normalizeSceneScales } from './sceneScale';
 import { configurePixelCampaign } from './pixelCampaign';
@@ -741,6 +743,7 @@ export const STAGE_CONFIGS: Record<number, StageConfig> = {
 configurePixelCampaign(STAGE_CONFIGS);
 normalizeSceneScales(STAGE_CONFIGS);
 configureHouseLayout(STAGE_CONFIGS);
+configureDifficulty(STAGE_CONFIGS);
 
 export function getStageConfig(stage: number): StageConfig {
   const clamped = Math.max(1, Math.min(6, Math.round(stage || 1)));
@@ -750,15 +753,12 @@ export function getStageConfig(stage: number): StageConfig {
 export function getCurrentRoom(playerX:number,stage:number=1):RoomZone {
   const base=ROOM_ZONES[Math.max(0,Math.min(5,stage-1))];
   const room=currentPixelRoom(stage,playerX);
-  return {...base,id:`stage_${stage}_room_${room.index}`,nameVi:room.name,minX:room.start,maxX:room.start+room.width};
+  return {...base,chapter:chapterForArea(stage),chapterTitleVi:`Chương ${chapterForArea(stage)} — ${STORY_CHAPTERS[chapterForArea(stage)-1].title}`,id:`stage_${stage}_room_${room.index}`,nameVi:room.name,minX:room.start,maxX:room.start+room.width};
 }
 
 export function getActiveChapter(puzzles: PuzzleState, _playerX: number = 0): { num: number; titleVi: string } {
-  const stageCfg = getStageConfig(puzzles.storyChapter ?? puzzles.currentStage ?? 1);
-  return {
-    num: stageCfg.stage,
-    titleVi: stageCfg.chapterTitleVi
-  };
+  const chapter=puzzles.storyChapter??chapterForArea(puzzles.currentStage);
+  return {num:chapter,titleVi:STORY_CHAPTERS[chapter-1]?.title??STORY_CHAPTERS[0].title};
 }
 
 // Combined exports for unit tests

@@ -138,6 +138,18 @@ export class PixelAssets{
   }
   object(ctx:CanvasRenderingContext2D,obj:InteractableObject,past:boolean,puzzles:PuzzleState,tick:number):boolean{
     let key='';
+    if(obj.id.startsWith('chase_seal_')||obj.id.startsWith('boss_trap_')){
+      const index=Number(obj.id.slice(-1)),chase=obj.id.startsWith('chase_');
+      const used=chase?puzzles.chaseSeals?.includes(index):puzzles.bossHits?.includes(index);
+      if(used)return true;
+      const era=chase?(index===1?!past:past):past;
+      ctx.save();ctx.globalAlpha=era?1:.35;
+      const active=!chase&&(puzzles.bossExposedTrap===index||puzzles.bossArmedTrap===index);
+      if(!chase){ctx.strokeStyle=active?'#ffe4a0':'#719b85';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(obj.x+obj.width/2,obj.y+obj.height,35,7,0,0,Math.PI*2);ctx.stroke();}
+      ctx.shadowColor=active?'#ffe4a0':'#64b9a2';ctx.shadowBlur=active?20:8;
+      this.feet(ctx,'seal',obj.x+obj.width/2,obj.y+obj.height,36);
+      ctx.font='bold 8px "Be Vietnam Pro", sans-serif';ctx.textAlign='center';ctx.fillStyle='#e5c77d';ctx.fillText(String(index+1),obj.x+obj.width/2,obj.y+15);ctx.restore();return true;
+    }
     if(obj.bakedIntoMap||obj.type==='npc_memory'||obj.id==='light_target')return true;
     if(obj.id==='pocket_watch_box'&&puzzles.hasWatch)return true;
     if(obj.id==='clock_gear'&&puzzles.clockGearFound)return true;

@@ -1,3 +1,5 @@
+import {chapterForArea,savedChapterProgress} from './campaign';
+import {BOSS_TRAPS,bossDefeated,completeSeals} from './encounters';
 import {houseDestination,houseCamera,migrateHouseLocation} from './houseLayout';
 import { advanceGait } from './locomotion';
 import type { MechanismId } from './mechanisms';
@@ -61,6 +63,10 @@ export class GameEngine {
 
   // Game state
   private roomFade=0;
+  private bossArmSeconds=0;
+  private bossExposedSeconds=0;
+  private contactCooldown=0;
+  private bossPastSeconds=0;
   public gameState: GameState = 'playing';
   public timeline: Timeline = 'PRESENT';
   public switchCooldown: number = 0; // in seconds
@@ -102,7 +108,7 @@ export class GameEngine {
     y: 480-PLAYER_HEIGHT,
     timeline: 'PRESENT',
     chapter: 1,
-    labelVi: 'Màn 1 — Hiên Nhà (Chương 1)'
+    labelVi: 'Chương 1 — Khởi đầu'
   };
 
   public puzzles: PuzzleState = { ...INITIAL_PUZZLE_STATE };
@@ -118,7 +124,7 @@ export class GameEngine {
   private viewZoom=GAME_ZOOM;
   public cameraX: number = 0;
   public nearbyInteractable: InteractableObject | null = null;
-  private mechanismContext:{id:MechanismId;stage:number;timeline:Timeline}|null=null;
+  private mechanismContext:{id:MechanismId;objectId:string;stage:number;timeline:Timeline}|null=null;
   public closeMechanism(){this.mechanismContext=null;}
   public submitMechanism(id:MechanismId,answer:readonly number[]){
     const context=this.mechanismContext;
@@ -232,7 +238,8 @@ export class GameEngine {
   public loadStage(stageNum: number, showBanner: boolean = true,preserveProgress=false) {
     this.mechanismContext=null;
     const cfg = getStageConfig(stageNum);
-    this.puzzles.storyChapter=preserveProgress?Math.max(this.puzzles.storyChapter??this.puzzles.currentStage,cfg.stage):cfg.stage;
+    this.puzzles.storyChapter=preserveProgress?Math.max(this.puzzles.storyChapter??chapterForArea(this.puzzles.currentStage),chapterForArea(cfg.stage)):chapterForArea(cfg.stage);
+    this.puzzles.furthestChapter=Math.max(this.puzzles.furthestChapter??1,this.puzzles.storyChapter);
     this.puzzles.furthestStage=Math.max(this.puzzles.furthestStage??this.puzzles.currentStage,cfg.stage);
     this.puzzles.currentStage = cfg.stage;
 
@@ -278,6 +285,9 @@ export class GameEngine {
     this.switchCooldown = 0;
     this.nearbyInteractable = null;
 
+    delete this.puzzles.bossArmedTrap;delete this.puzzles.bossExposedTrap;this.bossArmSeconds=0;this.bossExposedSeconds=0;this.contactCooldown=1.5;this.bossPastSeconds=0;
+    if(cfg.stage===6){if(!preserveProgress){this.puzzles.bossHits=[];this.puzzles.playerResolve=3;this.puzzles.finalCoreAligned=false;this.puzzles.finalDiaryCh6Read=false;}else this.puzzles.playerResolve??=3;}
+    if(cfg.stage===5&&!preserveProgress){this.puzzles.chaseSeals=[];this.puzzles.chaseSealsComplete=false;this.puzzles.bossHits=[];this.puzzles.playerResolve=3;this.puzzles.finalCoreAligned=false;this.puzzles.finalDiaryCh6Read=false;}
     // Configure Pursuer (Kẻ Lạc Giờ) for Stage 5 Chase
     this.pursuer.omenActive = false;
     if (cfg.stage === 5) {
@@ -288,7 +298,8 @@ export class GameEngine {
       this.pursuer.y = 480-PURSUER_BODY_HEIGHT;
       this.setPlayerSpeech('Kẻ Lạc Giờ đang đuổi theo! Mau chạy về bên phải và dùng [Q] vượt tường chắn!', 4.5);
     } else {
-      this.pursuer.active = false;
+      this.pursuer.active = cfg.stage===6&&!bossDefeated(this.puzzles);
+      if(cfg.stage===6){this.pursuer.x=1050;this.pursuer.y=290;this.pursuer.phase='PRESENT';this.pursuer.stagger=0;}
     }
 
     this.checkpoint = {
@@ -324,6 +335,7 @@ export class GameEngine {
     this.timeline=point.timeline;
     this.switchCooldown = 0;
 
+    if (cfg.stage === 6) {this.puzzles.bossHits=[];this.puzzles.playerResolve=3;delete this.puzzles.bossArmedTrap;delete this.puzzles.bossExposedTrap;this.pursuer.active=true;this.pursuer.x=1050;this.pursuer.y=290;this.pursuer.stagger=1.5;this.bossExposedSeconds=0;this.bossArmSeconds=0;this.contactCooldown=2;this.callbacks.onPuzzleUpdate({...this.puzzles});}
     if (cfg.stage === 5) {
       this.pursuer.active = true;
       this.pursuer.x=Math.max(10,this.player.x-150);
@@ -337,13 +349,14 @@ export class GameEngine {
     this.setPlayerSpeech('Thử lại từ dấu mốc gần nhất.',2);
     this.callbacks.onNotification('Đã trở lại dấu mốc: '+this.checkpoint.labelVi);
     this.callbacks.onRoomChange(getCurrentRoom(this.player.x,cfg.stage));
+    this.saveGame();
   }
 
   public switchTimeline() {
     if (!this.puzzles.hasWatch) {
       this.setPlayerSpeech('Đồng hồ bỏ túi ở trong phòng khách. Mình phải vào nhà trước.', 3.2);
       this.callbacks.onNotification(
-        'Chưa có đồng hồ. Màn 1: học di chuyển và vào nhà bằng E. Màn 2: nhặt đồng hồ trên bàn cạnh đèn.'
+        'Chưa có đồng hồ. Chưa có đồng hồ bỏ túi. Vào phòng khách từ hành lang để tìm vật dẫn thời gian.'
       );
       return;
     }
@@ -378,6 +391,7 @@ export class GameEngine {
 
     this.player.x = safePos.x;
     this.player.y = safePos.y;
+    this.pursuer.phase=this.timeline;this.pursuer.phaseDelay=1.25;
     this.timeline = nextTimeline;
     this.switchCooldown = SWITCH_COOLDOWN_TIME;
     this.stats.timelineSwitches++;
@@ -422,7 +436,7 @@ export class GameEngine {
     const route=houseDestination(obj,this.puzzles);if(!route)return false;
     if(route.locked){this.callbacks.onNotification(route.destination.lockedMessage??'Cửa đang khóa.');this.player.interactCooldown=.3;return true;}
     const era=this.timeline,story=this.puzzles.storyChapter??this.puzzles.currentStage,d=route.destination;
-    if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,d.stage>story,true);
+    if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,chapterForArea(d.stage)>story,true);
     this.timeline=this.puzzles.hasWatch?era:'PRESENT';
     Object.assign(this.player,{x:d.x,y:d.y??396,vx:0,vy:0,state:'idle',animTimer:0,animFrame:0,interactCooldown:.5,isGrounded:true});
     this.handleBlur();this.viewZoom=sceneZoom(d.stage,d.x);this.snapRoomCamera();this.nearbyInteractable=null;this.mechanismContext=null;this.roomFade=.24;
@@ -433,7 +447,7 @@ export class GameEngine {
 
   public triggerInteract(answer?:readonly number[]) {
     if(!answer&&this.nearbyInteractable?.destination){if(this.player.interactCooldown<=0)this.enterRoomDoor(this.nearbyInteractable);return;}
-    const objectId=answer?this.mechanismContext?.id:this.nearbyInteractable?.id;
+    const objectId=answer?this.mechanismContext?.objectId:this.nearbyInteractable?.id;
     if (!objectId || (!answer && this.player.interactCooldown > 0)) return;
 
     this.player.interactCooldown = 0.25;
@@ -441,12 +455,13 @@ export class GameEngine {
     this.player.state = 'interact';
     this.player.interactionPose=['mother_note_ch1','clock_gear'].includes(objectId)?'crouch':'think';
 
+    const currentBossHits=this.puzzles.bossHits?.length??0;
     const result = processInteraction(objectId, this.timeline, this.puzzles, answer);
     this.puzzles = result.updatedPuzzles;
     this.callbacks.onPuzzleUpdate({ ...this.puzzles });
     if(result.challenge){
       if(!answer){
-        this.mechanismContext={id:result.challenge,stage:this.puzzles.currentStage,timeline:this.timeline};
+        this.mechanismContext={id:result.challenge,objectId,stage:this.puzzles.currentStage,timeline:this.timeline};
         this.gameState='paused';this.handleBlur();this.player.vx=0;
         this.callbacks.onOpenMechanism?.(result.challenge);
       }
@@ -456,6 +471,10 @@ export class GameEngine {
 
 
     if(answer)this.mechanismContext=null;
+    if(objectId.startsWith('boss_trap_')&&result.success){
+      if(this.puzzles.bossArmedTrap!==undefined&&this.timeline==='PAST'){this.bossArmSeconds=12-(this.puzzles.bossHits?.length??0)*2;this.bossExposedSeconds=0;}
+      if((this.puzzles.bossHits?.length??0)!==currentBossHits){this.pursuer.stagger=4;this.pursuer.x=Math.max(35,this.player.x-180);this.bossArmSeconds=0;this.bossExposedSeconds=0;this.pursuer.exposed=false;}
+    }
     if (result.speechBubbleVi) {
       this.setPlayerSpeech(result.speechBubbleVi, 3.5);
     }
@@ -499,8 +518,8 @@ export class GameEngine {
 
     // Handle stage transition if player interacted with an unlocked stage exit door
     if (result.advanceToStage) {
-      this.loadStage(result.advanceToStage,result.advanceToStage>(this.puzzles.storyChapter??this.puzzles.currentStage),true);
-      return;
+      this.loadStage(result.advanceToStage,chapterForArea(result.advanceToStage)>(this.puzzles.storyChapter??1),true);
+      return true;
     }
 
     // Trigger expressive character dialogue box if dialogue lines are returned
@@ -547,6 +566,7 @@ export class GameEngine {
 
   public update(dt: number) {
     this.roomFade=Math.max(0,this.roomFade-dt);
+    this.contactCooldown=Math.max(0,this.contactCooldown-dt);
     this.stats.timeElapsed += dt;
     const stageCfg = getStageConfig(this.puzzles.currentStage);
 
@@ -700,31 +720,45 @@ export class GameEngine {
       }
     }
 
-    // Stage 5: Active pursuit by Kẻ Lạc Giờ
-    if (stageCfg.stage === 5 && !this.puzzles.chaseCompleted) {
-      if (!this.pursuer.active) {
-        this.pursuer.active = true;
-        this.pursuer.x = 25;
-        this.pursuer.y = 480-PURSUER_BODY_HEIGHT;
+    this.pursuer.phaseDelay=Math.max(0,(this.pursuer.phaseDelay??0)-dt);
+    if(!this.pursuer.phaseDelay)this.pursuer.phase=this.timeline;
+    if(stageCfg.stage===5&&!this.puzzles.chaseCompleted){
+      this.pursuer.active=true;
+      const speed=this.player.x<1200?145:this.player.x<2400?158:170;
+      const factor=this.pursuer.phase===this.timeline?1:.5;
+      this.pursuer.x+=Math.sign(this.player.x-this.pursuer.x)*speed*factor*dt;
+      this.pursuer.y+=(this.player.y+3-this.pursuer.y)*Math.min(2*dt,1);
+      if(this.pursuer.phase===this.timeline&&checkAABB(this.player,this.pursuer)){this.respawnAtCheckpoint();return;}
+      if(this.player.x>=stageCfg.width-100&&completeSeals(this.puzzles)){
+        this.pursuer.active=false;this.puzzles.chaseCompleted=true;this.loadStage(6,true,true);return;
       }
-
-      const dir = this.player.x > this.pursuer.x ? 1 : -1;
-      this.pursuer.x += dir * this.pursuer.speed * dt;
-
-      this.pursuer.y += (this.player.y+3-this.pursuer.y)*Math.min(2*dt,1);
-      // Check collision with An
-      if (checkAABB(this.player,this.pursuer)) {
-        this.respawnAtCheckpoint();
-        return;
+    }
+    if(stageCfg.stage===6){
+      if(bossDefeated(this.puzzles)){this.pursuer.active=false;return;}
+      this.bossPastSeconds=this.timeline==='PAST'?this.bossPastSeconds+dt:0;
+      this.pursuer.active=true;if(this.timeline==='PAST')this.pursuer.phase=this.bossPastSeconds<6?'PRESENT':'PAST';this.pursuer.stagger=Math.max(0,(this.pursuer.stagger??0)-dt);
+      let changed=false;
+      if(this.bossArmSeconds>0&&this.puzzles.bossExposedTrap===undefined){this.bossArmSeconds=Math.max(0,this.bossArmSeconds-dt);if(!this.bossArmSeconds){delete this.puzzles.bossArmedTrap;changed=true;this.callbacks.onNotification('Bẫy đã hết nhịp. Cần nạp lại ở quá khứ.');}}
+      if(this.bossExposedSeconds>0){this.bossExposedSeconds=Math.max(0,this.bossExposedSeconds-dt);if(!this.bossExposedSeconds){delete this.puzzles.bossExposedTrap;delete this.puzzles.bossArmedTrap;this.pursuer.exposed=false;changed=true;}}
+      const armed=this.puzzles.bossArmedTrap,trap=armed===undefined?undefined:BOSS_TRAPS[armed];
+      if(trap&&this.bossArmSeconds>0&&this.puzzles.bossExposedTrap===undefined&&this.timeline==='PRESENT'&&this.pursuer.phase==='PRESENT'&&Math.abs(this.pursuer.x-trap.x)<85){
+        this.puzzles.bossExposedTrap=armed;this.bossExposedSeconds=3-(this.puzzles.bossHits?.length??0)*.6;this.pursuer.exposed=true;changed=true;soundManager.playChimeSuccess();this.callbacks.onNotification('Vỏ quái đã sáng lên — xả bẫy ngay!');
       }
-
-      // The sanctuary is at the end of all three forest/cave rooms.
-      if (this.player.x >= stageCfg.width - 100) {
-        this.pursuer.active = false;
-        this.puzzles.chaseCompleted = true;
-        soundManager.playChimeSuccess();
-        this.loadStage(6, true);
+      if(!this.pursuer.stagger&&!this.bossExposedSeconds){
+        this.pursuer.x+=Math.sign(this.player.x-this.pursuer.x)*(this.timeline==='PAST'&&this.bossPastSeconds<6?70:140+(this.puzzles.bossHits?.length??0)*18)*dt;
+        this.pursuer.y+=(this.player.y+3-this.pursuer.y)*Math.min(3*dt,1);
       }
+      if((this.timeline==='PRESENT'||this.bossPastSeconds>=6)&&this.pursuer.phase===this.timeline&&!this.pursuer.stagger&&!this.bossExposedSeconds&&this.contactCooldown<=0&&checkAABB(this.player,this.pursuer)){
+        this.puzzles.playerResolve=(this.puzzles.playerResolve??3)-1;changed=true;this.contactCooldown=1.8;
+        if(this.puzzles.playerResolve<=0){this.respawnAtCheckpoint();return;}
+        const away=this.player.x<this.pursuer.x?-1:1;this.player.x=Math.max(15,Math.min(stageCfg.width-45,this.player.x+away*65));this.player.vy=-170;this.player.isGrounded=false;this.pursuer.x-=away*45;
+        this.callbacks.onNotification(`Liên kết rạn nứt: còn ${this.puzzles.playerResolve}/3 nhịp.`);soundManager.playLand();
+      }
+      const safety=this.timeline==='PAST'?Math.max(0,Math.ceil(6-this.bossPastSeconds)):undefined;
+      if(this.puzzles.pastSafetySeconds!==safety){this.puzzles.pastSafetySeconds=safety;changed=true;}
+      const windowSeconds=Math.ceil(this.bossExposedSeconds||this.bossArmSeconds);
+      if((this.puzzles.bossWindowSeconds??0)!==windowSeconds){this.puzzles.bossWindowSeconds=windowSeconds;changed=true;}
+      if(changed){this.callbacks.onPuzzleUpdate({...this.puzzles});this.saveGame();}
     }
   }
 
@@ -738,6 +772,10 @@ export class GameEngine {
       if (obj.timeline !== 'both' && obj.timeline !== this.timeline) {
         continue;
       }
+      if(obj.id.startsWith('boss_trap_')&&this.puzzles.bossHits?.includes(Number(obj.id.slice(-1))))continue;
+      if(obj.id==='npc_linh_ch6'&&!bossDefeated(this.puzzles))continue;
+      if(obj.id==='temporal_anchor'&&this.puzzles.finalCoreAligned)continue;
+      if(obj.id.startsWith('chase_seal_')&&this.puzzles.chaseSeals?.includes(Number(obj.id.slice(-1))))continue;
       if(obj.id==='pocket_watch_box'&&this.puzzles.hasWatch)continue;
       if (obj.id === 'clock_gear' && this.puzzles.clockGearFound) {
         continue;
@@ -792,6 +830,7 @@ export class GameEngine {
   public saveGame() {
     try {
       const data = {
+        campaignVersion:2,
         houseLayoutVersion:1,
         characterScaleVersion:2,
         spawnVersion:3,
@@ -818,9 +857,10 @@ export class GameEngine {
         const moved=migrateHouseLocation(oldStage,data.player?.x??80);data.puzzles.currentStage=moved.stage;if(data.player)data.player.x=moved.x;
         if(data.checkpoint){const cp=migrateHouseLocation(data.checkpoint.chapter,data.checkpoint.x);data.checkpoint.chapter=cp.stage;data.checkpoint.x=cp.x;}
       }
+      if(data.puzzles&&data.campaignVersion!==2){const progress=savedChapterProgress(data.puzzles,data.campaignVersion);data.puzzles.storyChapter=progress.current;data.puzzles.furthestChapter=progress.unlocked;if(data.puzzles.currentStage===5){data.player={x:170,y:396};data.checkpoint={chapter:5,x:170,y:396,timeline:'PRESENT'};data.puzzles.chaseSeals=[];data.puzzles.chaseSealsComplete=false;data.puzzles.chaseCompleted=false;}}
       if (data.puzzles) {
         this.puzzles = { ...this.puzzles, ...data.puzzles };
-        this.puzzles.storyChapter??=this.puzzles.currentStage;
+        this.puzzles.storyChapter??=chapterForArea(this.puzzles.currentStage);
       }
       const stageCfg = getStageConfig(this.puzzles.currentStage || 1);
       if((stageCfg.stage===1&&(this.puzzles.storyChapter??1)<=1)||(stageCfg.stage===2&&!this.puzzles.watchCollected)){this.puzzles.hasWatch=false;this.puzzles.testedTimelineSwitch=false;this.timeline='PRESENT';}
@@ -846,6 +886,7 @@ export class GameEngine {
       if (data.stats) {
         this.stats = { ...this.stats, ...data.stats };
       }
+      if(stageCfg.stage===6&&!bossDefeated(this.puzzles)){this.pursuer.active=true;this.pursuer.x=1050;this.pursuer.y=290;this.pursuer.phase='PRESENT';this.puzzles.playerResolve??=3;delete this.puzzles.bossArmedTrap;delete this.puzzles.bossExposedTrap;this.contactCooldown=2;}
       if (stageCfg.stage === 5 && !this.puzzles.chaseCompleted) {
         this.pursuer.active = true;
         this.pursuer.x = Math.max(10, this.player.x - 140);

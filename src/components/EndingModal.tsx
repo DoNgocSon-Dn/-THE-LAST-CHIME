@@ -19,13 +19,13 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono uppercase tracking-widest mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Chương 6 — Thời Khắc Quyết Định</span>
+            <span>Chương 4 — Thời Khắc Quyết Định</span>
           </div>
           <h2 className="text-2xl md:text-3xl font-serif font-black tracking-wide text-amber-100">
             HAI PHÍA CỦA THỜI GIAN
           </h2>
           <p className="text-xs md:text-sm text-amber-200/80 font-serif italic mt-2 max-w-xl mx-auto">
-            Trước Lõi Đồng Hồ Khổng Lồ, bóng hình của Kẻ Lạc Giờ khẽ run rẩy — bên trong lớp vỏ bóng tối ấy chính là ký ức và linh hồn bị mắc kẹt của bé Linh suốt mười năm qua. Chiếc kim đồng hồ gãy trong tay An đang nóng rực...
+            Ba lớp vỏ đã vỡ. Linh hiện ra bên lõi, vẫn giữ chiếc nơ đỏ từ đêm ấy. An cầm chiếc kim gãy: rút nó ra để kết thúc vòng lặp, hoặc giữ căn nhà ký ức chạy mãi.
           </p>
         </div>
 
@@ -184,7 +184,7 @@ export const EndingModal: React.FC<EndingModalProps> = ({
             <Sparkles className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
             <div className="text-[10px] text-[#b8b28d] font-mono uppercase">Chương</div>
             <div className="text-sm font-bold font-mono text-emerald-200">
-              6 / 6
+              4 / 4
             </div>
           </div>
 

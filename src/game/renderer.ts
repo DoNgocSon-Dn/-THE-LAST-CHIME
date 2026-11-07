@@ -1,3 +1,4 @@
+import {bossDefeated} from './encounters';
 import { PURSUER_ART_HEIGHT } from './entityScale';
 import { pixelAssets } from './pixelAssets';
 import { CharacterAtlas } from './characterAtlas';
@@ -33,6 +34,10 @@ export class GameRenderer {
   private warpAnimProgress: number = 0; // 0 to 1 during transition
   private warpActive: boolean = false;
   private animTick: number = 0;
+  private lastBossHits=0;
+  private trapPulse=0;
+  private trapPulseX=0;
+  private trapPulseY=0;
 
   constructor() {
     for (let i = 0; i < 55; i++) {
@@ -67,6 +72,7 @@ export class GameRenderer {
 
   public update(dt: number, timeline: Timeline) {
     this.animTick += dt;
+    this.trapPulse=Math.max(0,this.trapPulse-dt);
 
     if (this.warpActive) {
       this.warpAnimProgress -= dt * 1.8;
@@ -131,18 +137,23 @@ export class GameRenderer {
 
     // 5. Draw In-World Memory Echo NPCs (Mẹ & Bé Linh)
     const activeNPCs = stageCfg.memoryNPCs.filter(
-      npc => npc.timeline === 'both' || npc.timeline === timeline
+      npc => (npc.timeline === 'both' || npc.timeline === timeline) && (stageCfg.stage!==6||bossDefeated(puzzles))
     );
     this.drawMemoryNPCs(ctx, activeNPCs, nearbyInteractableId);
 
     // 6. Draw Pursuer (Kẻ Lạc Giờ) if active or during Chapter 3 omen
     if (pursuer && (pursuer.active || pursuer.omenActive)) {
-      this.drawPursuer(ctx, pursuer);
+      this.drawPursuer(ctx, pursuer,timeline);
     }
 
     // 7. Draw player character (An) with expressive character design & overhead speech bubble
     this.character.draw(ctx,player,this.animTick,stageCfg.stage===5);
     if(nearbyInteractableId)this.drawInteractPromptBadge(ctx,player.x+player.width/2,player.y-16,isPast);
+
+    const hits=puzzles.bossHits?.length??0;
+    if(hits>this.lastBossHits&&puzzles.currentStage===6){this.trapPulse=.6;const traps=[[417,398],[667,372],[967,375]];const pos=traps[puzzles.bossHits![hits-1]];this.trapPulseX=pos[0];this.trapPulseY=pos[1];}
+    this.lastBossHits=hits;
+    if(this.trapPulse>0){ctx.save();ctx.globalAlpha=this.trapPulse/.6;ctx.strokeStyle='#ffe4a1';ctx.lineWidth=3;ctx.beginPath();ctx.arc(this.trapPulseX,this.trapPulseY,15+(1-this.trapPulse/.6)*110,0,Math.PI*2);ctx.stroke();ctx.restore();}
 
     // 8. Draw foreground atmosphere, dust particles & rain
     this.drawAtmosphere(ctx, stageCfg.stage, isPast);
@@ -706,9 +717,9 @@ export class GameRenderer {
   // KẺ LẠC GIỜ (THE TIME-LOST ENTITY)
   // =========================================================================
 
-  private drawPursuer(ctx:CanvasRenderingContext2D,pursuer:PursuerEntity){
-    ctx.save();ctx.globalAlpha=pursuer.omenActive?.6:.95;ctx.shadowColor='#65bea0';ctx.shadowBlur=14;
-    const key=pursuer.omenActive?`lostAction${Math.floor(this.animTick*5)%6}`:`lost${Math.floor(this.animTick*8)%9}`;
+  private drawPursuer(ctx:CanvasRenderingContext2D,pursuer:PursuerEntity,timeline:Timeline){
+    ctx.save();ctx.globalAlpha=pursuer.phase&&pursuer.phase!==timeline?.28:pursuer.omenActive?.6:.95;ctx.shadowColor=pursuer.exposed?'#ffe2a0':'#65bea0';ctx.shadowBlur=pursuer.exposed?28:14;
+    const key=pursuer.stagger?`lostAction${3+Math.floor(this.animTick*5)%3}`:pursuer.omenActive?`lostAction${Math.floor(this.animTick*5)%6}`:`lost${Math.floor(this.animTick*8)%9}`;
     this.pixel.feet(ctx,key,pursuer.x+pursuer.width/2,pursuer.y+pursuer.height+Math.sin(this.animTick*4)*3,PURSUER_ART_HEIGHT);
     ctx.restore();
   }
