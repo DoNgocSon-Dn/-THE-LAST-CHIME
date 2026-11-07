@@ -1,3 +1,4 @@
+import {prepareMenuMechanics,paintMenuMechanics} from '../game/menuMechanics';
 import {useEffect,useRef} from 'react';
 import {pixelAssets} from '../game/pixelAssets';
 export type TitleReaction={who:'linh'|'an';at:number}|null;
@@ -6,7 +7,8 @@ export function MenuScene({reaction}:{reaction:TitleReaction}){
  const ref=useRef<HTMLCanvasElement>(null),reactionRef=useRef(reaction);
  useEffect(()=>{reactionRef.current=reaction;},[reaction]);
  useEffect(()=>{
-  const canvas=ref.current!,ctx=canvas.getContext('2d')!,plate=new Image(),assets=pixelAssets();
+  const canvas=ref.current!,ctx=canvas.getContext('2d')!,plate=new Image(),sheet=new Image(),assets=pixelAssets();
+  let mechanics:ReturnType<typeof prepareMenuMechanics>|undefined;sheet.onload=()=>{mechanics=prepareMenuMechanics(sheet);};sheet.src=`${import.meta.env.BASE_URL}assets/menu/logo-animations.png`;
   let frame=0,disposed=false,last=0;const motion=matchMedia('(prefers-reduced-motion: reduce)');
   const paint=(now:number)=>{
    if(disposed)return;frame=requestAnimationFrame(paint);
@@ -33,13 +35,9 @@ export function MenuScene({reaction}:{reaction:TitleReaction}){
    const anFrame=motion.matches?0:anActive?Math.min(5,Math.floor((react?.who==='an'&&recent<2.6?recent:(t+4)%13)*3)):idlePhase<.16?1:idlePhase<.24?2:idlePhase>3&&idlePhase<3.7?3:idlePhase>=3.7&&idlePhase<4.4?4:0;
    const key=anActive?`menuAnBag${anFrame}`:`menuAnIdle${anFrame}`,sprite=assets.get(key),base=assets.get('menuAnIdle0');
    if(sprite&&base){const scale=130/base.height;ctx.save();ctx.translate(1075,647);ctx.scale(-1,1);ctx.drawImage(sprite,-assets.getCharacterPivot(key)*scale,-sprite.height*scale,sprite.width*scale,sprite.height*scale);ctx.restore();}
-   // Restore the pocket-watch face and animate its hands independently of the logo.
-   ctx.save();ctx.beginPath();ctx.arc(688,425,23,0,Math.PI*2);ctx.clip();ctx.fillStyle='#cfbd88';ctx.fillRect(663,400,50,50);ctx.fillStyle='#665437';
-   for(let i=0;i<12;i++){const a=i*Math.PI/6;ctx.fillRect(687+Math.sin(a)*18,424-Math.cos(a)*18,2,3);}
-   ctx.translate(688,425);ctx.strokeStyle='#3a3020';ctx.lineCap='square';ctx.lineWidth=3;
-   for(const [angle,length]of [[t*.14+1,10],[t*.7,16]]){ctx.save();ctx.rotate(angle);ctx.beginPath();ctx.moveTo(0,2);ctx.lineTo(0,-length);ctx.stroke();ctx.restore();}ctx.fillStyle='#3a3020';ctx.fillRect(-2,-2,4,4);ctx.restore();
+   if(mechanics)paintMenuMechanics(ctx,mechanics,t);
   };
-  plate.src=`${import.meta.env.BASE_URL}assets/menu/title-plate.png`;
+  plate.src=`${import.meta.env.BASE_URL}assets/menu/title-mechanical-plate.png`;
   frame=requestAnimationFrame(paint);return()=>{disposed=true;cancelAnimationFrame(frame);};
  },[]);
  return <canvas ref={ref} width={1376} height={768} className="illustrated-menu-scene" aria-label="Hai ngôi nhà ở quá khứ và hiện tại; Linh vẫy tay bên trái, An đứng bên phải" role="img"/>;
