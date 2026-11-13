@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "the-last-chime",
+  "name": "THE LAST CHIME",
+  "version": "1.0.1",
+  "description": "Theo chân An trở về ngôi nhà phủ rêu để tìm em gái Linh. Dùng chiếc đồng hồ bỏ túi chuyển giữa quá khứ và hiện tại, ghép manh mối qua hai thời điểm và khám phá bí mật của gia đình.",
+  "shortDescription": "Giải đố giữa quá khứ và hiện tại để tìm Linh trong ngôi nhà phủ rêu.",
+  "category": "puzzle",
+  "ageRating": "E",
+  "languages": ["vi"],
+  "controls": {
+    "keyboard": "A/D hoặc mũi tên để di chuyển, Space để nhảy, E để tương tác và Q để đổi thời điểm.",
+    "touch": "Dùng các nút điều khiển trên màn hình."
+  },
+  "entry": "index.html",
+  "engine": "canvas2d",
+  "orientation": "landscape",
+  "assets": {
+    "icon": "store/icon.webp",
+    "cover": "store/cover.webp",
+    "screenshots": ["store/gameplay.webp"]
+  },
+  "permissions": ["audio", "persistent-storage"],
+  "attestation": {
+    "ownsRights": true,
+    "noThirdPartyTracking": true,
+    "containsAds": false,
+    "containsIap": false
+  }
+}
