@@ -81,3 +81,10 @@ Sơ đồ cửa phòng khách/xưởng: Hành lang ↔ cửa trái Phòng khách
 
 
 Ngoài trời ở quá khứ dùng ba bản phục hồi riêng trong `public/assets/pixel/past-restored` (cổng/hiên nhà, sân giếng, vườn). Ảnh có nền trời hoàn chỉnh và được giữ đục; không dùng bộ lọc nền trắng của sheet cũ. Bản hiện tại vẫn đọc từ asset gốc để giữ cảnh hoang phế. Các bản phục hồi được nạp trước khi bắt đầu chơi.
+
+## Cập nhật trên P2Game
+
+1. Tăng `version` trong `p2game/p2game.json` cao hơn bản đang phát hành.
+2. Chạy `npm ci`, `npm run build:p2game` và `npx p2game-validate ./dist --slug the-last-chime`.
+3. Chạy workflow **Build P2Game** trong GitHub Actions trên nhánh `main`. Workflow cập nhật nhánh `p2game-build` bằng nội dung đã biên dịch.
+4. Trong P2Game, chọn **Từ repo Git công khai**, nhập URL repo, điền nhánh `p2game-build` và để trống **Thư mục con**. Chọn **Clone và kiểm tra**.

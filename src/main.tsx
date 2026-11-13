@@ -1,3 +1,7 @@
+import '@fontsource/chakra-petch/400.css';
+import '@fontsource/chakra-petch/500.css';
+import '@fontsource/chakra-petch/600.css';
+import '@fontsource/chakra-petch/700.css';
 import '@fontsource-variable/noto-serif';
 import '@fontsource-variable/noto-serif/wght-italic.css';
 import '@fontsource/be-vietnam-pro/400.css';

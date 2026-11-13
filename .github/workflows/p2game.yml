@@ -1,0 +1,39 @@
+name: Build P2Game
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: p2game-build
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build:p2game
+      - run: npx --yes p2game-validate@1.1.0 ./dist --slug the-last-chime --no-smoke
+      - name: Update build branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin p2game-build
+          git worktree add --detach "$RUNNER_TEMP/p2game-build" FETCH_HEAD
+          git -C "$RUNNER_TEMP/p2game-build" rm -r -- .
+          cp -R dist/. "$RUNNER_TEMP/p2game-build/"
+          git -C "$RUNNER_TEMP/p2game-build" add --all
+          if ! git -C "$RUNNER_TEMP/p2game-build" diff --cached --quiet; then
+            git -C "$RUNNER_TEMP/p2game-build" commit -m "Build P2Game from ${GITHUB_SHA}"
+            git -C "$RUNNER_TEMP/p2game-build" push origin HEAD:p2game-build
+          fi
