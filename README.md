@@ -88,3 +88,9 @@ Ngoài trời ở quá khứ dùng ba bản phục hồi riêng trong `public/as
 2. Chạy `npm ci`, `npm run build:p2game` và `npx p2game-validate ./dist --slug the-last-chime`.
 3. Chạy workflow **Build P2Game** trong GitHub Actions trên nhánh `main`. Workflow cập nhật nhánh `p2game-build` bằng nội dung đã biên dịch.
 4. Trong P2Game, chọn **Từ repo Git công khai**, nhập URL repo, điền nhánh `p2game-build` và để trống **Thư mục con**. Chọn **Clone và kiểm tra**.
+
+## Kỹ năng mở theo câu chuyện
+
+- Lấy đồng hồ bỏ túi để dùng Q đổi thời điểm và thấy dư ảnh địa hình.
+- Sửa đồng hồ lớn để lướt bằng Shift hoặc K. Hoàn thành hộp nhạc của Linh để dùng sóng chuông bằng R hoặc C.
+- Trong cuộc truy đuổi, An có ba nhịp liên kết. Cổng báo ấn tiếp theo còn thiếu và thời điểm có thể tìm thấy ấn đó.

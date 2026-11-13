@@ -12,7 +12,7 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
       data-testid="final-choice-modal"
       className="antique-menu fixed inset-0 z-50 flex items-center justify-center bg-[#11150d]/92 backdrop-blur-md p-4 select-none"
     >
-      <div className="max-w-3xl w-full bg-[#232217] border-2 border-amber-500/70 rounded-3xl p-7 shadow-2xl text-amber-50 relative overflow-hidden">
+      <div className="max-w-3xl w-full bg-[#232217] border-2 border-amber-500/70 memory-panel p-7 shadow-2xl text-amber-50 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-72 h-72 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -31,7 +31,7 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           {/* Choice 1: Accept Truth & Free Linh */}
-          <div className="flex flex-col justify-between bg-[#11150d]/85 border-2 border-amber-600/50 hover:border-amber-400 rounded-2xl p-5 transition shadow-lg">
+          <div className="flex flex-col justify-between bg-[#11150d]/85 border-2 border-amber-600/50 hover:border-amber-400 memory-choice p-5 transition shadow-lg">
             <div>
               <div className="flex items-center gap-2.5 text-amber-200 font-sans text-xs uppercase tracking-wider mb-2">
                 <Flame className="w-4 h-4 text-amber-400" />
@@ -55,7 +55,7 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
           </div>
 
           {/* Choice 2: Eternal Memory */}
-          <div className="flex flex-col justify-between bg-[#11150d]/85 border-2 border-amber-500/50 hover:border-amber-400 rounded-2xl p-5 transition shadow-lg">
+          <div className="flex flex-col justify-between bg-[#11150d]/85 border-2 border-amber-500/50 hover:border-amber-400 memory-choice p-5 transition shadow-lg">
             <div>
               <div className="flex items-center gap-2.5 text-amber-300 font-sans text-xs uppercase tracking-wider mb-2">
                 <HeartHandshake className="w-4 h-4 text-amber-400" />
@@ -109,7 +109,7 @@ export const EndingModal: React.FC<EndingModalProps> = ({
       data-testid="ending-modal"
       className="antique-menu fixed inset-0 z-50 flex items-center justify-center bg-[#11150d]/90 backdrop-blur-sm p-4 select-none"
     >
-      <div className="max-w-xl w-full bg-[#232217] border-2 border-amber-500/70 rounded-3xl p-7 shadow-2xl text-amber-50 relative overflow-hidden">
+      <div className="max-w-xl w-full bg-[#232217] border-2 border-amber-500/70 memory-panel p-7 shadow-2xl text-amber-50 relative overflow-hidden">
         {/* Celestial Light Flare */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />

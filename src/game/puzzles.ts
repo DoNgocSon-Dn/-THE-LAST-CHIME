@@ -197,7 +197,7 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'determined',
-                text: 'Vừa rồi... Con lắc chạy lại rồi.'
+                text: 'Con lắc chạy lại rồi. Dây cót của đồng hồ bỏ túi cũng căng lên. Mình có thể lướt nhanh qua chỗ nguy hiểm. [Shift]'
               },
               {
                 speaker: 'ME',
@@ -535,7 +535,7 @@ export function processInteraction(
                 speaker: 'AN',
                 speakerName: 'An',
                 emotion: 'determined',
-                text: 'Đúng bài này rồi. Có tiếng gì vừa bật trong tường.'
+                text: 'Đúng bài này rồi. Đồng hồ bỏ túi đang ngân theo khúc nhạc của Linh. Mình có thể dùng tiếng chuông để cản cái bóng. [R]'
               },
               {
                 speaker: 'KE_LAC_GIO',

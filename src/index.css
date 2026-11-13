@@ -300,3 +300,21 @@ button,input,select,textarea,kbd,output{font-family:var(--font-sans)}
   font-size: 12px;
   text-shadow: 0 1px 4px #000;
 }
+
+/* Brass-bound panels echo the opening memory book. */
+.memory-panel {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  border: 3px double #b39455;
+  border-radius: 0;
+  background: linear-gradient(155deg, #30291c, #161e18 70%);
+  box-shadow: 6px 6px 0 #10150f, inset 0 0 0 4px #171913;
+}
+.memory-choice {
+  border-radius: 0;
+  box-shadow: 3px 3px 0 #100f0b;
+}
+.memory-panel h2, .memory-panel h3, .mechanism-panel h2,
+.encounter-hud > span, .story-book h1 {
+  font-family: 'Chakra Petch', var(--font-sans);
+}
