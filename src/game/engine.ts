@@ -19,6 +19,7 @@ import {
 } from '../types/game';
 import {
   checkAABB,
+  MOVE_SPEED,
   updateAndResolvePhysics,
   getActivePlatforms,
   resolveSafeTimelinePosition
@@ -49,6 +50,13 @@ export interface EngineCallbacks {
   onNotification: (msg: string) => void;
 }
 
+const DASH_SPEED = 420;
+const DASH_DURATION = 0.16;
+const DASH_COOLDOWN = 1.1;
+const PULSE_DURATION = 0.55;
+const PULSE_RANGE = 160;
+const PARRY_RANGE = 96;
+
 const STORAGE_KEY = 'THE_LAST_CHIME_PIXEL_SAVE_V1';
 
 export class GameEngine {
@@ -62,7 +70,27 @@ export class GameEngine {
   private lastTime: number = 0;
 
   // Game state
+  private dashTime = 0;
+  private dashCooldown = 0;
+  private dashDirection = 1;
+  private pulseTime = 0;
+  private pulseCooldown = 0;
   private roomFade=0;
+
+  private resetTemporalAbilities() {
+    this.dashTime = 0;
+    this.dashCooldown = 0;
+    this.pulseTime = 0;
+    this.pulseCooldown = 0;
+    this.pursuer.stagger = 0;
+  }
+
+  private pursuerDistance() {
+    return Math.hypot(
+      this.player.x + this.player.width / 2 - this.pursuer.x - this.pursuer.width / 2,
+      this.player.y + this.player.height / 2 - this.pursuer.y - this.pursuer.height / 2
+    );
+  }
   private bossArmSeconds=0;
   private bossExposedSeconds=0;
   private contactCooldown=0;
@@ -270,6 +298,7 @@ export class GameEngine {
       this.puzzles.chaseCompleted = true;
     }
 
+    this.resetTemporalAbilities();
     this.player.x = cfg.spawnX;
     this.player.y = cfg.spawnY;
     this.player.vx = 0;
@@ -327,6 +356,7 @@ export class GameEngine {
 
   public respawnAtCheckpoint() {
     const cfg = getStageConfig(this.puzzles.currentStage);
+    this.resetTemporalAbilities();
     if(cfg.stage===5)this.stats.chaseRetries++;
     const point=this.checkpoint.chapter===cfg.stage?this.checkpoint:{x:cfg.spawnX,y:cfg.spawnY,timeline:cfg.defaultTimeline};
     this.player.x=point.x;
@@ -372,6 +402,9 @@ export class GameEngine {
       return;
     }
 
+    const parry = this.pursuer.active && this.pursuer.phase === this.timeline
+      && this.pursuerDistance() <= PARRY_RANGE;
+    this.dashTime = 0;
     const nextTimeline: Timeline = this.timeline === 'PAST' ? 'PRESENT' : 'PAST';
     const stageCfg = getStageConfig(this.puzzles.currentStage);
 
@@ -400,6 +433,10 @@ export class GameEngine {
     this.player.y = safePos.y;
     this.pursuer.phase=this.timeline;this.pursuer.phaseDelay=1.25;
     this.timeline = nextTimeline;
+    if (parry) {
+      this.pursuer.stagger = Math.max(this.pursuer.stagger ?? 0, 1.5);
+      this.contactCooldown = Math.max(this.contactCooldown, 1.5);
+    }
     this.nearbyInteractable=null;this.mechanismContext=null;this.callbacks.onNearbyPrompt(null);
     this.switchCooldown = SWITCH_COOLDOWN_TIME;
     this.stats.timelineSwitches++;
@@ -418,7 +455,10 @@ export class GameEngine {
       this.saveGame();return;
     }
 
-    if (safePos.shifted) {
+    if (parry) {
+      this.setPlayerSpeech('Né đúng nhịp!', 1.5);
+      this.callbacks.onNotification('Kẻ Lạc Giờ bị choáng sau cú né thời gian.');
+    } else if (safePos.shifted) {
       this.setPlayerSpeech('Có vật cản ở mốc thời gian này, mình vừa lách sang vị trí an toàn!', 3.0);
       this.callbacks.onNotification(
         nextTimeline === 'PAST'
@@ -450,6 +490,8 @@ export class GameEngine {
   private enterRoomDoor(obj:InteractableObject){
     const route=houseDestination(obj,this.puzzles,this.timeline);if(!route)return false;
     if(route.locked){this.callbacks.onNotification(route.lockedMessage??'Cửa đang khóa.');this.player.interactCooldown=.3;return true;}
+    this.dashTime = 0;
+    this.pulseTime = 0;
     const era=this.timeline,story=this.puzzles.storyChapter??this.puzzles.currentStage,d=route.destination;
     if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,chapterForArea(d.stage)>story,true,era);
     this.timeline=this.puzzles.hasWatch?era:'PRESENT';
@@ -643,6 +685,18 @@ export class GameEngine {
       this.keysPressed.has('w') ||
       this.keysPressed.has('arrowup');
 
+    this.dashCooldown = Math.max(0, this.dashCooldown - dt);
+    this.pulseCooldown = Math.max(0, this.pulseCooldown - dt);
+    this.pulseTime = Math.max(0, this.pulseTime - dt);
+    if (this.justPressed.has('shift') && this.puzzles.clockRepaired && !this.dashCooldown) {
+      this.dashDirection = inputX || (this.player.facing === 'left' ? -1 : 1);
+      this.dashTime = DASH_DURATION;
+      this.dashCooldown = DASH_COOLDOWN;
+      soundManager.playSwitchFlip();
+    }
+    const dashVelocity = this.dashTime > 0 ? this.dashDirection * DASH_SPEED : undefined;
+    this.dashTime = Math.max(0, this.dashTime - dt);
+
     // 4. Update physics against current stage's platforms
     const activePlatforms = getActivePlatforms(stageCfg.platforms, this.timeline, this.puzzles);
 
@@ -657,12 +711,16 @@ export class GameEngine {
       inputX,
       jumpRequested,
       jumpHeld,
-      dt
+      dt,
+      dashVelocity
     );
 
     this.player.x = physResult.x;
     this.player.y = physResult.y;
-    this.player.vx = physResult.vx;
+    if (dashVelocity && !physResult.vx) this.dashTime = 0;
+    this.player.vx = dashVelocity && !this.dashTime
+      ? Math.sign(physResult.vx) * Math.min(Math.abs(physResult.vx), MOVE_SPEED)
+      : physResult.vx;
     this.player.vy = physResult.vy;
     this.player.isGrounded = physResult.isGrounded;
     this.player.coyoteTimer = physResult.coyoteTimer;
@@ -727,6 +785,16 @@ export class GameEngine {
     this.checkNearbyInteractables(stageCfg);
 
     // 6. Interact key: E
+    if (this.justPressed.has('r') && this.puzzles.musicBoxPlayed && !this.pulseCooldown) {
+      this.pulseTime = PULSE_DURATION;
+      this.pulseCooldown = 6;
+      soundManager.playChimeSuccess();
+      if (this.pursuer.active && this.pursuer.phase === this.timeline
+          && this.pursuerDistance() <= PULSE_RANGE) {
+        this.pursuer.stagger = Math.max(this.pursuer.stagger ?? 0, 1.5);
+      }
+      if (this.nearbyInteractable?.id.startsWith('chase_seal_')) this.triggerInteract();
+    }
     if (this.justPressed.has('e')) {
       this.triggerInteract();
       if(stageCfg.stage!==this.puzzles.currentStage)return;
@@ -756,13 +824,14 @@ export class GameEngine {
 
     this.pursuer.phaseDelay=Math.max(0,(this.pursuer.phaseDelay??0)-dt);
     if(!this.pursuer.phaseDelay)this.pursuer.phase=this.timeline;
+    this.pursuer.stagger = Math.max(0, (this.pursuer.stagger ?? 0) - dt);
     if(stageCfg.stage===5&&!this.puzzles.chaseCompleted){
       this.pursuer.active=true;
       const speed=this.player.x<1200?145:this.player.x<2400?158:170;
       const factor=this.pursuer.phase===this.timeline?1:.5;
-      this.pursuer.x+=Math.sign(this.player.x-this.pursuer.x)*speed*factor*dt;
+      if (!this.pursuer.stagger) this.pursuer.x+=Math.sign(this.player.x-this.pursuer.x)*speed*factor*dt;
       this.pursuer.y+=(this.player.y+3-this.pursuer.y)*Math.min(2*dt,1);
-      if(this.pursuer.phase===this.timeline&&checkAABB(this.player,this.pursuer)){this.respawnAtCheckpoint();return;}
+      if(!this.pursuer.stagger&&this.pursuer.phase===this.timeline&&checkAABB(this.player,this.pursuer)){this.respawnAtCheckpoint();return;}
       if(this.player.x>=stageCfg.width-100&&completeSeals(this.puzzles)){
         this.pursuer.active=false;this.puzzles.chaseCompleted=true;this.loadStage(6,true,true);return;
       }
@@ -770,7 +839,7 @@ export class GameEngine {
     if(stageCfg.stage===6){
       if(bossDefeated(this.puzzles)){this.pursuer.active=false;return;}
       this.bossPastSeconds=this.timeline==='PAST'?this.bossPastSeconds+dt:0;
-      this.pursuer.active=true;if(this.timeline==='PAST')this.pursuer.phase=this.bossPastSeconds<6?'PRESENT':'PAST';this.pursuer.stagger=Math.max(0,(this.pursuer.stagger??0)-dt);
+      this.pursuer.active=true;if(this.timeline==='PAST')this.pursuer.phase=this.bossPastSeconds<6?'PRESENT':'PAST';
       let changed=false;
       if(this.bossArmSeconds>0&&this.puzzles.bossExposedTrap===undefined){this.bossArmSeconds=Math.max(0,this.bossArmSeconds-dt);if(!this.bossArmSeconds){delete this.puzzles.bossArmedTrap;changed=true;this.callbacks.onNotification('Bẫy đã hết nhịp. Cần nạp lại ở quá khứ.');}}
       if(this.bossExposedSeconds>0){this.bossExposedSeconds=Math.max(0,this.bossExposedSeconds-dt);if(!this.bossExposedSeconds){delete this.puzzles.bossExposedTrap;delete this.puzzles.bossArmedTrap;this.pursuer.exposed=false;changed=true;}}
@@ -856,6 +925,26 @@ export class GameEngine {
       this.pursuer,
       this.gameState==='playing'
     );
+    if (this.pulseTime > 0) {
+      const progress = 1 - this.pulseTime / PULSE_DURATION;
+      this.ctx.beginPath();
+      this.ctx.arc(this.player.x + this.player.width / 2 - this.cameraX,
+        this.player.y + this.player.height / 2, 12 + progress * PULSE_RANGE, 0, Math.PI * 2);
+      this.ctx.strokeStyle = `rgba(247, 211, 128, ${1 - progress})`;
+      this.ctx.lineWidth = 3;
+      this.ctx.stroke();
+
+      const otherTimeline = this.timeline === 'PAST' ? 'PRESENT' : 'PAST';
+      const echoes = getActivePlatforms(stageCfg.platforms, otherTimeline, this.puzzles);
+      this.ctx.strokeStyle = `rgba(143, 219, 206, ${(1 - progress) * 0.7})`;
+      this.ctx.lineWidth = 1;
+      this.ctx.setLineDash([5, 4]);
+      for (const platform of echoes) {
+        if (platform.timeline === otherTimeline) {
+          this.ctx.strokeRect(platform.x - this.cameraX, platform.y, platform.width, platform.height);
+        }
+      }
+    }
     this.ctx.restore();
     if(this.roomFade>0){this.ctx.fillStyle=`rgba(4,12,8,${this.roomFade/.24})`;this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);}
   }

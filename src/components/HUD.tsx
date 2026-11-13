@@ -99,6 +99,10 @@ export const HUD: React.FC<HUDProps> = ({
           <span className="time-dial">{puzzles.hasWatch?<kbd>Q</kbd>:<Lock size={16}/>}</span>
           <span><small>{isPast?'KÝ ỨC ẤM ÁP':'NGÔI NHÀ BỎ QUÊN'}</small><strong>{isPast?'Quá khứ':'Hiện tại'}</strong><em>{!puzzles.hasWatch?'Tìm đồng hồ trong phòng khách':isReady?(puzzles.testedTimelineSwitch?'Chuyển thời gian':'Thử chạm vào chiếc kim'):`${cooldownSeconds}s · Đang hồi phục`}</em></span>
         </button>}
+        {(puzzles.clockRepaired || puzzles.musicBoxPlayed) && <div className="temporal-controls">
+          {puzzles.clockRepaired && <span><kbd>Shift</kbd> Lướt</span>}
+          {puzzles.musicBoxPlayed && <span><kbd>R</kbd> Sóng chuông</span>}
+        </div>}
         {nearbyObject&&<button className="interaction-control" onClick={onInteract}><kbd>E</kbd><span>{nearbyObject.promptVi}</span></button>}
 
       </footer>}

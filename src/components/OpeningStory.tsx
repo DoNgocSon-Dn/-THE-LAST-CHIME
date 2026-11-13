@@ -31,8 +31,22 @@ const pages=[
 ];
 export function OpeningStory({onContinue}:{onContinue:()=>void}){
  const [page,setPage]=useState(0),current=pages[page];
+ useEffect(() => {
+   const handleKey = (event: KeyboardEvent) => {
+     if (event.repeat || event.defaultPrevented) return;
+     if (event.key === 'Escape') onContinue();
+     else if (event.key === 'ArrowLeft') setPage(current => Math.max(0, current - 1));
+     else if (event.key === 'ArrowRight') {
+       if (page === pages.length - 1) onContinue();
+       else setPage(page + 1);
+     } else return;
+     event.preventDefault();
+   };
+   window.addEventListener('keydown', handleKey);
+   return () => window.removeEventListener('keydown', handleKey);
+ }, [onContinue, page]);
  return <section className="opening-comic story-book" aria-labelledby="opening-title"><article className="opening-comic-paper">
- <header><span>THE LAST CHIME · TRƯỚC TIẾNG CHUÔNG CUỐI</span><div className="story-book-rule" aria-hidden="true">◆</div></header>
+ <header><button type="button" className="story-book-skip" onClick={onContinue}>Bỏ qua</button><span>THE LAST CHIME · TRƯỚC TIẾNG CHUÔNG CUỐI</span><div className="story-book-rule" aria-hidden="true">◆</div></header>
  <div className="story-book-spread" key={page}>
  <figure><StoryScene scene={current.scene}/><figcaption>KÝ ỨC {['I','II','III'][page]}</figcaption></figure>
  <div className="story-book-copy" aria-live="polite"><span className="story-book-number">0{page+1} / 03</span><h1 id="opening-title">{current.title}</h1><p>{current.text}</p><blockquote>{current.quote}</blockquote></div>

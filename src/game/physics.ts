@@ -82,7 +82,8 @@ export function updateAndResolvePhysics(
   inputX: number,
   jumpRequested: boolean,
   jumpHeld: boolean,
-  dt: number
+  dt: number,
+  dashVelocity?: number
 ): {
   x: number;
   y: number;
@@ -95,7 +96,7 @@ export function updateAndResolvePhysics(
   // Clamp dt to avoid tunneling
   const clampedDt = Math.min(dt, 0.05);
 
-  let vx = updateHorizontalMotion(player.vx, inputX, clampedDt);
+  let vx = dashVelocity ?? updateHorizontalMotion(player.vx, inputX, clampedDt);
   let vy = player.vy;
   let isGrounded = player.isGrounded;
   let coyoteTimer = isGrounded ? COYOTE_TIME : Math.max(0, player.coyoteTimer - clampedDt);
