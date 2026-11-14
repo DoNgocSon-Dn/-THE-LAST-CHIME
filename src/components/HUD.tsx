@@ -44,7 +44,7 @@ export const HUD: React.FC<HUDProps> = ({
   const getObjectiveHint = (): { chapterLabel: string; hint: string } => {
     switch (activeStage) {
       case 1:
-        return {chapterLabel:'Chương 1 / 4 — Trở về',hint:!puzzles.tutorialMoved?'Bắt đầu từ cổng. Dùng A/D hoặc các nút ← → để đi sang phải.':!puzzles.tutorialJumped?'Thử nhảy bằng Space hoặc nút ↑, rồi đi tới ghế và cửa chính.':!puzzles.motherNoteCh1Read?'Đến gần đồ vật, nhấn E khi biểu tượng tương tác xuất hiện.':'Đến cửa chính, nhấn E để vào hành lang.'};
+        return {chapterLabel:'Chương 1 / 4 — Trở về',hint:!puzzles.tutorialMoved?'Bắt đầu từ cổng. Dùng A/D hoặc các nút ← → để đi sang phải.':!puzzles.motherNoteCh1Read?'Tìm mẩu giấy dưới ghế. Nhấn E hoặc chạm nút tương tác khi tới gần.':'Tới cửa chính và dùng lời nhắn của Mẹ để mở chốt.'};
 
       case 2:
         if(puzzles.currentStage===3)return {chapterLabel:'Chương 2 — Sự thật trong căn nhà',hint:!puzzles.hallwayPassageCleared?'Quan sát tay quay giếng ở hai thời điểm.':!puzzles.motherDiaryCh3Read?'Chiếc gàu đã lên. Trong hộp sắt còn dấu chỉ đỏ.':'Chìa khóa có tên Linh. Có thể quay lại cửa phòng em từ hành lang.'};
@@ -54,7 +54,7 @@ export const HUD: React.FC<HUDProps> = ({
         if (!puzzles.clockRepaired) {
           return {
             chapterLabel: 'Chương 2 / 4 — Chiếc Đồng Hồ Ngừng Chạy',
-            hint: 'Khám phá căn nhà trong Quá Khứ. Đến gần đồ vật và nhấn E để kiểm tra.'
+            hint: puzzles.clockGearFound ? 'Mang bánh răng về đồng hồ lớn trong phòng khách ở Quá Khứ.' : 'Về Quá Khứ và tìm bánh răng trong nhà bếp.'
           };
         }
         if (!puzzles.clockInspectedPresent) {
@@ -92,7 +92,7 @@ export const HUD: React.FC<HUDProps> = ({
       {journalOpen&&!isDialogueActive&&<aside className="hud-journal mechanism-journal"><header><h3>Sổ tay của An</h3><button onClick={()=>setJournalOpen(false)} aria-label="Đóng sổ tay">×</button></header>{puzzles.collectedClues?.length?puzzles.collectedClues.map(c=><p key={c}>{c}</p>):<p>Chưa ghi lại dấu vết nào. Kiểm tra đồ vật trong căn nhà để tìm hiểu thêm.</p>}</aside>}
       {!isDialogueActive&&!journalOpen&&activeStage===3&&<aside className="encounter-hud"><span>BA ẤN THỜI GIAN</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.chaseSeals?.includes(i)?'filled':''}>{i+1}</i>)}<small>Liên kết: {puzzles.playerResolve??3}/3</small></div><p>Quá khứ và hiện tại giữ những lối đi khác nhau. Cái bóng sẽ đuổi kịp sau mỗi lần đổi.</p></aside>}
       {!isDialogueActive&&!journalOpen&&puzzles.currentStage===6&&<aside className="encounter-hud"><span>{bossDefeated(puzzles)?'LÕI ĐÃ ĐƯỢC GIẢI PHÓNG':`KẺ LẠC GIỜ · ${puzzles.bossHits?.length??0}/3 LỚP VỎ`}</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.bossHits?.includes(i)?'filled':''}>{i+1}</i>)}<small>Liên kết: {puzzles.playerResolve??3}/3</small></div><p>{trapHint(puzzles,timeline)}</p>{timeline==='PAST'&&!bossDefeated(puzzles)&&<strong className="boss-window">Ký ức ổn định: {puzzles.pastSafetySeconds??6}s</strong>}{puzzles.bossArmedTrap!==undefined&&<strong className="boss-window">{puzzles.bossExposedTrap!==undefined?'Lộ điểm yếu':'Bẫy còn nhịp'}: {puzzles.bossWindowSeconds??12}s</strong>}</aside>}
-      {!isDialogueActive&&!journalOpen&&activeStage===2&&puzzles.testedTimelineSwitch&&puzzles.firstShiftReactionSeen!==false&&<div className="hud-objective"><span>DẤU VẾT TIẾP THEO</span><p>{objective.hint}</p></div>}
+      {!isDialogueActive && !journalOpen && objective.hint && <div className="hud-objective"><span>MỤC TIÊU</span><p>{objective.hint}</p></div>}
       {notification&&!isDialogueActive&&!journalOpen&&<div className="hud-toast" role="status">{notification}</div>}
       {!isDialogueActive&&<footer className="hud-bottom">
         {activeStage>=2&&<button className={`time-control ${isPast?'is-past':''}`} disabled={!puzzles.hasWatch||!isReady} onClick={onTimelineSwitch} aria-label="Chuyển thời gian">

@@ -158,7 +158,8 @@ export function processInteraction(
     case 'mother_note_ch1': {
       if(nextPuzzles.motherNoteCh1Read)return {success:false,messageVi:'An đã cất mẩu giấy vào túi.',updatedPuzzles:nextPuzzles};
       nextPuzzles.motherNoteCh1Read=true;
-      return {success:true,messageVi:'Đã nhặt mẩu giấy cũ.',soundEvent:'paper_rustle',updatedPuzzles:nextPuzzles,dialogue:[
+      remember('Lời nhắn của Mẹ ở ghế trước hiên: Mặt trời theo sau trăng.');
+      return {success:true,messageVi:'Đã cất lời nhắn của Mẹ vào sổ tay.',soundEvent:'paper_rustle',updatedPuzzles:nextPuzzles,dialogue:[
         {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Có gì kẹt dưới thanh ghế này... Một mẩu giấy?'},
         {speaker:'AN',speakerName:'An',emotion:'sad',text:'“An, vào nhà thì cất đồng hồ của ông giúp mẹ nhé. Mẹ để cạnh đèn phòng khách.” ...Chữ của mẹ.'},
         {speaker:'AN',speakerName:'An',emotion:'normal',text:'Dưới dòng chữ còn có một câu: “Mặt trời theo sau trăng.” Chắc mẹ nhắc chốt cửa.'}

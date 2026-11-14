@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUp, Bell, ChevronsRight } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { GameEngine, EngineCallbacks } from '../game/engine';
 
@@ -7,9 +7,11 @@ interface GameCanvasProps {
   engineRef: React.MutableRefObject<GameEngine | null>;
   isPaused: boolean;
   onReady:()=>void;
+  canDash: boolean;
+  canPulse: boolean;
 }
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef, isPaused, onReady }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef, isPaused, onReady, canDash, canPulse }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -65,7 +67,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef,
   const touchButton=(key:string,label:string,icon:React.ReactNode)=><button aria-label={label} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);engineRef.current?.setTouchControl(key,true);}} onPointerUp={()=>engineRef.current?.setTouchControl(key,false)} onPointerCancel={()=>engineRef.current?.setTouchControl(key,false)}>{icon}</button>;
   return (
     <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none">
-      <div className="touch-controls"><div>{touchButton('a','Đi sang trái',<ArrowLeft/>)}{touchButton('d','Đi sang phải',<ArrowRight/>)}</div><div>{touchButton(' ' ,'Nhảy',<ArrowUp/>)}</div></div>
+      <div className="touch-controls"><div>{touchButton('a','Đi sang trái',<ArrowLeft/>)}{touchButton('d','Đi sang phải',<ArrowRight/>)}</div><div>
+        {canDash && touchButton('shift', 'Lướt', <ChevronsRight />)}
+        {canPulse && touchButton('r', 'Sóng chuông', <Bell />)}
+        {touchButton(' ', 'Nhảy', <ArrowUp />)}
+      </div></div>
       <canvas
         ref={canvasRef}
         data-testid="game-canvas"

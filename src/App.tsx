@@ -50,13 +50,13 @@ export default function App() {
   const [loadingDestination,setLoadingDestination]=useState<'prologue'|'playing'>('prologue');
   useEffect(()=>{
     if(gameState!=='loading'||!assetsReady)return;
-    const timer=setTimeout(()=>{setEnteringGame(true);setGameState(loadingDestination);},4600);
+    const timer=setTimeout(()=>{setEnteringGame(loadingDestination==='playing');setGameState(loadingDestination);},450);
     return()=>clearTimeout(timer);
   },[gameState,assetsReady,loadingDestination]);
   const handleGameReady=useCallback(()=>{const stage=pendingTitleChapter.current;if(stage&&engineRef.current){engineRef.current.loadStage(stage,true);pendingTitleChapter.current=null;}setEnteringGame(false);},[]);
   useEffect(()=>{
     let disposed=false;
-    Promise.all([preloadGameAssets(value=>{if(!disposed)setLoadProgress(value);}),new Promise(resolve=>setTimeout(resolve,5000))]).then(async()=>{
+    preloadGameAssets(value=>{if(!disposed)setLoadProgress(value);}).then(()=>{
       if(!disposed)setAssetsReady(true);
     }).catch(error=>{if(!disposed)setLoadError(error.message);});
     return()=>{disposed=true;};
@@ -70,8 +70,6 @@ export default function App() {
     engine.gameState='paused';
     setActiveDialogue([
       {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'sad',text:'Mùi đất sau mưa… vẫn giống ngày ấy. Chỉ có căn nhà là khác quá.'},
-      {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'whisper',text:'Ngày trước, cứ nghe tiếng cổng là Linh đã chạy ra. Giờ đứng ở đây… mình vẫn chờ em gọi.'},
-      {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'determined',text:'Mình đã tránh nơi này đủ lâu rồi. Vào trong thôi. Ít nhất lần này, mình phải tìm cho ra chuyện đã xảy ra.'}
     ]);
     engine.saveGame();
   },[gameState,enteringGame]);
@@ -290,6 +288,8 @@ export default function App() {
         <>
           <GameCanvas
             onReady={handleGameReady}
+            canDash={gameState === 'playing' && puzzles.clockRepaired}
+            canPulse={gameState === 'playing' && puzzles.musicBoxPlayed}
             callbacksRef={callbacksRef}
             engineRef={engineRef}
             isPaused={

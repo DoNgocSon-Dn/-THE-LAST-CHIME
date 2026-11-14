@@ -325,3 +325,8 @@ button,input,select,textarea,kbd,output{font-family:var(--font-sans)}
 .hud-location span, .dialogue-card small, .encounter-hud small {
   font-size: 14px;
 }
+
+@media (max-width: 400px) {
+  .touch-controls > div { gap: 6px; }
+  .touch-controls button { width: 44px; height: 44px; }
+}
