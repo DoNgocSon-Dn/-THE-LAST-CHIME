@@ -151,7 +151,7 @@ export class GameRenderer {
     this.character.draw(ctx,player,this.animTick,stageCfg.stage===5);
     if(showHints){
       const hint=puzzles.hasWatch&&!puzzles.testedTimelineSwitch?'Q · Chạm vào chiếc kim':puzzles.currentStage===1&&!puzzles.tutorialMoved?'A / D  hoặc  ← / → · Di chuyển':puzzles.currentStage===1&&!puzzles.tutorialJumped&&!nearbyInteractableId?'Space / ↑ · Nhảy':null;
-      if(hint){ctx.save();ctx.font='600 10px "Be Vietnam Pro",sans-serif';const w=ctx.measureText(hint).width+20,x=Math.max(cameraX+w/2+5,Math.min(cameraX+viewportWidth-w/2-5,player.x+player.width/2)),y=player.y-30;ctx.fillStyle='#142018eb';ctx.fillRect(x-w/2,y-16,w,24);ctx.strokeStyle='#b69b65';ctx.lineWidth=1;ctx.strokeRect(x-w/2,y-16,w,24);ctx.textAlign='center';ctx.fillStyle='#f0d79d';ctx.fillText(hint,x,y);ctx.restore();}
+      if(hint){ctx.save();ctx.font='600 10px "VT323", monospace';const w=ctx.measureText(hint).width+20,x=Math.max(cameraX+w/2+5,Math.min(cameraX+viewportWidth-w/2-5,player.x+player.width/2)),y=player.y-30;ctx.fillStyle='#142018eb';ctx.fillRect(x-w/2,y-16,w,24);ctx.strokeStyle='#b69b65';ctx.lineWidth=1;ctx.strokeRect(x-w/2,y-16,w,24);ctx.textAlign='center';ctx.fillStyle='#f0d79d';ctx.fillText(hint,x,y);ctx.restore();}
       else if(nearbyInteractableId)this.drawInteractPromptBadge(ctx,player.x+player.width/2,player.y-16,isPast);
     }
 
@@ -215,7 +215,7 @@ export class GameRenderer {
 
       // Musical notes E - G - C etched in light
       ctx.fillStyle = isPast ? '#fff3bf' : '#81ecec';
-      ctx.font = 'bold 12px "Be Vietnam Pro", sans-serif';
+      ctx.font = 'bold 12px "VT323", monospace';
       ctx.textAlign = 'center';
       ctx.fillText(isPast ? '☾  ★  ☀' : '☾ Mi · ☀ Đô · ★ Sol', targetX, targetY - 12);
       ctx.restore();
@@ -236,7 +236,7 @@ export class GameRenderer {
       glow.addColorStop(1, '#a8d8b900');
       ctx.fillStyle = glow; ctx.fillRect(obj.x - 115, obj.y - 115, obj.width + 230, obj.height + 230);
       if(obj.type==='room_door'&&puzzles.currentStage===2&&obj.x<800){
-        ctx.font='bold 7px "Be Vietnam Pro", sans-serif';ctx.textAlign='center';
+        ctx.font='bold 7px "VT323", monospace';ctx.textAlign='center';
         const width=ctx.measureText(obj.nameVi).width+10,cx=obj.x+obj.width/2;
         ctx.fillStyle=isPast?'#513a22':'#243528';ctx.fillRect(cx-width/2,obj.y-20,width,12);
         ctx.strokeStyle='#a5894c';ctx.lineWidth=.5;ctx.strokeRect(cx-width/2,obj.y-20,width,12);
@@ -377,7 +377,7 @@ export class GameRenderer {
     ctx.fillStyle=isUnlocked?'#ffe3a4':'#b3a575';ctx.beginPath();ctx.arc(x+w-10,y+h*.62,2.5,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#a0b184';
     for(let i=0;i<7;i++){ctx.beginPath();ctx.ellipse(x-4+i*3,y+15-i*2,4,2,-.6,0,Math.PI*2);ctx.fill();}
-    if(isUnlocked){ctx.font='9px "Be Vietnam Pro",sans-serif';ctx.textAlign='center';ctx.fillStyle='#e9dcc0';ctx.fillText(targetLabel.replace('MÀN','CHƯƠNG'),cx,y-20);}
+    if(isUnlocked){ctx.font='9px "VT323", monospace';ctx.textAlign='center';ctx.fillStyle='#e9dcc0';ctx.fillText(targetLabel.replace('MÀN','CHƯƠNG'),cx,y-20);}
     ctx.restore();
   }
 
@@ -711,7 +711,7 @@ export class GameRenderer {
     ctx.stroke();
 
     ctx.fillStyle = '#193225';
-    ctx.font = '600 12px "Be Vietnam Pro", sans-serif';
+    ctx.font = '600 12px "VT323", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('E', x, py - 2);

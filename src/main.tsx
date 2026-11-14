@@ -1,13 +1,4 @@
-import '@fontsource/chakra-petch/400.css';
-import '@fontsource/chakra-petch/500.css';
-import '@fontsource/chakra-petch/600.css';
-import '@fontsource/chakra-petch/700.css';
-import '@fontsource-variable/noto-serif';
-import '@fontsource-variable/noto-serif/wght-italic.css';
-import '@fontsource/be-vietnam-pro/400.css';
-import '@fontsource/be-vietnam-pro/500.css';
-import '@fontsource/be-vietnam-pro/600.css';
-import '@fontsource/be-vietnam-pro/700.css';
+import '@fontsource/vt323/400.css';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';

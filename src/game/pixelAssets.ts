@@ -146,7 +146,7 @@ export class PixelAssets{
       if(!chase){ctx.strokeStyle=active?'#ffe4a0':'#719b85';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(obj.x+obj.width/2,obj.y+obj.height,35,7,0,0,Math.PI*2);ctx.stroke();}
       ctx.shadowColor=active?'#ffe4a0':'#64b9a2';ctx.shadowBlur=active?20:8;
       this.feet(ctx,'seal',obj.x+obj.width/2,obj.y+obj.height,36);
-      ctx.font='bold 8px "Be Vietnam Pro", sans-serif';ctx.textAlign='center';ctx.fillStyle='#e5c77d';ctx.fillText(String(index+1),obj.x+obj.width/2,obj.y+15);ctx.restore();return true;
+      ctx.font='bold 8px "VT323", monospace';ctx.textAlign='center';ctx.fillStyle='#e5c77d';ctx.fillText(String(index+1),obj.x+obj.width/2,obj.y+15);ctx.restore();return true;
     }
     if(obj.bakedIntoMap||obj.type==='npc_memory'||obj.id==='light_target')return true;
     if(obj.id==='pocket_watch_box'&&puzzles.hasWatch)return true;

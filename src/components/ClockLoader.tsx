@@ -33,9 +33,9 @@ function WorkshopScene({progress,error}:Props){
    const panel=ctx.createLinearGradient(0,610,0,768);panel.addColorStop(0,'#101712');panel.addColorStop(1,'#080d0b');ctx.fillStyle=panel;ctx.fillRect(0,610,1376,158);
    ctx.fillStyle='#75603c';ctx.fillRect(160,611,1056,1);
    const left=205,top=686,width=900,height=14;
-   ctx.textAlign='left';ctx.font='600 20px "Noto Serif Variable",serif';ctx.fillStyle='#cdb88b';
+   ctx.textAlign='left';ctx.font='600 20px "VT323", monospace';ctx.fillStyle='#cdb88b';
    ctx.fillText(err?'TẢI CHƯA HOÀN TẤT':p===undefined?'ĐANG MỞ KÝ ỨC':'ĐANG CHUẨN BỊ HÀNH TRÌNH',left,657);
-   ctx.textAlign='right';ctx.font='600 24px "Noto Serif Variable",serif';ctx.fillStyle='#f2d69b';ctx.fillText(p===undefined?'…':`${Math.floor(fill*100)}%`,left+width,657);
+   ctx.textAlign='right';ctx.font='600 24px "VT323", monospace';ctx.fillStyle='#f2d69b';ctx.fillText(p===undefined?'…':`${Math.floor(fill*100)}%`,left+width,657);
    ctx.fillStyle='#6d5735';ctx.fillRect(left-3,top-3,width+6,height+6);ctx.fillStyle='#0b120f';ctx.fillRect(left-1,top-1,width+2,height+2);
    ctx.save();ctx.beginPath();ctx.rect(left,top,width,height);ctx.clip();
    const w=p===undefined?width*.2:width*fill,x=p===undefined?(Math.sin(t*.7)+1)*.4*width:0;

@@ -73,7 +73,7 @@ export class PixelWorld {
           const px=x+545*scale,py=y+(145-crop.y)*scale;
           ctx.fillStyle='#60452a';ctx.fillRect(px,py,64*scale,34*scale);
           ctx.fillStyle='#c5a36e';ctx.fillRect(px+3*scale,py+3*scale,58*scale,28*scale);
-          ctx.fillStyle='#352718';ctx.font=`600 ${10*scale}px "Be Vietnam Pro",sans-serif`;ctx.textAlign='center';ctx.fillText('Phòng khách',px+32*scale,py+23*scale);
+          ctx.fillStyle='#352718';ctx.font=`600 ${10*scale}px "VT323", monospace`;ctx.textAlign='center';ctx.fillText('Phòng khách',px+32*scale,py+23*scale);
         }
         // Extend the soil beneath each painted floor without adding a second grass strip.
         const bottom=y+crop.h*scale;
