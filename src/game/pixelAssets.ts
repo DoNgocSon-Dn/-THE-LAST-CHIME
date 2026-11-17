@@ -87,7 +87,7 @@ export function removeSheetBackground(canvas:HTMLCanvasElement,trim=true,charact
   for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>0){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
   if(right<left)return canvas;
   const out=document.createElement('canvas');out.width=right-left+1;out.height=bottom-top+1;
-  out.getContext('2d')!.drawImage(canvas,left,top,out.width,out.height,0,0,out.width,out.height);return out;
+  out.getContext('2d',{willReadFrequently:true})!.drawImage(canvas,left,top,out.width,out.height,0,0,out.width,out.height);return out;
 }
 
 export class PixelAssets{
@@ -101,9 +101,9 @@ export class PixelAssets{
           const gridRows=sheet==='an-unified'?6:sheet==='an-seated'?2:0;
           const sx=gridRows?Math.round(x*img.width/8):x,sy=gridRows?Math.round(y*img.height/gridRows):y,sw=gridRows?Math.round((x+1)*img.width/8)-sx:w,sh=gridRows?Math.round((y+1)*img.height/gridRows)-sy:h;
           const canvas=document.createElement('canvas');canvas.width=sw;canvas.height=sh;
-          canvas.getContext('2d')!.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+          canvas.getContext('2d',{willReadFrequently:true})!.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
           if(gridRows){
-            const ctx=canvas.getContext('2d')!,pixels=ctx.getImageData(0,0,sw,sh);
+            const ctx=canvas.getContext('2d',{willReadFrequently:true})!,pixels=ctx.getImageData(0,0,sw,sh);
             for(let j=3;j<pixels.data.length;j+=4)pixels.data[j]=pixels.data[j]<128?0:255;
             ctx.putImageData(pixels,0,0);
           }

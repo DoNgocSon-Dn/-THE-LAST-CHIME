@@ -19,12 +19,12 @@ export class PixelWorld {
       const img=new Image();img.onload=()=>{
         for(const era of ['past','present']as const){
           const c=MAP_CROPS[number][era],canvas=document.createElement('canvas');canvas.width=c.w;canvas.height=c.h;
-          canvas.getContext('2d')!.drawImage(img,c.x,c.y,c.w,c.h,0,0,c.w,c.h);
+          canvas.getContext('2d',{willReadFrequently:true})!.drawImage(img,c.x,c.y,c.w,c.h,0,0,c.w,c.h);
           const clean=removeSheetBackground(canvas,false);
           // Exterior sheets use white as a matte even inside closed arches/fences.
           // Interior sheets keep their painted white dishes and window highlights.
           if([10,11,12,13].includes(number)){
-            const context=clean.getContext('2d')!,pixels=context.getImageData(0,0,clean.width,clean.height),d=pixels.data;
+            const context=clean.getContext('2d',{willReadFrequently:true})!,pixels=context.getImageData(0,0,clean.width,clean.height),d=pixels.data;
             removeExteriorMattePixels(d);
             context.putImageData(pixels,0,0);
           }

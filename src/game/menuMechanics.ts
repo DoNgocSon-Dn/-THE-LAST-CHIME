@@ -1,4 +1,4 @@
-function cut(image:HTMLImageElement,x:number,y:number,w:number,h:number){const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d')!;ctx.drawImage(image,x,y,w,h,0,0,w,h);const pixels=ctx.getImageData(0,0,w,h),d=pixels.data;for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2];if(!(r>=g&&g>b*1.06))d[i+3]=0;}ctx.putImageData(pixels,0,0);return c;}
+function cut(image:HTMLImageElement,x:number,y:number,w:number,h:number){const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true})!;ctx.drawImage(image,x,y,w,h,0,0,w,h);const pixels=ctx.getImageData(0,0,w,h),d=pixels.data;for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2];if(!(r>=g&&g>b*1.06))d[i+3]=0;}ctx.putImageData(pixels,0,0);return c;}
 function gear(image:HTMLImageElement){
  const c=cut(image,20,410,92,90),ctx=c.getContext('2d')!;
  // Restrict the crop to this gear, excluding the neighboring wheel's teeth.
