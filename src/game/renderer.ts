@@ -39,6 +39,7 @@ export class GameRenderer {
   private bursts: Particle[] = [];
   private shakeTime = 0;
   private shakeMag = 0;
+  private reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   private trapPulseX=0;
   private trapPulseY=0;
 
@@ -70,6 +71,7 @@ export class GameRenderer {
 
   /** One-shot particle puff (dust when jumping/landing, sparks when picking things up). */
   public burst(x:number,y:number,kind:'dust'|'land'|'warp'|'spark'='dust',facing=0){
+    if(this.reduceMotion)return;
     const cfg={dust:{n:4,spd:26,up:12,col:'#d8c8a8',life:.35,size:2},land:{n:9,spd:55,up:18,col:'#d8c8a8',life:.45,size:2.5},warp:{n:26,spd:110,up:60,col:'#9fe8ff',life:.7,size:2.5},spark:{n:14,spd:70,up:50,col:'#ffe08a',life:.6,size:2}}[kind];
     for(let i=0;i<cfg.n;i++){
       const a=Math.random()*Math.PI*2,sp=cfg.spd*(.4+Math.random()*.6);
@@ -79,7 +81,7 @@ export class GameRenderer {
   }
 
   /** Short screen shake, magnitude in pixels. */
-  public shake(mag=3,time=.22){this.shakeMag=Math.max(this.shakeMag,mag);this.shakeTime=Math.max(this.shakeTime,time);}
+  public shake(mag=3,time=.22){if(this.reduceMotion)return;this.shakeMag=Math.max(this.shakeMag,mag);this.shakeTime=Math.max(this.shakeTime,time);}
 
   public triggerWarp() {
     this.warpActive = true;
