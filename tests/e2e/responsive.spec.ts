@@ -22,6 +22,16 @@ async function hudGeometry(page:Page){
  });
 }
 
+test('portrait widens the camera and rotation preserves physics and difficulty',async({page})=>{
+ await openChapter(page);
+ const before=await page.evaluate(()=>{const e=(window as any).__gameEngine;return {x:e.player.x,y:e.player.y,pursuerX:e.pursuer.x,pursuerY:e.pursuer.y,cooldown:e.switchCooldown,worldWidth:e.canvas.width/e.viewZoom};});
+ if(page.viewportSize()!.height>page.viewportSize()!.width)expect(before.worldWidth).toBeGreaterThanOrEqual(519.99);
+ const original=page.viewportSize()!;await page.setViewportSize({width:original.height,height:original.width});
+ await page.waitForFunction(()=>{const e=(window as any).__gameEngine;return Math.abs(e.canvas.width/e.canvas.height-innerWidth/innerHeight)<.01;});
+ const after=await page.evaluate(()=>{const e=(window as any).__gameEngine;return {x:e.player.x,y:e.player.y,pursuerX:e.pursuer.x,pursuerY:e.pursuer.y,cooldown:e.switchCooldown};});
+ expect(after).toEqual({x:before.x,y:before.y,pursuerX:before.pursuerX,pursuerY:before.pursuerY,cooldown:before.cooldown});
+});
+
 test('HUD rows, expanded hints and touch targets do not overlap in chapters 3 and 4',async({page},info)=>{
  for(const stage of [5,6]){
   await openChapter(page,stage);

@@ -19,7 +19,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef,
     if (!canvas) return;
 
     // Set internal render resolution
-    const resize=()=>{const box=canvas.parentElement!.getBoundingClientRect();canvas.height=562;canvas.width=Math.max(240,Math.round(562*box.width/box.height));};
+    const resize=()=>{const box=canvas.parentElement!.getBoundingClientRect();canvas.height=562;canvas.width=Math.max(240,Math.round(562*box.width/box.height));engineRef.current?.resizeViewport();};
     resize();
     const observer=new ResizeObserver(resize);observer.observe(canvas.parentElement!);
 

@@ -5,7 +5,7 @@ import {houseDestination,houseCamera,migrateHouseLocation} from './houseLayout';
 import { advanceGait } from './locomotion';
 import type { MechanismId } from './mechanisms';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PURSUER_BODY_HEIGHT, savedCharacterHeight, migrateCharacterY } from './entityScale';
-import { GAME_ZOOM, currentPixelRoom, sceneZoom, legacyScenePoint } from './pixelLayout';
+import { GAME_ZOOM, currentPixelRoom, viewportZoom, legacyScenePoint } from './pixelLayout';
 import {
   Player,
   Timeline,
@@ -314,7 +314,7 @@ export class GameEngine {
     this.player.isGrounded = true;
     this.player.speechBubbleText = '';
     this.player.speechBubbleTimer = 0;
-    this.viewZoom=sceneZoom(cfg.stage,this.player.x);
+    this.viewZoom=this.sceneViewZoom(cfg.stage,this.player.x);
     this.snapRoomCamera();
     this.timeline = this.puzzles.hasWatch?(arrivalTimeline??cfg.defaultTimeline):'PRESENT';
     this.switchCooldown = 0;
@@ -502,6 +502,10 @@ export class GameEngine {
     this.saveGame();
   }
 
+  private sceneViewZoom(stage:number,x:number){return viewportZoom(stage,x,this.canvas.width,this.canvas.height);}
+  public resizeViewport(){
+    this.viewZoom=this.sceneViewZoom(this.puzzles.currentStage,this.player.x);this.snapRoomCamera();
+  }
   private snapRoomCamera(){
     const cfg=getStageConfig(this.puzzles.currentStage),view=this.canvas.width/this.viewZoom;
     const bounds=houseCamera(cfg.stage,this.player.x,view,cfg.width);
@@ -516,7 +520,7 @@ export class GameEngine {
     if(d.stage!==this.puzzles.currentStage)this.loadStage(d.stage,chapterForArea(d.stage)>story,true,era);
     this.timeline=this.puzzles.hasWatch?era:'PRESENT';
     Object.assign(this.player,{x:d.x,y:d.y??480-PLAYER_HEIGHT,vx:0,vy:0,state:'idle',animTimer:0,animFrame:0,interactCooldown:.5,isGrounded:true});
-    this.handleBlur();this.viewZoom=sceneZoom(d.stage,d.x);this.snapRoomCamera();this.nearbyInteractable=null;this.mechanismContext=null;this.roomFade=.24;
+    this.handleBlur();this.viewZoom=this.sceneViewZoom(d.stage,d.x);this.snapRoomCamera();this.nearbyInteractable=null;this.mechanismContext=null;this.roomFade=.24;
     const room=getCurrentRoom(d.x,d.stage);this.checkpoint={x:d.x,y:this.player.y,timeline:this.timeline,chapter:d.stage,labelVi:room.nameVi};
     this.callbacks.onTimelineChange(this.timeline);soundManager.setTimeline(this.timeline);soundManager.playDoorUnlock();
     this.callbacks.onNearbyPrompt(null);this.callbacks.onRoomChange(room);this.callbacks.onPuzzleUpdate({...this.puzzles});this.callbacks.onNotification(room.nameVi);this.saveGame();return true;
@@ -835,7 +839,7 @@ export class GameEngine {
     this.updatePursuerAndStageProgress(dt, stageCfg);
 
     // 8. Camera follow within current stage bounds
-    this.viewZoom+=(sceneZoom(stageCfg.stage,this.player.x)-this.viewZoom)*Math.min(dt*6,1);
+    this.viewZoom+=(this.sceneViewZoom(stageCfg.stage,this.player.x)-this.viewZoom)*Math.min(dt*6,1);
     const targetCamX = this.player.x + this.player.width / 2 - this.canvas.width / this.viewZoom / 2;
     const cameraBounds=houseCamera(stageCfg.stage,this.player.x,this.canvas.width/this.viewZoom,stageCfg.width);
     const clampedCamX = Math.max(cameraBounds.min,Math.min(cameraBounds.max,targetCamX));
@@ -976,6 +980,8 @@ export class GameEngine {
 
   public render() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle=this.puzzles.currentStage>=5||this.timeline==='PRESENT'?'#152e37':'#c5a979';
+    this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
 
     const stageCfg = getStageConfig(this.puzzles.currentStage);
     const activePlatforms = getActivePlatforms(stageCfg.platforms, this.timeline, this.puzzles);
@@ -1071,7 +1077,7 @@ export class GameEngine {
         this.player.y=point.y-PLAYER_HEIGHT>=50&&point.y<=480?point.y-PLAYER_HEIGHT:stageCfg.spawnY;
       }
       if(stageCfg.stage===1&&data.spawnVersion!==3){this.player.x=stageCfg.spawnX;this.player.y=stageCfg.spawnY;}
-      this.viewZoom=sceneZoom(stageCfg.stage,this.player.x);
+      this.viewZoom=this.sceneViewZoom(stageCfg.stage,this.player.x);
       this.snapRoomCamera();
       if (data.timeline) {
         this.timeline = data.timeline;
@@ -1095,7 +1101,7 @@ export class GameEngine {
       if(stageCfg.stage===2&&!this.puzzles.hasWatch&&currentPixelRoom(2,this.player.x).map===5){
         this.player.x=250;this.player.y=480-PLAYER_HEIGHT;this.timeline='PRESENT';
         this.checkpoint={x:250,y:this.player.y,timeline:'PRESENT',chapter:2,labelVi:'Hành lang trong nhà'};
-        this.viewZoom=sceneZoom(2,250);this.snapRoomCamera();
+        this.viewZoom=this.sceneViewZoom(2,250);this.snapRoomCamera();
       }
       if(stageCfg.stage>=5&&data.terrainVersion!==2){
         const restore=(point:{x:number;y:number;timeline:Timeline})=>{

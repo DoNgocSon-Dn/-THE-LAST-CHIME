@@ -44,3 +44,8 @@ export function legacyScenePoint(stage:number,x:number,y:number){
   return {x:room.start+(x-index*ROOM_WIDTH)*scale,y:480+(y-480)*scale,scale};
 }
 export function sceneZoom(stage:number,x:number){return INTERIOR_MAPS.has(currentPixelRoom(stage,x).map)?2.15:GAME_ZOOM;}
+/** Keep a useful horizontal field of view in portrait; collision coordinates never change. */
+export function viewportZoom(stage:number,x:number,width:number,height:number){
+ const normal=sceneZoom(stage,x);
+ return height>width?Math.min(normal,width/520):normal;
+}
