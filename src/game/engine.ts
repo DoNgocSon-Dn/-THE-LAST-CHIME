@@ -461,6 +461,8 @@ export class GameEngine {
     soundManager.playTimelineWarp(nextTimeline);
     soundManager.setTimeline(nextTimeline);
     this.renderer.triggerWarp();
+    this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height/2,'warp');
+    this.renderer.shake(3,.25);
 
     this.callbacks.onTimelineChange(nextTimeline);
     this.callbacks.onCooldownChange(1.0, SWITCH_COOLDOWN_TIME);
@@ -764,9 +766,12 @@ export class GameEngine {
     }
     if (!prevGrounded && this.player.isGrounded && prevVy > 100) {
       soundManager.playLand();
+      this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height,'land');
+      if(prevVy>420)this.renderer.shake(2,.15);
     }
     if (prevGrounded && !this.player.isGrounded && this.player.vy < -200) {
       soundManager.playJump();
+      this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height,'dust');
     }
 
     const distanceMoved=this.player.x-previousX;
@@ -792,7 +797,7 @@ export class GameEngine {
       const gait=advanceGait(this.player.animTimer,distanceMoved,this.player.isGrounded,stageCfg.stage===5);
       this.player.animTimer=gait.phase;
       this.player.animFrame=Math.floor(gait.phase*8);
-      if(gait.step)soundManager.playFootstep();
+      if(gait.step){soundManager.playFootstep();this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height,'dust',this.player.facing==='right'?1:-1);}
     }else if(this.player.state==='idle'){
       this.player.animTimer=0;this.player.animFrame=0;
     }

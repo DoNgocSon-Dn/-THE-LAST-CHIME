@@ -36,6 +36,9 @@ export class GameRenderer {
   private animTick: number = 0;
   private lastBossHits=0;
   private trapPulse=0;
+  private bursts: Particle[] = [];
+  private shakeTime = 0;
+  private shakeMag = 0;
   private trapPulseX=0;
   private trapPulseY=0;
 
@@ -65,6 +68,19 @@ export class GameRenderer {
 
   public isReady(){return this.pixel.isReady()&&this.world.isReady();}
 
+  /** One-shot particle puff (dust when jumping/landing, sparks when picking things up). */
+  public burst(x:number,y:number,kind:'dust'|'land'|'warp'|'spark'='dust',facing=0){
+    const cfg={dust:{n:4,spd:26,up:12,col:'#d8c8a8',life:.35,size:2},land:{n:9,spd:55,up:18,col:'#d8c8a8',life:.45,size:2.5},warp:{n:26,spd:110,up:60,col:'#9fe8ff',life:.7,size:2.5},spark:{n:14,spd:70,up:50,col:'#ffe08a',life:.6,size:2}}[kind];
+    for(let i=0;i<cfg.n;i++){
+      const a=Math.random()*Math.PI*2,sp=cfg.spd*(.4+Math.random()*.6);
+      this.bursts.push({x:x+(Math.random()-.5)*10,y,vx:Math.cos(a)*sp-facing*20,vy:-Math.abs(Math.sin(a))*cfg.up-Math.random()*8,life:0,maxLife:cfg.life*(.7+Math.random()*.6),size:cfg.size*(.7+Math.random()*.6),color:cfg.col});
+    }
+    if(this.bursts.length>240)this.bursts.splice(0,this.bursts.length-240);
+  }
+
+  /** Short screen shake, magnitude in pixels. */
+  public shake(mag=3,time=.22){this.shakeMag=Math.max(this.shakeMag,mag);this.shakeTime=Math.max(this.shakeTime,time);}
+
   public triggerWarp() {
     this.warpActive = true;
     this.warpAnimProgress = 1.0;
@@ -73,6 +89,9 @@ export class GameRenderer {
   public update(dt: number, timeline: Timeline) {
     this.animTick += dt;
     this.trapPulse=Math.max(0,this.trapPulse-dt);
+    this.shakeTime=Math.max(0,this.shakeTime-dt);if(!this.shakeTime)this.shakeMag=0;
+    for(const b of this.bursts){b.life+=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy+=260*dt;b.vx*=1-Math.min(1,3*dt);}
+    this.bursts=this.bursts.filter(b=>b.life<b.maxLife);
 
     if (this.warpActive) {
       this.warpAnimProgress -= dt * 1.8;
@@ -124,6 +143,7 @@ export class GameRenderer {
     ctx.save();
     ctx.imageSmoothingEnabled = false;
 
+    if(this.shakeTime>0){const k=this.shakeMag*Math.min(1,this.shakeTime/.15);ctx.translate((Math.random()-.5)*2*k,(Math.random()-.5)*2*k);}
     ctx.translate(-cameraX, 0);
 
     const isPast = timeline === 'PAST';
@@ -753,6 +773,8 @@ export class GameRenderer {
 
   private drawPlayer(ctx:CanvasRenderingContext2D,player:Player,_hasWatch:boolean){
     this.character.draw(ctx,player,this.animTick);
+    for(const b of this.bursts){ctx.globalAlpha=Math.max(0,1-b.life/b.maxLife);ctx.fillStyle=b.color;ctx.fillRect(Math.round(b.x),Math.round(b.y),Math.ceil(b.size),Math.ceil(b.size));}
+    ctx.globalAlpha=1;
   }
 
   private drawAtmosphere(ctx: CanvasRenderingContext2D, stageNum: number, isPast: boolean) {
