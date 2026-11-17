@@ -1,15 +1,15 @@
 import {pixelAssets} from '../game/pixelAssets';
 import {useEffect,useRef} from 'react';
-import {prepareWorkshopSprites} from '../game/workshopLoadingArt';
+import {prepareWorkshopSprites,pendulumRig} from '../game/workshopLoadingArt';
 type Props={progress?:number;error?:string;shattering?:boolean};
 function WorkshopScene({progress,error}:Props){
  const ref=useRef<HTMLCanvasElement>(null),state=useRef({progress,error});
  useEffect(()=>{state.current={progress,error};},[progress,error]);
  useEffect(()=>{
   const canvas=ref.current!,ctx=canvas.getContext('2d')!,plate=new Image(),sheet=new Image(),actors=pixelAssets();
-  let sprites:ReturnType<typeof prepareWorkshopSprites>|undefined,frame=0,last=0,alive=true,displayed=0;
+  let sprites:ReturnType<typeof prepareWorkshopSprites>|undefined,rig:ReturnType<typeof pendulumRig>|undefined,frame=0,last=0,alive=true,displayed=0;
   const motion=matchMedia('(prefers-reduced-motion: reduce)'),start=performance.now();
-  sheet.onload=()=>{if(alive)sprites=prepareWorkshopSprites(sheet);};
+  sheet.onload=()=>{if(alive){sprites=prepareWorkshopSprites(sheet);rig=pendulumRig(sprites.pendulums);}};
   plate.src=`${import.meta.env.BASE_URL}assets/loading/workshop-plate.png`;sheet.src=`${import.meta.env.BASE_URL}assets/loading/workshop-animations.png`;
   const paint=(now:number)=>{if(!alive)return;frame=requestAnimationFrame(paint);if(document.hidden||now-last<(motion.matches?250:1000/62))return;const dt=Math.min(.1,(now-last)/1000);last=now;
    if(!plate.complete||!plate.naturalWidth)return;const t=motion.matches?0:(now-start)/1000,{progress:p,error:err}=state.current;
@@ -20,8 +20,10 @@ function WorkshopScene({progress,error}:Props){
     if(actor&&base){const scale=224/base.height;ctx.save();ctx.translate(512,592);ctx.scale(-scale,scale);ctx.drawImage(actor,-actors.getCharacterPivot(key),-actor.height);ctx.restore();}
     // Cross-fade neighbouring animation frames so motion is continuous instead of stepping at a few fps.
     const blend=(frames:HTMLCanvasElement[],pos:number,x:number,y:number,w:number,h:number)=>{const n=frames.length,i=Math.floor(pos)%n,f=pos-Math.floor(pos);ctx.globalAlpha=1;ctx.drawImage(frames[i],x,y,w,h);if(f>.001){ctx.globalAlpha=f;ctx.drawImage(frames[(i+1)%n],x,y,w,h);ctx.globalAlpha=1;}};
-    // Pendulum swings with a sine ease across frames 0..5 (ping-pong).
-    const swing=(1-Math.cos(t*Math.PI*1.1))/2*5;blend(sprites.pendulums,swing,478,205,108,100);
+    // Pendulum: one frame rotated about its pivot with a sine swing (no cross-fade, so no double image).
+    if(rig){const sx=108/186,sy=100/160,theta=Math.sin(t*Math.PI*1.1)*rig.maxAngle,f=rig.frame,py=Math.max(1,Math.round(rig.pivotY));
+     ctx.drawImage(f,0,0,f.width,py,478,205,f.width*sx,py*sy);
+     ctx.save();ctx.translate(478+rig.pivotX*sx,205+rig.pivotY*sy);ctx.rotate(-theta);ctx.scale(sx,sy);ctx.drawImage(f,0,py,f.width,f.height-py,-rig.pivotX,0,f.width,f.height-py);ctx.restore();}
     const gp=t*5;blend(sprites.gears,gp,241,446,44,30);blend(sprites.gears,((-gp)%6+6)%6,202,444,30,23);
    }
    // Light remains subtle; the original illustration supplies all architecture.
