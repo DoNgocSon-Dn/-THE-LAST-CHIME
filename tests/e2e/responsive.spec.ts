@@ -32,6 +32,16 @@ test('portrait widens the camera and rotation preserves physics and difficulty',
  expect(after).toEqual({x:before.x,y:before.y,pursuerX:before.pursuerX,pursuerY:before.pursuerY,cooldown:before.cooldown});
 });
 
+test('dust remains visible past 400ms and reduced motion suppresses bursts and shake',async({page},info)=>{
+ await openChapter(page);
+ const particles=await page.evaluate(()=>{const e=(window as any).__gameEngine,r=e.renderer;r.bursts=[];r.burst(e.player.x,e.player.y+e.player.height,'dust');const sizes=r.bursts.map((p:any)=>p.size);r.update(.4,e.timeline);e.render();return {sizes,remaining:r.bursts.length};});
+ expect(particles.remaining).toBe(4);expect(Math.min(...particles.sizes)).toBeGreaterThan(3);
+ await page.screenshot({path:info.outputPath('dust-400ms.png')});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ const reduced=await page.evaluate(async()=>{const path='/src/game/renderer.ts';const {GameRenderer}=await import(/* @vite-ignore */path);const r=new GameRenderer();r.burst(100,100,'dust');r.burst(100,100,'spark');r.shake();return {particles:r.bursts.length,shake:r.shakeTime};});
+ expect(reduced).toEqual({particles:0,shake:0});
+});
+
 test('HUD rows, expanded hints and touch targets do not overlap in chapters 3 and 4',async({page},info)=>{
  for(const stage of [5,6]){
   await openChapter(page,stage);
