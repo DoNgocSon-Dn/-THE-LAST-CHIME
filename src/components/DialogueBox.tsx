@@ -4,6 +4,7 @@ import { DialogueLine, SpeakerId, DialogueEmotion } from '../types/game';
 import { StageConfig } from '../game/levelData';
 import { ChevronRight, Sparkles } from 'lucide-react';
 import { soundManager } from '../game/audio';
+import {controlText} from '../game/controlText';
 
 interface CharacterPortraitProps {
   speaker: SpeakerId;
@@ -22,7 +23,7 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ lines, onClose }) => {
   const [charIndex, setCharIndex] = useState(0);
 
   const currentLine = lines[lineIndex] || lines[0];
-  const fullText = currentLine?.text || '';
+  const fullText = controlText(currentLine?.text || '');
   const isTyping = charIndex < fullText.length;
 
   useEffect(() => {
@@ -127,11 +128,11 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ lines, onClose }) => {
 
           <div className="mt-2 flex items-center justify-end gap-1.5 text-xs font-sans text-amber-300/90">
             <span>
-              {isTyping
+              {controlText(isTyping
                 ? 'Nhấn [E] / [Space] để hiện hết câu'
                 : lineIndex < lines.length - 1
                   ? 'Nhấn [E] / [Space] để nghe tiếp'
-                  : 'Nhấn [E] / [Space] để tiếp tục hành trình'}
+                  : 'Nhấn [E] / [Space] để tiếp tục hành trình')}
             </span>
             <ChevronRight className="w-4 h-4 animate-pulse" />
           </div>

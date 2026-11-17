@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, BookOpen, Feather } from 'lucide-react';
+import {controlText} from '../game/controlText';
 
 interface NoteModalProps {
   note: {
@@ -34,7 +35,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({ note, onClose }) => {
 
         {/* Note Content */}
         <div className="text-sm leading-relaxed text-[#3e2723] whitespace-pre-line bg-[#efebe9]/50 p-4 rounded-xl border border-[#d7ccc8]/80 font-sans">
-          {note.content}
+          {controlText(note.content)}
         </div>
 
         {/* Author / Origin */}
@@ -51,7 +52,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({ note, onClose }) => {
             onClick={onClose}
             className="px-6 py-2 rounded-xl bg-[#5d4037] hover:bg-[#4e342e] text-[#fbe9e7] font-semibold text-xs tracking-wider uppercase transition shadow-md"
           >
-            Gấp Lại [Esc / E]
+            {controlText('Gấp Lại [Esc / E]')}
           </button>
         </div>
       </div>
