@@ -18,14 +18,14 @@ function MenuDialog({title,onClose,children}:{title:string;onClose:()=>void;chil
  };window.addEventListener('keydown',key,true);return()=>{window.removeEventListener('keydown',key,true);before?.focus();};},[onClose]);
  return <div className="title-dialog-backdrop"><div className="title-dialog" ref={ref} role="dialog" aria-modal="true" aria-labelledby="title-dialog-heading" tabIndex={-1}><header><h2 id="title-dialog-heading">{title}</h2><button onClick={onClose} aria-label="Đóng cửa sổ">×</button></header>{children}</div></div>;
 }
-const DIFFICULTY_LABELS:Record<Difficulty,string>={easy:'Dễ · hồi 1,5s',normal:'Thường · hồi 3s',hard:'Khó · hồi 4,5s'};
+const DIFFICULTY_LABELS:Record<Difficulty,string>={easy:'Dễ · hồi 1,5s · bóng chậm hơn',normal:'Thường · hồi 3s · cân bằng gốc',hard:'Khó · hồi 4,5s · bóng nhanh hơn'};
 function ControlSettings(){
  const [,bump]=useState(0),[listening,setListening]=useState<Action|null>(null),[difficulty,setDiff]=useState(getDifficulty()),[warn,setWarn]=useState('');
  useEffect(()=>{if(!listening)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')return;e.preventDefault();e.stopImmediatePropagation();if(['Shift','Control','Alt','Meta'].includes(e.key)&&e.key!=='Shift')return;
   if(rebind(listening,e.key))setWarn('');else setWarn('Phím này được dành riêng (Enter, Tab, H, Esc).');setListening(null);bump(n=>n+1);};
   window.addEventListener('keydown',onKey,true);return()=>window.removeEventListener('keydown',onKey,true);},[listening]);
  return <>
-  <fieldset className="settings-group"><legend>Độ khó</legend>{(['easy','normal','hard'] as Difficulty[]).map(d=><label key={d}><input type="radio" name="difficulty" checked={difficulty===d} onChange={()=>{setDifficulty(d);setDiff(d);}}/> {DIFFICULTY_LABELS[d]}</label>)}<small>Độ khó chỉ đổi thời gian hồi khi đổi quá khứ/hiện tại.</small></fieldset>
+  <fieldset className="settings-group"><legend>Độ khó</legend>{(['easy','normal','hard'] as Difficulty[]).map(d=><label key={d}><input type="radio" name="difficulty" checked={difficulty===d} onChange={()=>{setDifficulty(d);setDiff(d);}}/> {DIFFICULTY_LABELS[d]}</label>)}<small>Dễ: bóng chậm hơn 15%, điểm yếu boss mở lâu hơn 40%. Khó: bóng nhanh hơn 8%, điểm yếu mở ngắn hơn 20%. Thường giữ cân bằng gốc.</small></fieldset>
   <fieldset className="settings-group"><legend>Phím điều khiển</legend>{ACTIONS.map(a=><div key={a} className="key-row"><span>{ACTION_LABELS[a]}</span><button onClick={()=>{setListening(listening===a?null:a);setWarn('');}} aria-label={`Đổi phím ${ACTION_LABELS[a]}`}>{listening===a?'Nhấn một phím…':keyLabel(getBinding(a))}</button></div>)}
    {warn&&<small role="alert">{warn}</small>}<button onClick={()=>{resetBindings();bump(n=>n+1);setWarn('');}}>Khôi phục phím mặc định</button><small>Phím mũi tên và W vẫn dùng được. Hội thoại dùng {keyLabel(getBinding('interact'))} / {keyLabel(getBinding('jump'))} hoặc Enter.</small></fieldset>
  </>;

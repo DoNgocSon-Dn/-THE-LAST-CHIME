@@ -7,6 +7,7 @@ import { Sun, Moon, Volume2, VolumeX, Pause, Sparkles, Compass, Lock, BookOpen }
 import { soundManager } from '../game/audio';
 import { getHintSet } from '../game/hints';
 import {actionKeyLabel,controlText} from '../game/controlText';
+import {cooldownLabel} from '../game/controls';
 
 interface HUDProps {
   timeline: Timeline;
@@ -52,7 +53,7 @@ export const HUD: React.FC<HUDProps> = ({
         if(puzzles.currentStage===3)return {chapterLabel:'Chương 2 — Sự thật trong căn nhà',hint:!puzzles.hallwayPassageCleared?'Quan sát tay quay giếng ở hai thời điểm.':!puzzles.motherDiaryCh3Read?'Chiếc gàu đã lên. Trong hộp sắt còn dấu chỉ đỏ.':'Chìa khóa có tên Linh. Có thể quay lại cửa phòng em từ hành lang.'};
         if(puzzles.currentStage===4)return {chapterLabel:'Chương 2 — Sự thật trong căn nhà',hint:!puzzles.musicBoxPlayed?'Những hình vẽ trong phòng Linh thay đổi qua hai thời điểm.':!puzzles.greenhouseAligned?'Nhà kính có một mạch sáng và tấm đồng bị che khuất.':!puzzles.motherNoteCh4Read?'Còn bản vẽ của Mẹ trong nhà kính chưa đọc.':'Mạch sáng đã nối tới cổng rừng.'};
         if(!puzzles.hasWatch)return {chapterLabel:'Chương 2 — Đồng hồ của Ông Ngoại',hint:currentRoom.nameVi.includes('Hành lang')?'Bạn đang ở hành lang. Tới cửa Phòng khách và nhấn E để vào.':'Tìm chiếc đồng hồ bỏ túi trong phòng khách. Dùng cửa để quay lại hành lang.'};
-        if(!puzzles.testedTimelineSwitch)return {chapterLabel:'Chương 2 — Hai mốc thời gian',hint:'Nhấn Q để thử chuyển sang Quá Khứ. Chờ 3 giây sau mỗi lần chuyển.'};
+        if(!puzzles.testedTimelineSwitch)return {chapterLabel:'Chương 2 — Hai mốc thời gian',hint:`Nhấn Q để thử chuyển sang Quá Khứ. Chờ ${cooldownLabel()} giây sau mỗi lần chuyển.`};
         if (!puzzles.clockRepaired) {
           return {
             chapterLabel: 'Chương 2 / 4 — Chiếc Đồng Hồ Ngừng Chạy',

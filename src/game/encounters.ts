@@ -1,4 +1,12 @@
 import type {PuzzleState,Timeline} from '../types/game';
+import {difficultyModifiers,getDifficulty,type Difficulty} from './controls';
+export function chaseSpeed(x:number,difficulty:Difficulty=getDifficulty()){
+ const normal=x<1200?145:x<2400?158:170;
+ return normal*difficultyModifiers(difficulty).chaseSpeed;
+}
+export function bossExposureDuration(hits:number,difficulty:Difficulty=getDifficulty()){
+ return (3-hits*.6)*difficultyModifiers(difficulty).bossExposure;
+}
 export const CHASE_SEALS=[{x:900,era:'PAST'},{x:1750,era:'PRESENT'},{x:2630,era:'PAST'}]as const;
 export const BOSS_TRAPS=[{x:400,y:348},{x:650,y:312},{x:950,y:315}]as const;
 export function completeSeals(p:PuzzleState){return [0,1,2].every(i=>p.chaseSeals?.includes(i));}

@@ -29,8 +29,15 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catc
 export const getBinding = (a: Action) => state.keys[a] ?? DEFAULT_KEYS[a];
 export const getDifficulty = () => state.difficulty;
 export function setDifficulty(d: Difficulty) { state = { ...state, difficulty: d }; save(); }
+const DIFFICULTY_MODIFIERS={
+ easy:{cooldown:.5,chaseSpeed:.85,bossExposure:1.4},
+ normal:{cooldown:1,chaseSpeed:1,bossExposure:1},
+ hard:{cooldown:1.5,chaseSpeed:1.08,bossExposure:.8},
+}as const;
+export const difficultyModifiers=(difficulty:Difficulty=getDifficulty())=>DIFFICULTY_MODIFIERS[difficulty];
 /** Multiplier on the timeline-switch cooldown. */
-export const cooldownScale = () => ({ easy: 0.5, normal: 1, hard: 1.5 }[state.difficulty]);
+export const cooldownScale = () => difficultyModifiers().cooldown;
+export const cooldownLabel=()=>String(3*cooldownScale()).replace('.',',');
 
 /** Returns the action previously using `key`, if any (it is swapped to the old key of `action`). */
 export function rebind(action: Action, key: string): boolean {

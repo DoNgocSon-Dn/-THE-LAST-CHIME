@@ -1,5 +1,6 @@
 import type { PuzzleState } from '../types/game';
 import { bossDefeated } from './encounters';
+import {cooldownLabel} from './controls';
 
 export interface HintSet {
   /** Identifies the current objective step; the tier resets when it changes. */
@@ -29,7 +30,7 @@ export function getHintSet(p: PuzzleState, chapter: number, roomName: string): H
         return set('c2-forest', 'Mạch sáng đã nối tới cổng rừng.', 'Đi tiếp về phía cổng rừng.', 'Dùng Q về Hiện tại, tới cổng rừng trong nhà kính và nhấn E để mở cổng.');
       }
       if (!p.hasWatch) return set(roomName.includes('Hành lang') ? 'c2-hall' : 'c2-watch', 'Chiếc đồng hồ bỏ túi ở phòng khách.', 'Từ hành lang, đi tới cửa phòng khách và nhấn E.', 'Vào phòng khách, kiểm tra đồng hồ bỏ túi để nhặt.');
-      if (!p.testedTimelineSwitch) return set('c2-q', 'Chiếc đồng hồ cho phép đổi thời điểm.', 'Nhấn Q.', 'Nhấn Q để sang Quá khứ. Sau mỗi lần đổi phải chờ 3 giây.');
+      if (!p.testedTimelineSwitch) return set('c2-q', 'Chiếc đồng hồ cho phép đổi thời điểm.', 'Nhấn Q.', `Nhấn Q để sang Quá khứ. Sau mỗi lần đổi phải chờ ${cooldownLabel()} giây.`);
       if (!p.clockRepaired) return p.clockGearFound
         ? set('c2-fix', 'Bánh răng đã có, giờ cần đồng hồ lớn.', 'Đồng hồ lớn ở phòng khách, phải ở Quá khứ.', 'Ở Quá khứ, mở đồng hồ lớn, đặt giờ 3 và phút 15, rồi chọn Lên dây cót.')
         : set('c2-gear', 'Đồng hồ lớn thiếu một bánh răng.', 'Bánh răng nằm ở xưởng đồng hồ, trong Quá khứ.', 'Sang Quá khứ, vào xưởng đồng hồ và kiểm tra bàn để nhặt bánh răng.');
