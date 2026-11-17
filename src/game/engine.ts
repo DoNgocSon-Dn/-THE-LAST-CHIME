@@ -579,7 +579,7 @@ export class GameEngine {
           soundManager.playSwitchFlip();
           break;
         case 'chime_success':
-          soundManager.playChimeSuccess();
+          {soundManager.playChimeSuccess();this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height*.4,'spark');}
           this.stats.puzzlesSolvedCount++;
           break;
         case 'door_unlock':
@@ -628,7 +628,7 @@ export class GameEngine {
   public completeWithEnding(ending: EndingType) {
     this.puzzles.chosenEnding = ending;
     this.callbacks.onPuzzleUpdate({ ...this.puzzles });
-    soundManager.playChimeSuccess();
+    {soundManager.playChimeSuccess();this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height*.4,'spark');}
     this.gameState = 'ending';
     this.callbacks.onTriggerEnding(this.stats, ending);
     this.saveGame();
@@ -818,7 +818,7 @@ export class GameEngine {
     if ((this.justPressed.has('r') || this.justPressed.has('c')) && this.puzzles.musicBoxPlayed && !this.pulseCooldown) {
       this.pulseTime = PULSE_DURATION;
       this.pulseCooldown = 6;
-      soundManager.playChimeSuccess();
+      {soundManager.playChimeSuccess();this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height*.4,'spark');}
       if (this.pursuer.active && this.pursuer.phase === this.timeline
           && this.pursuerDistance() <= PULSE_RANGE) {
         this.pursuer.stagger = Math.max(this.pursuer.stagger ?? 0, 1.5);
@@ -895,7 +895,7 @@ export class GameEngine {
       if(this.bossExposedSeconds>0){this.bossExposedSeconds=Math.max(0,this.bossExposedSeconds-dt);if(!this.bossExposedSeconds){delete this.puzzles.bossExposedTrap;delete this.puzzles.bossArmedTrap;this.pursuer.exposed=false;changed=true;}}
       const armed=this.puzzles.bossArmedTrap,trap=armed===undefined?undefined:BOSS_TRAPS[armed];
       if(trap&&this.bossArmSeconds>0&&this.puzzles.bossExposedTrap===undefined&&this.timeline==='PRESENT'&&this.pursuer.phase==='PRESENT'&&Math.abs(this.pursuer.x-trap.x)<85&&Math.abs(this.pursuer.y+this.pursuer.height-(trap.y+(armed===0?50:60)))<64){
-        this.puzzles.bossExposedTrap=armed;this.bossExposedSeconds=3-(this.puzzles.bossHits?.length??0)*.6;this.pursuer.exposed=true;changed=true;soundManager.playChimeSuccess();this.callbacks.onNotification('Vỏ quái đã sáng lên — xả bẫy ngay!');
+        this.puzzles.bossExposedTrap=armed;this.bossExposedSeconds=3-(this.puzzles.bossHits?.length??0)*.6;this.pursuer.exposed=true;changed=true;{soundManager.playChimeSuccess();this.renderer.burst(this.player.x+this.player.width/2,this.player.y+this.player.height*.4,'spark');}this.callbacks.onNotification('Vỏ quái đã sáng lên — xả bẫy ngay!');
       }
       if(!this.pursuer.stagger&&!this.bossExposedSeconds){
         this.pursuer.x+=Math.sign(this.player.x-this.pursuer.x)*(this.timeline==='PAST'&&this.bossPastSeconds<6?70:140+(this.puzzles.bossHits?.length??0)*18)*dt;
