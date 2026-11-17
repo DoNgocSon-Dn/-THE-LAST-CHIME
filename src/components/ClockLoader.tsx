@@ -11,15 +11,18 @@ function WorkshopScene({progress,error}:Props){
   const motion=matchMedia('(prefers-reduced-motion: reduce)'),start=performance.now();
   sheet.onload=()=>{if(alive)sprites=prepareWorkshopSprites(sheet);};
   plate.src=`${import.meta.env.BASE_URL}assets/loading/workshop-plate.png`;sheet.src=`${import.meta.env.BASE_URL}assets/loading/workshop-animations.png`;
-  const paint=(now:number)=>{if(!alive)return;frame=requestAnimationFrame(paint);if(document.hidden||now-last<(motion.matches?250:1000/30))return;const dt=Math.min(.1,(now-last)/1000);last=now;
+  const paint=(now:number)=>{if(!alive)return;frame=requestAnimationFrame(paint);if(document.hidden||now-last<(motion.matches?250:1000/62))return;const dt=Math.min(.1,(now-last)/1000);last=now;
    if(!plate.complete||!plate.naturalWidth)return;const t=motion.matches?0:(now-start)/1000,{progress:p,error:err}=state.current;
    ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,1376,768);ctx.drawImage(plate,0,0,1376,768);
    if(sprites){
     // Same An model as the game, seated companion atlas.
     const key=`anSeatedRepair${motion.matches?0:Math.floor(t*4)%8}`,actor=actors.get(key),base=actors.get('anSeatedRepair0');
     if(actor&&base){const scale=224/base.height;ctx.save();ctx.translate(512,592);ctx.scale(-scale,scale);ctx.drawImage(actor,-actors.getCharacterPivot(key),-actor.height);ctx.restore();}
-    const pendulum=[0,1,2,3,4,5,4,3,2,1][Math.floor(t*7)%10];ctx.drawImage(sprites.pendulums[pendulum],478,205,108,100);
-    const gear=Math.floor(t*6)%6;ctx.drawImage(sprites.gears[gear],241,446,44,30);ctx.drawImage(sprites.gears[5-gear],202,444,30,23);
+    // Cross-fade neighbouring animation frames so motion is continuous instead of stepping at a few fps.
+    const blend=(frames:HTMLCanvasElement[],pos:number,x:number,y:number,w:number,h:number)=>{const n=frames.length,i=Math.floor(pos)%n,f=pos-Math.floor(pos);ctx.globalAlpha=1;ctx.drawImage(frames[i],x,y,w,h);if(f>.001){ctx.globalAlpha=f;ctx.drawImage(frames[(i+1)%n],x,y,w,h);ctx.globalAlpha=1;}};
+    // Pendulum swings with a sine ease across frames 0..5 (ping-pong).
+    const swing=(1-Math.cos(t*Math.PI*1.1))/2*5;blend(sprites.pendulums,swing,478,205,108,100);
+    const gp=t*5;blend(sprites.gears,gp,241,446,44,30);blend(sprites.gears,((-gp)%6+6)%6,202,444,30,23);
    }
    // Light remains subtle; the original illustration supplies all architecture.
    const glow=ctx.createRadialGradient(408,408,4,408,408,145);glow.addColorStop(0,`rgba(255,204,106,${.035+(Math.sin(t*4)+1)*.008})`);glow.addColorStop(1,'#ffd47c00');ctx.fillStyle=glow;ctx.fillRect(260,260,300,300);
@@ -27,7 +30,7 @@ function WorkshopScene({progress,error}:Props){
    for(let j=0;j<15;j++){const x=988+(j*37)%158,y=148+(j*47+t*83)%264;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-4,y+11);ctx.stroke();}ctx.restore();
    for(let j=0;j<14;j++){const x=160+(j*53+t*4)%370,y=300+(j*31-t*6)%160;ctx.globalAlpha=.25+(Math.sin(t*2+j)+1)*.15;ctx.fillStyle='#ffd888';ctx.fillRect(x,y,2,2);}ctx.globalAlpha=1;
    const target=p===undefined?0:Math.max(0,Math.min(1,p));
-   displayed=Math.min(target,displayed+dt*.24);
+   displayed=target<displayed?target:displayed+(target-displayed)*(1-Math.exp(-dt*5));if(target-displayed<.0005)displayed=target;
    const fill=motion.matches?target:displayed;
    // A restrained brass instrument panel replaces the noisy baked loading strip.
    const panel=ctx.createLinearGradient(0,610,0,768);panel.addColorStop(0,'#101712');panel.addColorStop(1,'#080d0b');ctx.fillStyle=panel;ctx.fillRect(0,610,1376,158);
