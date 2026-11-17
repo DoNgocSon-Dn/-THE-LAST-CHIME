@@ -164,6 +164,7 @@ export class PixelAssets{
     if(obj.id.startsWith('stage_exit')||obj.id==='final_door')key=past?'doorPast':'doorPresent';
     const keys:Record<string,string>={clock:past?'clockPast':'clockPresent',pocket_watch_box:'watch',clock_gear:'gear',family_portrait:past?'familyPast':'familyPresent',fireplace:past?'benchPast':'benchPresent',hallway_pulley:'gear',light_switch:'key',mother_note_ch4:'book',music_box:'box',entrance_journal:'letter',mother_note_ch1:'letter',mother_diary_ch3:'diary',final_diary_ch6:'diary',temporal_anchor:'seal',final_core:'portal'};
     key=keys[obj.id]||key;if(obj.id.startsWith('memory_'))key=obj.id==='memory_garden'?'ribbon':'diary';if(!key)return false;
+    if(obj.id==='stage_exit_5')key='portal';
     const heights:Record<string,number>={clock:128,final_core:90,letter:24,diary:27,gear:23,ribbon:25,book:30,box:24,key:20,seal:44,watch:14};
     const h=obj.chapter===1&&key==='letter'?10:heights[obj.id]??heights[key]??obj.height;
     const cy=obj.y+obj.height;

@@ -20,7 +20,7 @@ export const MAP_CROPS:Record<number,{past:MapCrop;present:MapCrop}>={
   5:{past:rect(25,66,1550,251,303),present:rect(25,378,1550,261,622)},
   6:{past:rect(25,25,1550,300,311),present:rect(25,348,1550,299,632)},
   7:{past:rect(0,0,1600,328,310),present:rect(0,346,1600,287,615)},
-  8:{past:rect(0,65,1600,272,308),present:rect(0,402,1600,247,630)},
+  8:{past:rect(0,0,1600,336,308),present:rect(0,402,1600,247,630)},
   9:{past:rect(0,0,1600,329,310),present:rect(0,344,1600,316,638)},
   10:{past:rect(0,42,1600,586,520),present:rect(0,42,1600,586,520)},
   11:{past:rect(0,45,1600,583,520),present:rect(0,45,1600,583,520)},

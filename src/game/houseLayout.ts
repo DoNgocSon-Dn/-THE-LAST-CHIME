@@ -21,6 +21,15 @@ export function houseCamera(stage:number,x:number,viewport:number,width:number){
 }
 /** Doors are added after scale normalization; every destination uses actual world coordinates. */
 export function configureHouseLayout(stages:Record<number,StageConfig>){
+ // Follow the front-door stairs separately in each era; the ruined porch is higher.
+ for(const [timeline,rise,count]of [['PAST',41.25,4],['PRESENT',52.5,5]]as const){
+  const stepWidth=14,start=1020;
+  for(let step=0;step<count;step++)stages[1].platforms.push({
+   id:`terrain_porch_step_${timeline}_${step}`,x:start+step*stepWidth,
+   y:480-rise*(step+1)/count,width:step===count-1?1200-(start+step*stepWidth):stepWidth,
+   height:120+rise,type:'solid',timeline,bakedIntoMap:true,stepHeight:12,
+  });
+ }
  const two=stages[2],three=stages[3],four=stages[4];
  const move=(cfg:StageConfig,id:string,x:number,y?:number)=>{for(const o of cfg.interactables)if(o.id===id){o.x=x;if(y!==undefined)o.y=y;}};
  two.spawnX=95;two.roomNameVi='Hành lang & các phòng trong nhà';two.subtitleVi='Những cánh cửa cũ và chiếc đồng hồ của Ông Ngoại';
@@ -44,9 +53,15 @@ export function configureHouseLayout(stages:Record<number,StageConfig>){
  for(const cfg of [two,four])for(const room of chapterRooms(cfg.stage).slice(1))cfg.platforms.push({id:`wall_room_${cfg.stage}_${room.index}`,x:room.start-8,y:0,width:16,height:600,type:'solid',timeline:'both',bakedIntoMap:true});
  three.chapterTitleVi='Chương 3 — Dấu vết bên giếng';three.roomNameVi='Sân sau & giếng cũ';three.subtitleVi='Sợi chỉ đỏ, chiếc gàu kẹt và hộp sắt của Mẹ';three.spawnX=90;three.spawnY=480-PLAYER_HEIGHT;
  three.platforms=three.platforms.filter(p=>p.id==='ground_main'||p.id.startsWith('wall_')||p.id==='ceiling');
+ // The past courtyard rises four painted steps at its right edge.
+ // Keep the ruined present floor flat, as painted in the second panel.
+ for(let step=0;step<4;step++)three.platforms.push({
+  id:`terrain_yard_step_${step}`,x:1068+step*14,y:470-step*10,
+  width:step===3?90:14,height:130+step*10,type:'solid',timeline:'PAST',bakedIntoMap:true,stepHeight:12,
+ });
  three.interactables=three.interactables.filter(o=>['hallway_pulley','mother_diary_ch3','memory_well'].includes(o.id));three.memoryNPCs=[];
  move(three,'hallway_pulley',390,400);move(three,'mother_diary_ch3',480,415);move(three,'memory_well',970,415);
- const pulley=three.interactables.find(o=>o.id==='hallway_pulley')!;Object.assign(pulley,{nameVi:'Tay quay giếng cũ',promptVi:'Quay tay kéo gàu giếng',bakedIntoMap:true});
+ const pulley=three.interactables.find(o=>o.id==='hallway_pulley')!;Object.assign(pulley,{nameVi:'Tay quay giếng cũ',promptVi:'Kiểm tra tay quay giếng',timeline:'both',bakedIntoMap:true});
  const diary=three.interactables.find(o=>o.id==='mother_diary_ch3')!;Object.assign(diary,{nameVi:'Hộp sắt trong gàu giếng',promptVi:'Mở hộp sắt trong gàu',bakedIntoMap:true});
  door(three,'yard_kitchen','Trở vào nhà bếp',65,{stage:2,x:3070});
  door(three,'yard_garden','Mở cổng ra vườn',1080,{stage:4,x:900,requiresPuzzle:'motherDiaryCh3Read',lockedMessage:'Cổng vườn bị khóa. Sợi chỉ đỏ vướng trên tay quay giếng.'});

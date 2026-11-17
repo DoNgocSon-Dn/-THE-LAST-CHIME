@@ -25,7 +25,7 @@ test('Exterior tutorial has no freestanding clock; doors use their painted archi
  assert.equal(STAGE_CONFIGS[1].interactables.some(o=>o.id==='clock'||o.type==='pocket_watch'),false);
  assert.ok(STAGE_CONFIGS[2].interactables.some(o=>o.type==='pocket_watch'));
  for(const cfg of Object.values(STAGE_CONFIGS))for(const obj of cfg.interactables)
-  if(obj.id.startsWith('stage_exit_')||obj.id==='final_door')assert.equal(obj.bakedIntoMap,true);
+  if(obj.id.startsWith('stage_exit_')||obj.id==='final_door')assert.equal(obj.bakedIntoMap,obj.id!=='stage_exit_5');
 });
 
 test('Actor art, collision spawns and adult/child proportions share a world scale',()=>{

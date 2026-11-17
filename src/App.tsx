@@ -27,6 +27,20 @@ import { ClockLoader } from './components/ClockLoader';
 import { preloadGameAssets } from './game/preload';
 
 export default function App() {
+  const [devMode,setDevMode]=useState(()=>sessionStorage.getItem('THE_LAST_CHIME_DEV_MODE')==='1');
+  useEffect(()=>{
+    let code='';
+    const unlock=(event:KeyboardEvent)=>{
+      if(event.repeat||event.ctrlKey||event.altKey||event.metaKey||event.target instanceof HTMLElement&&event.target.closest('input,textarea,[contenteditable="true"]'))return;
+      if(event.key==='Shift')return;
+      code=event.key==='@'?code+'@':'';
+      if(code==='@@@@'){
+        code='';sessionStorage.setItem('THE_LAST_CHIME_DEV_MODE','1');setDevMode(true);
+      }
+    };
+    window.addEventListener('keydown',unlock,true);
+    return()=>window.removeEventListener('keydown',unlock,true);
+  },[]);
   const pendingTitleChapter=useRef<number|null>(null);
   const [chapterPicker,setChapterPicker]=useState(false);
   const [activeMechanism,setActiveMechanism]=useState<MechanismId|null>(null);
@@ -217,7 +231,7 @@ export default function App() {
 
   const handleSelectStage = (stageNum: number) => {
     setChapterPicker(false);
-    if(stageNum>(engineRef.current?.puzzles.furthestChapter??chapterForArea(engineRef.current?.puzzles.furthestStage??puzzles.currentStage)))return;
+    if(!devMode&&stageNum>(engineRef.current?.puzzles.furthestChapter??chapterForArea(engineRef.current?.puzzles.furthestStage??puzzles.currentStage)))return;
     if (engineRef.current) {
       setActiveDialogue(null);
       engineRef.current.loadStage(areaForChapter(stageNum), true);
@@ -280,6 +294,7 @@ export default function App() {
           onContinue={continueGame}
           onSelectChapter={chooseTitleChapter}
           hasSave={hasSave}
+          devMode={devMode}
         />
       )}
 
@@ -335,7 +350,7 @@ export default function App() {
             onClose={()=>{engineRef.current?.closeMechanism();setActiveMechanism(null);}}
             onSubmit={values=>{const solved=engineRef.current?.submitMechanism(activeMechanism,values)===true;if(solved)setActiveMechanism(null);return solved;}}/>}
 
-          {chapterPicker&&<ChapterSelect unlocked={puzzles.furthestChapter??chapterForArea(puzzles.furthestStage??puzzles.currentStage)} current={puzzles.storyChapter??puzzles.currentStage} onSelect={handleSelectStage} onClose={()=>setChapterPicker(false)}/>}
+          {chapterPicker&&<ChapterSelect unlocked={devMode?4:puzzles.furthestChapter??chapterForArea(puzzles.furthestStage??puzzles.currentStage)} current={puzzles.storyChapter??puzzles.currentStage} onSelect={handleSelectStage} onClose={()=>setChapterPicker(false)}/>}
 
           {/* Pause Modal */}
           {gameState === 'paused' && (
@@ -362,6 +377,7 @@ export default function App() {
           )}
         </>
       )}
+      {devMode&&<span role="status" className="absolute bottom-2 right-3 z-50 pointer-events-none text-xs text-amber-200 bg-black/70 px-2 py-1">DEV MODE · 4/4 chương</span>}
     </div>
   );
 }

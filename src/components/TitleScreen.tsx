@@ -20,7 +20,7 @@ function TitleSettings({muted,onMute}:{muted:boolean;onMute:()=>void}){
  const [music,setMusic]=useState(soundManager.getMusicVolume()),[sfx,setSfx]=useState(soundManager.getSfxVolume());
  return <div className="title-settings"><button onClick={onMute} aria-pressed={!muted}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}Âm thanh {muted?'đã tắt':'đang bật'}</button><label>Nhạc nền <output>{Math.round(music*100)}%</output><input aria-label="Âm lượng nhạc nền" type="range" min="0" max="1" step="0.05" value={music} onChange={e=>{const value=Number(e.target.value);setMusic(value);soundManager.setMusicVolume(value);}}/></label><label>Hiệu ứng <output>{Math.round(sfx*100)}%</output><input aria-label="Âm lượng hiệu ứng" type="range" min="0" max="1" step="0.05" value={sfx} onChange={e=>{const value=Number(e.target.value);setSfx(value);soundManager.setSfxVolume(value);soundManager.playClockTick();}}/></label></div>;
 }
-export function TitleScreen({onStart,onContinue,onSelectChapter,hasSave}:{onStart:()=>void;onContinue:()=>void;onSelectChapter:(stage:number)=>void;hasSave:boolean}){
+export function TitleScreen({onStart,onContinue,onSelectChapter,hasSave,devMode=false}:{onStart:()=>void;onContinue:()=>void;onSelectChapter:(stage:number)=>void;hasSave:boolean;devMode?:boolean}){
  const [muted,setMuted]=useState(soundManager.getMuted()),[panel,setPanel]=useState<'chapters'|'settings'|null>(null),[reaction,setReaction]=useState<TitleReaction>(null);
  const [unlocked]=useState(unlockedChapter);
  const react=(who:'linh'|'an')=>setReaction({who,at:performance.now()});
@@ -39,7 +39,7 @@ export function TitleScreen({onStart,onContinue,onSelectChapter,hasSave}:{onStar
    </nav>
    <button className="illustrated-menu-audio" aria-label={muted?'Bật âm thanh':'Tắt âm thanh'} onClick={toggleMute}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}</button>
   </div>
-  {panel==='chapters'&&<ChapterSelect unlocked={unlocked} current={hasSave?currentSavedChapter():0} onSelect={onSelectChapter} onClose={()=>setPanel(null)}/>}
+  {panel==='chapters'&&<ChapterSelect unlocked={devMode?4:unlocked} current={hasSave?currentSavedChapter():0} onSelect={onSelectChapter} onClose={()=>setPanel(null)}/>}
   {panel==='settings'&&<MenuDialog title="Cài đặt" onClose={()=>setPanel(null)}><TitleSettings muted={muted} onMute={toggleMute}/></MenuDialog>}
  </section>;
 }

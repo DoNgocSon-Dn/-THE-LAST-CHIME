@@ -18,6 +18,19 @@ export function MenuScene({reaction}:{reaction:TitleReaction}){
    const girlActive=!motion.matches&&((react?.who==='linh'&&now-react.at<2400)||t%11<2.4);
    const anActive=!motion.matches&&((react?.who==='an'&&now-react.at<2600)||(t+4)%13<2.8);
    ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,1376,768);ctx.drawImage(plate,0,0,1376,768);
+   // Restore the dial behind the duplicate THE baked above the complete wordmark.
+   ctx.save();
+   ctx.beginPath();ctx.rect(0,0,1376,768);ctx.rect(260,143,850,93);ctx.clip('evenodd');
+   ctx.beginPath();ctx.arc(688,174,121,0,Math.PI*2);ctx.clip();
+   const dial=ctx.createRadialGradient(672,145,12,688,174,121);
+   dial.addColorStop(0,'#c3b99d');dial.addColorStop(1,'#a69e88');
+   ctx.fillStyle=dial;ctx.fillRect(567,53,242,242);
+   ctx.strokeStyle='#746e59';ctx.lineWidth=2;ctx.beginPath();ctx.arc(688,174,86,0,Math.PI*2);ctx.stroke();
+   ctx.fillStyle='#514330';ctx.font='bold 24px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+   ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'].forEach((numeral,i)=>{
+    ctx.save();ctx.translate(688,174);ctx.rotate(i*Math.PI/6);ctx.fillText(numeral,0,-104);ctx.restore();
+   });
+   ctx.restore();
    // Warm drifting pollen in the past, fine rain in the present.
    for(let i=0;i<24;i++){
     const x=(i*137.3+t*(6+i%3))%670,y=285+(i*67.7-t*(4+i%4))%380;

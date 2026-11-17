@@ -54,7 +54,7 @@ export const HUD: React.FC<HUDProps> = ({
         if (!puzzles.clockRepaired) {
           return {
             chapterLabel: 'Chương 2 / 4 — Chiếc Đồng Hồ Ngừng Chạy',
-            hint: puzzles.clockGearFound ? 'Mang bánh răng về đồng hồ lớn trong phòng khách ở Quá Khứ.' : 'Về Quá Khứ và tìm bánh răng trong nhà bếp.'
+            hint: puzzles.clockGearFound ? 'Mang bánh răng về đồng hồ lớn trong phòng khách ở Quá Khứ.' : 'Về Quá Khứ và tìm bánh răng trên bàn trong xưởng đồng hồ.'
           };
         }
         if (!puzzles.clockInspectedPresent) {
@@ -68,6 +68,10 @@ export const HUD: React.FC<HUDProps> = ({
           hint: 'Cửa sau đã mở. Quay ra hành lang, vào nhà bếp để tới sân sau.'
         };
 
+      case 3:
+        return {chapterLabel:'Chương 3 / 4 — Cuộc chạy trốn',hint:puzzles.chaseSealsComplete?'Tới cổng cộng hưởng trên đảo cuối và nhấn E để vào tâm điểm.':'Giữ ba ấn ở đúng thời điểm. Dùng Q qua vật cản, nhảy qua các bệ đá và R để cản cái bóng.'};
+      case 4:
+        return {chapterLabel:'Chương 4 / 4 — Tiếng chuông cuối',hint:!bossDefeated(puzzles)?'Cuốn nhật ký nằm ở bệ đá thấp bên trái. Ba cơ cấu quanh hang có thể giữ cái bóng.':!puzzles.finalDiaryCh6Read?'Đọc cuốn nhật ký ở bệ đá thấp bên trái.':!puzzles.finalCoreAligned?'Đồng bộ trụ cạnh lõi trong Quá Khứ, dựa vào ghi chép của Mẹ.':'Tới lõi thời gian và nhấn E để đưa ra lựa chọn.'};
       default:
         return {chapterLabel:`Chương ${activeStage} / 4`,hint:''};
     }

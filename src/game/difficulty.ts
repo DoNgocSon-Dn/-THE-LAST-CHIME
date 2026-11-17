@@ -11,7 +11,7 @@ export function configureDifficulty(stages:Record<number,StageConfig>){
  chase.platforms.push({id:'chase_past_gate',x:1450,y:190,width:26,height:290,type:'solid',timeline:'PAST',label:'Cột ký ức nguyên vẹn'},
  {id:'chase_present_gate',x:2250,y:170,width:26,height:310,type:'solid',timeline:'PRESENT',label:'Mảng đá sập'},
  {id:'chase_seal_gate',x:3430,y:120,width:28,height:360,type:'solid',timeline:'both',requiresPuzzleNotSolved:'chaseSealsComplete',label:'Cổng ba ấn'});
- for(const [i,seal]of CHASE_SEALS.entries())chase.interactables.push({id:`chase_seal_${i}`,name:`Seal ${i+1}`,nameVi:`Ấn cộng hưởng ${i+1}`,descriptionVi:'Giữ lại dấu ấn trong thời điểm đúng.',promptVi:`Chạm ấn ${i+1}`,x:seal.x,y:420,width:28,height:48,type:'temporal_anchor',timeline:'both',chapter:5,room:'stage_5'});
+ for(const [i,seal]of CHASE_SEALS.entries())chase.interactables.push({id:`chase_seal_${i}`,name:`Seal ${i+1}`,nameVi:`Ấn cộng hưởng ${i+1}`,descriptionVi:'Giữ lại dấu ấn trong thời điểm đúng.',promptVi:`Chạm ấn ${i+1}`,x:seal.x,y:432,width:28,height:48,type:'temporal_anchor',timeline:'both',chapter:5,room:'stage_5'});
  const arena=stages[6];for(const [i,trap]of BOSS_TRAPS.entries())arena.interactables.push({id:`boss_trap_${i}`,name:`Temporal trap ${i+1}`,nameVi:`Bẫy cộng hưởng ${i+1}`,descriptionVi:'Cơ cấu giữ nhịp giữa hai thời điểm.',promptVi:`Thao tác bẫy ${i+1}`,x:trap.x,y:trap.y,width:34,height:i===0?50:60,type:'temporal_anchor',timeline:'both',chapter:6,room:'stage_6'});
  const anchor=arena.interactables.find(o=>o.id==='temporal_anchor')!;anchor.x=1055;anchor.y=315;anchor.height=50;
 }

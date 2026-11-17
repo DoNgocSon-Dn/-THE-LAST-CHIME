@@ -386,7 +386,7 @@ export function processInteraction(
           },
           {
             speaker: 'LINH',
-            speakerName: 'Tiếng Vọng Từ Trong Gương',
+            speakerName: 'Tiếng vọng dưới lòng giếng',
             emotion: 'sad',
             text: '“Anh An ơi... Ở trong bóng tối lạnh lắm... Đừng bỏ em lại một mình...”'
           },

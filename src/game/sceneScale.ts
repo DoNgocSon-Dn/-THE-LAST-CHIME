@@ -13,6 +13,7 @@ export function normalizeSceneScales(stages:Record<number,StageConfig>){
    if(p.id==='wall_left')continue;
    if(p.id==='ceiling'){p.width=cfg.width;continue;}
    const next=legacyScenePoint(cfg.stage,p.x,p.y);p.x=next.x;p.y=next.y;p.width*=next.scale;p.height*=next.scale;
+   if(p.stepHeight)p.stepHeight*=next.scale;
   }
   for(const npc of cfg.memoryNPCs){const next=legacyScenePoint(cfg.stage,npc.x,npc.y+npc.height);npc.x=next.x;npc.y=next.y-npc.height;}
   for(const obj of cfg.interactables){

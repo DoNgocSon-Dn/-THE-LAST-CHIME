@@ -42,22 +42,24 @@ export function configurePixelCampaign(stages:Record<number,StageConfig>){
       cfg.interactables.push(note('memory_garden','Chiếc nơ trong vườn',1870,4),note('memory_greenhouse','Bản đồ rừng ký ức',3100,4));
     }
     if(cfg.stage===5){
-      move('stage_exit_5',3500,300,48,90);
+      move('stage_exit_5',3500,288,48,80);
       cfg.platforms=cfg.platforms.filter(p=>p.id!=='ground_main');
       cfg.platforms.push({id:'ground_forest',x:0,y:480,width:1200,height:120,type:'solid',timeline:'both'},
         {id:'ground_cave',x:1200,y:480,width:680,height:120,type:'solid',timeline:'both'},
         {id:'ground_fracture',x:2400,y:480,width:300,height:120,type:'solid',timeline:'both'});
-      cfg.platforms.push(ledge('cave1',1890,460,85),ledge('cave2',1980,414,75),ledge('cave3',2060,370,125),ledge('cave4',2200,425,75),ledge('cave5',2290,450,65),ledge('cave_exit',2350,455,50,false));
+      cfg.platforms.push(ledge('cave_lip',1838,475,68),ledge('cave1',1907,440,55),ledge('cave2',1987,399,59),ledge('cave3',2072,365,124),ledge('cave4',2198,434,63),ledge('cave5',2275,460,60),ledge('cave_exit',2317,353,83));
       // Short repair planks cross the water and follow the staircase drawn in map 12.
-      cfg.platforms.push(ledge('water1',2710,475,85,false),ledge('water2',2800,450,80,false),ledge('water3',2890,425,80,false));
-      for(let i=0;i<6;i++)cfg.platforms.push(ledge(`broken_stair${i}`,2890+i*22,425-i*25,45));
-      cfg.platforms.push(ledge('house_island',3020,300,215),ledge('house_right',3240,325,130),ledge('last_island',3480,375,120));
+      cfg.platforms.push(ledge('water1',2720,480,80,false),ledge('water2',2805,480,80,false),ledge('water3',2890,480,45,false));
+      for(let i=0;i<10;i++)cfg.platforms.push({...ledge(`broken_stair${i}`,2900+i*12,465-i*14,20),stepHeight:16});
+      cfg.platforms.push(ledge('house_island',3015,304,215),ledge('house_right',3238,319,133),ledge('last_island',3476,368,124));
     }
     if(cfg.stage===6){
       cfg.spawnY=320;
       cfg.platforms=cfg.platforms.filter(p=>p.id.startsWith('wall')||p.id==='ceiling');
-      cfg.platforms.push(ledge('sanctuary_entry',0,364,169),ledge('sanctuary_drop',190,428,125),ledge('sanctuary_base',310,465,180),ledge('sanctuary_mid',350,398,150),ledge('sanctuary_high',420,349,180),ledge('sanctuary_center',580,372,130),ledge('sanctuary_bridge',710,383,130),ledge('sanctuary_end',830,375,370));
-      move('final_diary_ch6',280,386,30,40);move('temporal_anchor',650,312,40,60);move('npc_linh_ch6',950,327,30,48);move('final_core',1090,300,48,65);
+      cfg.platforms.push(ledge('sanctuary_entry',0,364,169),ledge('sanctuary_drop',190,428,49),ledge('sanctuary_lower_step1',239,443,23),ledge('sanctuary_lower_step2',262,454,23),ledge('sanctuary_base',280,465,215),ledge('sanctuary_mid',350,398,150),ledge('sanctuary_high',400,338,185),ledge('sanctuary_center',580,372,130),ledge('sanctuary_end',830,375,370));
+      // The rope bridge sags in the middle; follow its boards instead of floating over it.
+      for(const [i,y]of [383,391,397,390].entries())cfg.platforms.push({...ledge(`sanctuary_bridge_${i}`,710+i*30,y,32),stepHeight:16});
+      move('final_diary_ch6',280,425,30,40);move('temporal_anchor',650,312,40,60);move('npc_linh_ch6',950,327,30,48);move('final_core',1090,310,48,65);
       cfg.memoryNPCs[0].x=950;cfg.memoryNPCs[0].y=327;
     }
     cfg.spawnY+=44-PLAYER_HEIGHT;
@@ -69,6 +71,7 @@ export function configurePixelCampaign(stages:Record<number,StageConfig>){
       if(interaction){interaction.y=npc.y;interaction.height=npc.height;}
     }
     for(const obj of cfg.interactables)if(obj.id.startsWith('stage_exit_')||obj.id==='final_door'||(obj.id==='family_portrait'&&obj.timeline==='PAST')||(obj.id==='clock'&&cfg.stage===2))obj.bakedIntoMap=true;
+    if(cfg.stage===5)cfg.interactables.find(o=>o.id==='stage_exit_5')!.bakedIntoMap=false;
   }
 }
 

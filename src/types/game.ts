@@ -45,6 +45,7 @@ export interface Platform extends BoundingBox {
   label?: string;
   color?: string;
   bakedIntoMap?: boolean;
+  stepHeight?: number;
 }
 
 export type PlayerAction = 'idle' | 'walk' | 'jump' | 'fall' | 'interact' | 'warp';

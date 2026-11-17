@@ -5,9 +5,34 @@ import {STAGE_CONFIGS} from './levelData';
 import {currentPixelRoom,chapterRooms} from './pixelLayout';
 import {houseDestination,migrateHouseLocation,houseCamera} from './houseLayout';
 import {INITIAL_PUZZLE_STATE} from './puzzles';
-import {updateAndResolvePhysics} from './physics';
+import {updateAndResolvePhysics,getActivePlatforms} from './physics';
 import type {Player} from '../types/game';
 const hub=STAGE_CONFIGS[2];
+test('Front porch steps support walking to the door and back in both eras',()=>{
+ for(const [timeline,floor]of [['PAST',438.75],['PRESENT',427.5]]as const){
+  const platforms=getActivePlatforms(STAGE_CONFIGS[1].platforms,timeline);
+  let player={x:960,y:480-PLAYER_HEIGHT,width:PLAYER_WIDTH,height:PLAYER_HEIGHT,vx:0,vy:0,isGrounded:true,coyoteTimer:0,jumpBufferTimer:0}as Player;
+  for(let i=0;i<65;i++)player={...player,...updateAndResolvePhysics(player,platforms,1,false,false,1/60)};
+  assert.ok(player.x>1100,'Can reach the front door without jumping');
+  assert.equal(player.y+PLAYER_HEIGHT,floor,'Feet rest on the painted porch');
+  for(let i=0;i<85;i++)player={...player,...updateAndResolvePhysics(player,platforms,-1,false,false,1/60)};
+  assert.ok(player.x<1000,'Can walk back down to the courtyard');
+  assert.equal(player.y+PLAYER_HEIGHT,480);
+ }
+});
+test('An walks onto the raised past courtyard and back down without sinking or blocking',()=>{
+ const yard=STAGE_CONFIGS[3];
+ for(const timeline of ['PAST','PRESENT']as const){
+  const platforms=getActivePlatforms(yard.platforms,timeline);
+  let player={x:1010,y:480-PLAYER_HEIGHT,width:PLAYER_WIDTH,height:PLAYER_HEIGHT,vx:0,vy:0,isGrounded:true,coyoteTimer:0,jumpBufferTimer:0}as Player;
+  for(let i=0;i<58;i++)player={...player,...updateAndResolvePhysics(player,platforms,1,false,false,1/60)};
+  assert.ok(player.x>1150,'Can walk past the steps');
+  assert.equal(player.y+PLAYER_HEIGHT,timeline==='PAST'?440:480);
+  for(let i=0;i<80;i++)player={...player,...updateAndResolvePhysics(player,platforms,-1,false,false,1/60)};
+  assert.ok(player.x<1060,'Can return from the raised walkway');
+  assert.equal(player.y+PLAYER_HEIGHT,480);
+ }
+});
 test('Entering the house leads to the corridor; each interior is reached and left through its door',()=>{
  assert.equal(currentPixelRoom(2,hub.spawnX).map,3);
  for(const [out,back,map]of [['hall_living','living_return',2],['hall_workshop','workshop_return_right',5],['hall_kitchen','kitchen_return',6]]as const){

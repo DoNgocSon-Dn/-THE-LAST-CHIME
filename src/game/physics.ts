@@ -129,6 +129,11 @@ export function updateAndResolvePhysics(
   };
 
   for (const plat of platforms) {
+    const rise=horizontalBox.y+player.height-plat.y;
+    if(plat.stepHeight&&player.isGrounded&&vy>=0&&rise>0&&rise<=plat.stepHeight&&checkAABB(horizontalBox,plat)){
+      horizontalBox.y=plat.y-player.height;
+      continue;
+    }
     if (plat.type === 'solid' && checkAABB(horizontalBox, plat)) {
       if (vx > 0) {
         newX = plat.x - player.width;
@@ -141,7 +146,7 @@ export function updateAndResolvePhysics(
   }
 
   // Vertical movement and collision
-  let newY = player.y + vy * clampedDt;
+  let newY = horizontalBox.y + vy * clampedDt;
   let verticalBox: BoundingBox = {
     x: newX,
     y: newY,
@@ -168,7 +173,7 @@ export function updateAndResolvePhysics(
       }
     } else if (plat.type === 'one-way') {
       // One-way platform logic: only land if falling through top
-      const prevBottom = player.y + player.height;
+      const prevBottom = horizontalBox.y + player.height;
       const currBottom = newY + player.height;
       if (vy >= 0 && prevBottom <= plat.y + 4 && currBottom >= plat.y) {
         if (newX + player.width > plat.x && newX < plat.x + plat.width) {
@@ -179,14 +184,6 @@ export function updateAndResolvePhysics(
         }
       }
     }
-  }
-
-  // Baseline house floor protection across all rooms (ground floor at y=480)
-  const floorLevel = 480 - player.height;
-  if (newY >= floorLevel) {
-    newY = floorLevel;
-    vy = 0;
-    onGround = true;
   }
 
   return {
@@ -216,6 +213,15 @@ export function resolveSafeTimelinePosition(
     return { x: currentPos.x, y: currentPos.y, shifted: false };
   }
 
+  // Exact surface boundaries also handle floors taller than the old 48px search.
+  const boundaries=solids.filter(p=>checkAABB(currentPos,p)).flatMap(p=>[
+    {x:currentPos.x,y:p.y-currentPos.height},
+    {x:p.x-currentPos.width,y:currentPos.y},
+    {x:p.x+p.width,y:currentPos.y},
+  ]).filter(p=>Math.abs(p.x-currentPos.x)<=64&&Math.abs(p.y-currentPos.y)<=96)
+    .sort((a,b)=>Math.hypot(a.x-currentPos.x,a.y-currentPos.y)-Math.hypot(b.x-currentPos.x,b.y-currentPos.y));
+  for(const point of boundaries)if(!isCollidingWithSolids({...currentPos,...point},solids))return {...point,shifted:true};
+
   // Search spiral/offsets outwards up to 48px to gently push player out of geometry
   const offsets = [
     { x: 0, y: -8 }, { x: 0, y: -16 }, { x: 0, y: -24 }, { x: 0, y: -32 },
@@ -236,6 +242,17 @@ export function resolveSafeTimelinePosition(
     }
   }
 
-  // If still caught, return slightly elevated position
-  return { x: currentPos.x, y: currentPos.y - 36, shifted: true };
+  // Let the caller reject an obstructed shift rather than embed the player in a wall.
+  return { x: currentPos.x, y: currentPos.y, shifted: false };
+}
+
+/** Restore old saves/checkpoints to a nearby real surface after a terrain correction. */
+export function supportedPosition(current:BoundingBox,platforms:Platform[]):{x:number;y:number}|null{
+ const candidates=platforms.filter(p=>p.type!=='hazard'&&(p.id.startsWith('ground')||p.id.startsWith('terrain_')||p.type==='one-way')).flatMap(p=>{
+  const left=p.x+1,right=p.x+p.width-current.width-1;
+  const xs=right<left?[p.x+p.width/2-current.width/2]:[Math.max(left,Math.min(right,current.x)),left,right];
+  return xs.map(x=>({x,y:p.y-current.height}));
+ }).filter(p=>!isCollidingWithSolids({...current,...p},platforms))
+ .sort((a,b)=>(Math.abs(a.x-current.x)+Math.abs(a.y-current.y)*.25)-(Math.abs(b.x-current.x)+Math.abs(b.y-current.y)*.25));
+ return candidates[0]??null;
 }

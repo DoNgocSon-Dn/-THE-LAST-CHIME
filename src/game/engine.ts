@@ -22,7 +22,9 @@ import {
   MOVE_SPEED,
   updateAndResolvePhysics,
   getActivePlatforms,
-  resolveSafeTimelinePosition
+  resolveSafeTimelinePosition,
+  isCollidingWithSolids,
+  supportedPosition
 } from './physics';
 import {
   getStageConfig,
@@ -370,7 +372,9 @@ export class GameEngine {
     this.timeline=point.timeline;
     this.switchCooldown = 0;
 
-    if (cfg.stage === 6) {this.puzzles.bossHits=[];this.puzzles.playerResolve=3;delete this.puzzles.bossArmedTrap;delete this.puzzles.bossExposedTrap;this.pursuer.active=true;this.pursuer.x=1050;this.pursuer.y=290;this.pursuer.stagger=1.5;this.bossExposedSeconds=0;this.bossArmSeconds=0;this.contactCooldown=2;this.callbacks.onPuzzleUpdate({...this.puzzles});}
+    this.player.isGrounded=false;this.player.state='fall';this.player.coyoteTimer=0;this.player.jumpBufferTimer=0;
+    this.player.interactCooldown=0;this.player.interactAnimTimer=0;this.handleBlur();this.nearbyInteractable=null;this.callbacks.onNearbyPrompt(null);
+    if (cfg.stage === 6) {const defeated=bossDefeated(this.puzzles);if(!defeated)this.puzzles.bossHits=[];this.puzzles.playerResolve=3;delete this.puzzles.bossArmedTrap;delete this.puzzles.bossExposedTrap;this.pursuer.active=!defeated;this.pursuer.x=1050;this.pursuer.y=290;this.pursuer.stagger=1.5;this.bossExposedSeconds=0;this.bossArmSeconds=0;this.contactCooldown=2;this.bossPastSeconds=0;this.callbacks.onPuzzleUpdate({...this.puzzles});}
     if (cfg.stage === 5) {
       this.puzzles.playerResolve = 3;
       this.contactCooldown = 2;
@@ -388,6 +392,7 @@ export class GameEngine {
     this.setPlayerSpeech('Thử lại từ dấu mốc gần nhất.',2);
     this.callbacks.onNotification('Đã trở lại dấu mốc: '+this.checkpoint.labelVi);
     this.callbacks.onRoomChange(getCurrentRoom(this.player.x,cfg.stage));
+    this.snapRoomCamera();
     this.saveGame();
   }
 
@@ -398,7 +403,7 @@ export class GameEngine {
     if (!this.puzzles.hasWatch) {
       this.setPlayerSpeech('Đồng hồ bỏ túi ở trong phòng khách. Mình phải vào nhà trước.', 3.2);
       this.callbacks.onNotification(
-        'Chưa có đồng hồ. Chưa có đồng hồ bỏ túi. Vào phòng khách từ hành lang để tìm vật dẫn thời gian.'
+        'Chưa có đồng hồ bỏ túi. Vào phòng khách từ hành lang để tìm vật dẫn thời gian.'
       );
       return;
     }
@@ -436,6 +441,10 @@ export class GameEngine {
       },
       nextPlatforms
     );
+    if(isCollidingWithSolids({...this.player,...safePos},nextPlatforms)){
+      this.callbacks.onNotification('Vị trí này bị vật cản ở thời điểm kia. Lùi ra một chút rồi thử lại.');
+      return;
+    }
 
     this.player.x = safePos.x;
     this.player.y = safePos.y;
@@ -640,7 +649,7 @@ export class GameEngine {
         this.callbacks.onPuzzleUpdate({...this.puzzles});
         this.callbacks.onStartDialogue([
           {speaker:'AN',speakerName:'An',emotion:'surprised',text:'Khoan… Chuyện gì vừa xảy ra vậy?'},
-          {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'surprised',text:this.timeline==='PAST'?'Mùi trà… Ghế sofa còn nguyên. Cả ánh đèn này nữa… Rõ ràng ban nãy mọi thứ đã mục hết rồi mà.':'Căn phòng lại tối rồi… Vết nứt trên tường cũng trở lại. Mình vẫn đứng đúng chỗ này.'},
+          {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'surprised',text:this.timeline==='PAST'?'Mọi thứ còn nguyên. Cả ánh đèn này nữa… Rõ ràng ban nãy mọi thứ đã mục hết rồi mà.':'Căn phòng lại tối rồi… Vết nứt trên tường cũng trở lại. Mình vẫn đứng đúng chỗ này.'},
           {speaker:'AN',speakerName:'An · nghĩ thầm',emotion:'whisper',text:'Chiếc kim… Mình chỉ vừa chạm vào nó. Không lẽ những gì mình đang thấy là thật?'},
           {speaker:'AN',speakerName:'An',emotion:'determined',text:'Bình tĩnh đã. Nhìn kỹ xung quanh xem… Có lẽ ở đây vẫn còn điều gì đó về Linh.'}
         ]);
@@ -855,12 +864,8 @@ export class GameEngine {
       }
       if (this.player.x < stageCfg.width - 160) this.chaseExitWarned = false;
       if (this.player.x >= stageCfg.width - 100) {
-        if (completeSeals(this.puzzles)) {
-          this.pursuer.active = false;
-          this.puzzles.chaseCompleted = true;
-          this.loadStage(6, true, true);
-          return;
-        }
+        // Reaching the edge does not enter an unseen door: use E at the visible portal.
+        if (completeSeals(this.puzzles))return;
         const missing = CHASE_SEALS.findIndex((_, i) => !this.puzzles.chaseSeals?.includes(i));
         if (!this.chaseExitWarned) {
           this.chaseExitWarned = true;
@@ -884,7 +889,7 @@ export class GameEngine {
       if(this.bossArmSeconds>0&&this.puzzles.bossExposedTrap===undefined){this.bossArmSeconds=Math.max(0,this.bossArmSeconds-dt);if(!this.bossArmSeconds){delete this.puzzles.bossArmedTrap;changed=true;this.callbacks.onNotification('Bẫy đã hết nhịp. Cần nạp lại ở quá khứ.');}}
       if(this.bossExposedSeconds>0){this.bossExposedSeconds=Math.max(0,this.bossExposedSeconds-dt);if(!this.bossExposedSeconds){delete this.puzzles.bossExposedTrap;delete this.puzzles.bossArmedTrap;this.pursuer.exposed=false;changed=true;}}
       const armed=this.puzzles.bossArmedTrap,trap=armed===undefined?undefined:BOSS_TRAPS[armed];
-      if(trap&&this.bossArmSeconds>0&&this.puzzles.bossExposedTrap===undefined&&this.timeline==='PRESENT'&&this.pursuer.phase==='PRESENT'&&Math.abs(this.pursuer.x-trap.x)<85){
+      if(trap&&this.bossArmSeconds>0&&this.puzzles.bossExposedTrap===undefined&&this.timeline==='PRESENT'&&this.pursuer.phase==='PRESENT'&&Math.abs(this.pursuer.x-trap.x)<85&&Math.abs(this.pursuer.y+this.pursuer.height-(trap.y+(armed===0?50:60)))<64){
         this.puzzles.bossExposedTrap=armed;this.bossExposedSeconds=3-(this.puzzles.bossHits?.length??0)*.6;this.pursuer.exposed=true;changed=true;soundManager.playChimeSuccess();this.callbacks.onNotification('Vỏ quái đã sáng lên — xả bẫy ngay!');
       }
       if(!this.pursuer.stagger&&!this.bossExposedSeconds){
@@ -1023,6 +1028,7 @@ export class GameEngine {
         characterScaleVersion:3,
         spawnVersion:3,
         sceneScaleVersion:2,
+        terrainVersion:2,
         player: { x: this.player.x, y: this.player.y },
         timeline: this.timeline,
         puzzles: this.puzzles,
@@ -1084,6 +1090,17 @@ export class GameEngine {
         this.player.x=250;this.player.y=480-PLAYER_HEIGHT;this.timeline='PRESENT';
         this.checkpoint={x:250,y:this.player.y,timeline:'PRESENT',chapter:2,labelVi:'Hành lang trong nhà'};
         this.viewZoom=sceneZoom(2,250);this.snapRoomCamera();
+      }
+      if(stageCfg.stage>=5&&data.terrainVersion!==2){
+        const restore=(point:{x:number;y:number;timeline:Timeline})=>{
+          const room=currentPixelRoom(stageCfg.stage,point.x);
+          const platforms=getActivePlatforms(stageCfg.platforms,point.timeline,this.puzzles)
+            .filter(p=>p.x<room.start+room.width&&p.x+p.width>room.start);
+          return supportedPosition({...point,width:this.player.width,height:this.player.height},platforms);
+        };
+        const playerPoint=restore({...this.player,timeline:this.timeline});if(playerPoint)Object.assign(this.player,playerPoint);
+        if(this.checkpoint.chapter===stageCfg.stage){const checkpointPoint=restore(this.checkpoint);if(checkpointPoint)Object.assign(this.checkpoint,checkpointPoint);}
+        this.snapRoomCamera();
       }
       this.callbacks.onTimelineChange(this.timeline);
       this.callbacks.onPuzzleUpdate({ ...this.puzzles });
