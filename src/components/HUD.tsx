@@ -8,6 +8,7 @@ import { soundManager } from '../game/audio';
 import { getHintSet } from '../game/hints';
 import {actionKeyLabel,controlText} from '../game/controlText';
 import {cooldownLabel} from '../game/controls';
+import {useMediaQuery} from './useMediaQuery';
 
 interface HUDProps {
   timeline: Timeline;
@@ -42,6 +43,9 @@ export const HUD: React.FC<HUDProps> = ({
   const isReady = cooldownRatio <= 0;
   const [isMuted, setMuted] = useState(soundManager.getMuted());
   const [journalOpen,setJournalOpen]=useState(false);
+  const compact=useMediaQuery('(max-width: 700px), (max-height: 500px)');
+  const touch=useMediaQuery('(hover: none)');
+  const [objectiveOpen,setObjectiveOpen]=useState(false);
   const activeStage = puzzles.storyChapter ?? chapterForArea(puzzles.currentStage);
 
   const getObjectiveHint = (): { chapterLabel: string; hint: string } => {
@@ -83,8 +87,9 @@ export const HUD: React.FC<HUDProps> = ({
   const objective = getObjectiveHint();
   const hintSet = getHintSet(puzzles, activeStage, currentRoom.nameVi);
   const [hintLevel, setHintLevel] = useState(0);
-  useEffect(() => { setHintLevel(0); }, [hintSet.key]);
-  const nextHint = () => setHintLevel(l => Math.min(l + 1, hintSet.tiers.length));
+  useEffect(() => { setHintLevel(0);setObjectiveOpen(false); }, [hintSet.key]);
+  const nextHint = () => {setObjectiveOpen(true);setHintLevel(l => Math.min(l + 1, hintSet.tiers.length));};
+  const hintButton=<button className="hud-hint-btn" onClick={nextHint} disabled={hintLevel>=hintSet.tiers.length}>{hintLevel>=hintSet.tiers.length?'Hết gợi ý':touch?'Gợi ý':hintLevel===0?'Gợi ý (H)':`Gợi ý thêm (H) ${hintLevel}/${hintSet.tiers.length}`}</button>;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'h' && !e.repeat && !isDialogueActive && !journalOpen) nextHint();
@@ -97,7 +102,7 @@ export const HUD: React.FC<HUDProps> = ({
     soundManager.setMuted(!isMuted); setMuted(!isMuted);
   };
   return (
-    <div className="game-hud">
+    <div className={`game-hud${compact?' is-compact':''}`} hidden={isDialogueActive}>
       <header className="hud-header">
         <div className="hud-location"><span>CHƯƠNG {activeStage} <i>/ 04</i></span><h2>{currentRoom.nameVi}</h2></div>
         <div className="hud-tools">
@@ -110,9 +115,14 @@ export const HUD: React.FC<HUDProps> = ({
       {journalOpen&&!isDialogueActive&&<aside className="hud-journal mechanism-journal"><header><h3>Sổ tay của An</h3><button onClick={()=>setJournalOpen(false)} aria-label="Đóng sổ tay">×</button></header>{puzzles.collectedClues?.length?puzzles.collectedClues.map(c=><p key={c}>{c}</p>):<p>Chưa ghi lại dấu vết nào. Kiểm tra đồ vật trong căn nhà để tìm hiểu thêm.</p>}</aside>}
       {!isDialogueActive&&!journalOpen&&activeStage===3&&<aside className="encounter-hud"><span>BA ẤN THỜI GIAN</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.chaseSeals?.includes(i)?'filled':''}>{i+1}</i>)}<small>Liên kết: {puzzles.playerResolve??3}/3</small></div><p>Quá khứ và hiện tại giữ những lối đi khác nhau. Cái bóng sẽ đuổi kịp sau mỗi lần đổi.</p></aside>}
       {!isDialogueActive&&!journalOpen&&puzzles.currentStage===6&&<aside className="encounter-hud"><span>{bossDefeated(puzzles)?'LÕI ĐÃ ĐƯỢC GIẢI PHÓNG':`KẺ LẠC GIỜ · ${puzzles.bossHits?.length??0}/3 LỚP VỎ`}</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.bossHits?.includes(i)?'filled':''}>{i+1}</i>)}<small>Liên kết: {puzzles.playerResolve??3}/3</small></div><p>{trapHint(puzzles,timeline)}</p>{timeline==='PAST'&&!bossDefeated(puzzles)&&<strong className="boss-window">Ký ức ổn định: {puzzles.pastSafetySeconds??6}s</strong>}{puzzles.bossArmedTrap!==undefined&&<strong className="boss-window">{puzzles.bossExposedTrap!==undefined?'Lộ điểm yếu':'Bẫy còn nhịp'}: {puzzles.bossWindowSeconds??12}s</strong>}</aside>}
-      {!isDialogueActive && !journalOpen && objective.hint && <div className="hud-objective"><span>MỤC TIÊU</span><p>{controlText(objective.hint)}</p>{hintSet.tiers.slice(0,hintLevel).map((t,i)=><p key={i} className="hud-hint-line">💡 {controlText(t)}</p>)}{hintSet.tiers.length>0&&<button className="hud-hint-btn" onClick={nextHint} disabled={hintLevel>=hintSet.tiers.length}>{hintLevel>=hintSet.tiers.length?'Hết gợi ý':hintLevel===0?'Gợi ý (H)':`Gợi ý thêm (H) ${hintLevel}/${hintSet.tiers.length}`}</button>}</div>}
-      {notification&&!isDialogueActive&&!journalOpen&&<div className="hud-toast" role="status">{controlText(notification)}</div>}
-      {!isDialogueActive&&<footer className="hud-bottom">
+      {!isDialogueActive&&!journalOpen&&objective.hint&&(compact?
+       <div className="hud-objective hud-objective-compact">
+        <div className="hud-objective-bar"><button className="hud-objective-chip" aria-label="Mở rộng mục tiêu" aria-expanded={objectiveOpen} aria-controls="hud-objective-details" onClick={()=>setObjectiveOpen(open=>!open)}>{controlText(notification||objective.hint)}</button>{hintButton}</div>
+        {objectiveOpen&&<section id="hud-objective-details" className="hud-objective-details" aria-label="Mục tiêu và gợi ý"><header><strong>MỤC TIÊU</strong><button onClick={()=>setObjectiveOpen(false)} aria-label="Thu gọn mục tiêu">×</button></header><p>{controlText(objective.hint)}</p>{hintSet.tiers.slice(0,hintLevel).map((t,i)=><p key={i} className="hud-hint-line">💡 {controlText(t)}</p>)}</section>}
+       </div>:
+       <div className="hud-objective"><span>MỤC TIÊU</span><p>{controlText(objective.hint)}</p>{hintSet.tiers.slice(0,hintLevel).map((t,i)=><p key={i} className="hud-hint-line">💡 {controlText(t)}</p>)}{hintButton}</div>)}
+      {notification&&!isDialogueActive&&!journalOpen&&(compact?<span className="sr-only" role="status">{controlText(notification)}</span>:<div className="hud-toast" role="status">{controlText(notification)}</div>)}
+      {!isDialogueActive&&!journalOpen&&<footer className="hud-bottom">
         {activeStage>=2&&<button className={`time-control ${isPast?'is-past':''}`} disabled={!puzzles.hasWatch||!isReady} onClick={onTimelineSwitch} aria-label="Chuyển thời gian">
           <span className="time-dial">{puzzles.hasWatch?<kbd>{actionKeyLabel('time')}</kbd>:<Lock size={16}/>}</span>
           <span><small>{isPast?'KÝ ỨC ẤM ÁP':'NGÔI NHÀ BỎ QUÊN'}</small><strong>{isPast?'Quá khứ':'Hiện tại'}</strong><em>{!puzzles.hasWatch?'Tìm đồng hồ trong phòng khách':isReady?(puzzles.testedTimelineSwitch?'Chuyển thời gian':'Thử chạm vào chiếc kim'):`${cooldownSeconds}s · Đang hồi phục`}</em></span>

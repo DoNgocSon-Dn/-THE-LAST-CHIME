@@ -67,7 +67,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ callbacksRef, engineRef,
   const touchButton=(key:string,label:string,icon:React.ReactNode)=><button aria-label={label} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);engineRef.current?.setTouchControl(key,true);}} onPointerUp={()=>engineRef.current?.setTouchControl(key,false)} onPointerCancel={()=>engineRef.current?.setTouchControl(key,false)}>{icon}</button>;
   return (
     <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none">
-      <div className="touch-controls"><div>{touchButton('a','Đi sang trái',<ArrowLeft/>)}{touchButton('d','Đi sang phải',<ArrowRight/>)}</div><div>
+      <div className="touch-controls" hidden={isPaused}><div>{touchButton('a','Đi sang trái',<ArrowLeft/>)}{touchButton('d','Đi sang phải',<ArrowRight/>)}</div><div>
         {canDash && touchButton('shift', 'Lướt', <ChevronsRight />)}
         {canPulse && touchButton('r', 'Sóng chuông', <Bell />)}
         {touchButton(' ', 'Nhảy', <ArrowUp />)}
