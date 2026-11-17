@@ -1,10 +1,11 @@
 import {bossDefeated,trapHint} from '../game/encounters';
 import {chapterForArea} from '../game/campaign';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Timeline, InteractableObject, PuzzleState } from '../types/game';
 import { RoomZone } from '../game/levelData';
 import { Sun, Moon, Volume2, VolumeX, Pause, Sparkles, Compass, Lock, BookOpen } from 'lucide-react';
 import { soundManager } from '../game/audio';
+import { getHintSet } from '../game/hints';
 
 interface HUDProps {
   timeline: Timeline;
@@ -78,6 +79,17 @@ export const HUD: React.FC<HUDProps> = ({
   };
 
   const objective = getObjectiveHint();
+  const hintSet = getHintSet(puzzles, activeStage, currentRoom.nameVi);
+  const [hintLevel, setHintLevel] = useState(0);
+  useEffect(() => { setHintLevel(0); }, [hintSet.key]);
+  const nextHint = () => setHintLevel(l => Math.min(l + 1, hintSet.tiers.length));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'h' && !e.repeat && !isDialogueActive && !journalOpen) nextHint();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   const toggleSound = () => {
     soundManager.setMuted(!isMuted); setMuted(!isMuted);
@@ -96,7 +108,7 @@ export const HUD: React.FC<HUDProps> = ({
       {journalOpen&&!isDialogueActive&&<aside className="hud-journal mechanism-journal"><header><h3>Sổ tay của An</h3><button onClick={()=>setJournalOpen(false)} aria-label="Đóng sổ tay">×</button></header>{puzzles.collectedClues?.length?puzzles.collectedClues.map(c=><p key={c}>{c}</p>):<p>Chưa ghi lại dấu vết nào. Kiểm tra đồ vật trong căn nhà để tìm hiểu thêm.</p>}</aside>}
       {!isDialogueActive&&!journalOpen&&activeStage===3&&<aside className="encounter-hud"><span>BA ẤN THỜI GIAN</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.chaseSeals?.includes(i)?'filled':''}>{i+1}</i>)}<small>Liên kết: {puzzles.playerResolve??3}/3</small></div><p>Quá khứ và hiện tại giữ những lối đi khác nhau. Cái bóng sẽ đuổi kịp sau mỗi lần đổi.</p></aside>}
       {!isDialogueActive&&!journalOpen&&puzzles.currentStage===6&&<aside className="encounter-hud"><span>{bossDefeated(puzzles)?'LÕI ĐÃ ĐƯỢC GIẢI PHÓNG':`KẺ LẠC GIỜ · ${puzzles.bossHits?.length??0}/3 LỚP VỎ`}</span><div className="encounter-pips">{[0,1,2].map(i=><i key={i} className={puzzles.bossHits?.includes(i)?'filled':''}>{i+1}</i>)}<small>Liên kết: {puzzles.playerResolve??3}/3</small></div><p>{trapHint(puzzles,timeline)}</p>{timeline==='PAST'&&!bossDefeated(puzzles)&&<strong className="boss-window">Ký ức ổn định: {puzzles.pastSafetySeconds??6}s</strong>}{puzzles.bossArmedTrap!==undefined&&<strong className="boss-window">{puzzles.bossExposedTrap!==undefined?'Lộ điểm yếu':'Bẫy còn nhịp'}: {puzzles.bossWindowSeconds??12}s</strong>}</aside>}
-      {!isDialogueActive && !journalOpen && objective.hint && <div className="hud-objective"><span>MỤC TIÊU</span><p>{objective.hint}</p></div>}
+      {!isDialogueActive && !journalOpen && objective.hint && <div className="hud-objective"><span>MỤC TIÊU</span><p>{objective.hint}</p>{hintSet.tiers.slice(0,hintLevel).map((t,i)=><p key={i} className="hud-hint-line">💡 {t}</p>)}{hintSet.tiers.length>0&&<button className="hud-hint-btn" onClick={nextHint} disabled={hintLevel>=hintSet.tiers.length}>{hintLevel>=hintSet.tiers.length?'Hết gợi ý':hintLevel===0?'Gợi ý (H)':`Gợi ý thêm (H) ${hintLevel}/${hintSet.tiers.length}`}</button>}</div>}
       {notification&&!isDialogueActive&&!journalOpen&&<div className="hud-toast" role="status">{notification}</div>}
       {!isDialogueActive&&<footer className="hud-bottom">
         {activeStage>=2&&<button className={`time-control ${isPast?'is-past':''}`} disabled={!puzzles.hasWatch||!isReady} onClick={onTimelineSwitch} aria-label="Chuyển thời gian">

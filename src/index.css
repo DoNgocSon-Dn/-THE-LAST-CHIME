@@ -330,3 +330,4 @@ button,input,select,textarea,kbd,output{font-family:var(--font-sans)}
   .touch-controls > div { gap: 6px; }
   .touch-controls button { width: 44px; height: 44px; }
 }
+.hud-hint-line{color:#e8d38c!important;opacity:1!important}.hud-hint-btn{pointer-events:auto;margin-top:8px;padding:6px 12px;min-height:36px;font:inherit;font-size:13px;background:#242719ee;color:#e2ca8d;border:1px solid #a68a43;cursor:pointer}.hud-hint-btn:disabled{opacity:.5;cursor:default}
