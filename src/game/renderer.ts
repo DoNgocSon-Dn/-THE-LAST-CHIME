@@ -141,7 +141,8 @@ export class GameRenderer {
     puzzles: PuzzleState,
     nearbyInteractableId: string | null,
     pursuer?: PursuerEntity,
-    showHints=true
+    showHints=true,
+    viewportTop=0
   ) {
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -152,7 +153,7 @@ export class GameRenderer {
     const isPast = timeline === 'PAST';
     const stageCfg = getStageConfig(puzzles.currentStage || 1);
 
-    this.world.background(ctx, cameraX, viewportWidth, stageCfg.width, isPast, stageCfg.stage);
+    this.world.background(ctx, cameraX, viewportWidth, stageCfg.width, isPast, stageCfg.stage,viewportTop,viewportHeight);
     this.drawArchitecture(ctx, stageCfg.width, stageCfg.stage, isPast, puzzles);
     this.world.platforms(ctx, platforms, isPast);
 
@@ -186,11 +187,12 @@ export class GameRenderer {
 
     // 8. Draw foreground atmosphere, dust particles & rain
     this.drawAtmosphere(ctx, stageCfg.stage, isPast);
-    this.world.foreground(ctx, cameraX, viewportWidth, stageCfg.width, this.animTick);
+    this.world.foreground(ctx, cameraX, viewportWidth, stageCfg.width, this.animTick,viewportTop,viewportHeight);
 
     ctx.restore();
 
     // 9. Chase vignette warning if Kẻ Lạc Giờ is actively hunting
+    ctx.save();ctx.translate(0,viewportTop);
     if (pursuer && pursuer.active) {
       this.drawChaseDangerVignette(ctx, viewportWidth, viewportHeight);
     }
@@ -199,6 +201,7 @@ export class GameRenderer {
     if (this.warpActive && this.warpAnimProgress > 0) {
       this.drawWarpOverlay(ctx, viewportWidth, viewportHeight, this.warpAnimProgress, isPast);
     }
+    ctx.restore();
   }
 
   // =========================================================================

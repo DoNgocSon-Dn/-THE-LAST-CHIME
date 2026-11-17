@@ -47,7 +47,7 @@ export function OpeningStory({onContinue}:{onContinue:()=>void}){
  }, [onContinue, page]);
  return <section className="opening-comic story-book" aria-labelledby="opening-title"><article className="opening-comic-paper">
  <header><button type="button" className="story-book-skip" onClick={onContinue}>Bỏ qua</button><span>THE LAST CHIME · TRƯỚC TIẾNG CHUÔNG CUỐI</span><div className="story-book-rule" aria-hidden="true">◆</div></header>
- <div className="story-book-spread" key={page}>
+ <div className="story-book-spread" key={page} tabIndex={0} role="region" aria-label="Nội dung trang truyện">
  <figure><StoryScene scene={current.scene}/><figcaption>KÝ ỨC {['I','II','III'][page]}</figcaption></figure>
  <div className="story-book-copy" aria-live="polite"><span className="story-book-number">0{page+1} / 03</span><h1 id="opening-title">{current.title}</h1><p>{current.text}</p><blockquote>{current.quote}</blockquote></div>
  </div>

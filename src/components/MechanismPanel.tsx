@@ -21,6 +21,7 @@ export function MechanismPanel({id,clues,onClose,onSubmit}:{id:MechanismId;clues
  const submit=()=>{if(!onSubmit(values)){setFeedback(id==='music_box'?'Khúc nhạc ngắt giữa chừng. Các chốt vẫn giữ nguyên.':'Cơ cấu rung nhẹ rồi dừng. Các dấu vẫn chưa khớp.');soundManager.playClockTick();}};
  return <div className="mechanism-backdrop"><div ref={root} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="mechanism-title" className="mechanism-panel">
   <header><span>KIỂM TRA ĐỒ VẬT</span><button onClick={onClose} aria-label="Rời cơ cấu">Đặt xuống ×</button></header>
+  <div className="mechanism-body">
   <h2 id="mechanism-title">{info.title}</h2><p className="mechanism-description">{info.description}</p>
   {id==='clock'&&<><div className="mechanism-dial" aria-label={`Đồng hồ đang chỉ ${values[0]} giờ ${values[1]} phút`}>
     {Array.from({length:12},(_,i)=><span key={i} style={{transform:`rotate(${i*30}deg) translateY(-83px) rotate(${-i*30}deg)`}}>{i===0?12:i}</span>)}
@@ -33,8 +34,10 @@ export function MechanismPanel({id,clues,onClose,onSubmit}:{id:MechanismId;clues
   {id==='greenhouse_console'&&<div className="light-circuit"><div className="circuit-lanes">{values.map((v,i)=><span className={v?'is-lit':''} key={i}>Dải {['I','II','III'][i]} · {v?'Sáng':'Tắt'}</span>)}</div><div className="circuit-levers">{['A','B','C'].map((n,i)=><button key={n} onClick={()=>{setValues(old=>old.map((v,j)=>j===i||(i<2&&j===i+1)?1-v:v));setFeedback('');soundManager.playSwitchFlip();}}>Cần {n}<small>{['I + II','II + III','III'][i]}</small></button>)}</div></div>}
   {id==='temporal_anchor'&&<div className="mechanism-rings">{['Vòng ngoài','Vòng giữa','Vòng trong'].map((name,i)=><div key={name}><label>{name}</label><div className="number-ring"><button aria-label={`Xoay ${name.toLowerCase()} ngược chiều`} onClick={()=>turn(i,-1,10)}>↶</button><output>{values[i]}</output><button aria-label={`Xoay ${name.toLowerCase()} thuận chiều`} onClick={()=>turn(i,1,10)}>↷</button></div></div>)}</div>}
   <p role="status" className="mechanism-feedback">{feedback||'Có thể đặt xuống và quay lại bất cứ lúc nào.'}</p>
+  {journal&&<aside className="mechanism-journal"><h3>Dấu vết đã ghi lại</h3>{clues.length?clues.map(c=><p key={c}>{c}</p>):<p>Chưa ghi được dấu vết nào. Có thể kiểm tra căn phòng ở thời điểm còn lại.</p>}</aside>}
+  </div><footer className="mechanism-actions">
   <button className="mechanism-submit" disabled={id==='music_box'&&values.length!==3} onClick={submit}>{id==='clock'?'Lên dây cót':id==='music_box'?'Kéo cần phát nhạc':id==='porch_lock'?'Kéo chốt cửa':id==='well_winch'?'Quay tay giếng':id==='greenhouse_console'?'Kiểm tra dòng sáng':'Ghép nhịp'}</button>
   <button className="mechanism-journal-toggle" aria-expanded={journal} onClick={()=>setJournal(!journal)}>Sổ tay của An {journal?'−':'+'}</button>
-  {journal&&<aside className="mechanism-journal"><h3>Dấu vết đã ghi lại</h3>{clues.length?clues.map(c=><p key={c}>{c}</p>):<p>Chưa ghi được dấu vết nào. Có thể kiểm tra căn phòng ở thời điểm còn lại.</p>}</aside>}
+  </footer>
  </div></div>;
 }

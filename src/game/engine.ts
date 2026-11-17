@@ -991,7 +991,8 @@ export class GameEngine {
 
     this.ctx.save();
     this.ctx.scale(this.viewZoom, this.viewZoom);
-    this.ctx.translate(0,-Math.min(480-470.25/this.viewZoom,this.player.y-45));
+    const viewportTop=Math.min(480-470.25/this.viewZoom,this.player.y-45);
+    this.ctx.translate(0,-viewportTop);
     this.renderer.render(
       this.ctx,
       this.cameraX,
@@ -1004,7 +1005,8 @@ export class GameEngine {
       this.puzzles,
       this.nearbyInteractable?.id || null,
       this.pursuer,
-      this.gameState==='playing'
+      this.gameState==='playing',
+      viewportTop
     );
     if (this.pulseTime > 0) {
       const progress = 1 - this.pulseTime / PULSE_DURATION;

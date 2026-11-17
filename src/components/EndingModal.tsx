@@ -12,7 +12,7 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({ onSelectEndi
       data-testid="final-choice-modal"
       className="antique-menu fixed inset-0 z-50 flex items-center justify-center bg-[#11150d]/92 backdrop-blur-md p-4 select-none"
     >
-      <div className="max-w-3xl w-full bg-[#232217] border-2 border-amber-500/70 memory-panel p-7 shadow-2xl text-amber-50 relative overflow-hidden">
+      <div className="max-w-3xl w-full bg-[#232217] border-2 border-amber-500/70 memory-panel choice-panel p-7 shadow-2xl text-amber-50 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-72 h-72 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -109,13 +109,13 @@ export const EndingModal: React.FC<EndingModalProps> = ({
       data-testid="ending-modal"
       className="antique-menu fixed inset-0 z-50 flex items-center justify-center bg-[#11150d]/90 backdrop-blur-sm p-4 select-none"
     >
-      <div className="max-w-xl w-full bg-[#232217] border-2 border-amber-500/70 memory-panel p-7 shadow-2xl text-amber-50 relative overflow-hidden">
+      <div className="max-w-xl w-full bg-[#232217] border-2 border-amber-500/70 memory-panel ending-panel p-7 shadow-2xl text-amber-50 relative overflow-hidden">
         {/* Celestial Light Flare */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header Emblem */}
-        <div className="text-center mb-5">
+        <div className="ending-heading text-center mb-5">
           <div
             className={`inline-flex p-3 rounded-full mb-2 border ${
               isAcceptTruth
@@ -136,7 +136,7 @@ export const EndingModal: React.FC<EndingModalProps> = ({
         </div>
 
         {/* Epilogue Narrative */}
-        <div className="bg-[#f6eee3] text-[#2c1d11] p-5 rounded-2xl border-2 border-[#d7ccc8] mb-5 font-sans shadow-inner">
+        <div className="ending-narrative bg-[#f6eee3] text-[#2c1d11] p-5 rounded-2xl border-2 border-[#d7ccc8] mb-5 font-sans shadow-inner" tabIndex={0} role="region" aria-label="Lời kết">
           <h3 className="text-sm font-bold text-[#5d4037] mb-2 uppercase tracking-wide">
             {isAcceptTruth
               ? 'Lời Từ Biệt Của Bé Linh & Người Mẹ'
@@ -163,7 +163,7 @@ export const EndingModal: React.FC<EndingModalProps> = ({
         </div>
 
         {/* Run Mastery Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div className="ending-stats grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           <div className="bg-[#11150d]/70 p-2.5 rounded-xl border border-[#41412a] text-center">
             <Clock className="w-4 h-4 text-amber-400 mx-auto mb-1" />
             <div className="text-[10px] text-[#b8b28d] font-sans uppercase">Thời Gian</div>
@@ -198,7 +198,7 @@ export const EndingModal: React.FC<EndingModalProps> = ({
         </div>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="ending-actions flex flex-col sm:flex-row gap-3">
           {onSwitchEnding && (
             <button
               data-testid="switch-other-ending-btn"

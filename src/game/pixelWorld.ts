@@ -50,15 +50,15 @@ export class PixelWorld {
     };image.src=`${import.meta.env.BASE_URL}${rebuiltOutdoorPath(number)}`;
   }
   isReady(){return this.maps.size===26;}
-  background(ctx:CanvasRenderingContext2D,camera:number,viewport:number,width:number,past:boolean,stage:number){
+  background(ctx:CanvasRenderingContext2D,camera:number,viewport:number,width:number,past:boolean,stage:number,viewportTop=0,viewportHeight=600){
     ctx.save();ctx.imageSmoothingEnabled=false;
     const sky=ctx.createLinearGradient(0,180,0,600);
     sky.addColorStop(0,past?'#c5a979':'#152e37');sky.addColorStop(1,past?'#6c7560':'#080f17');
-    ctx.fillStyle=sky;ctx.fillRect(camera,0,viewport,600);
+    ctx.fillStyle=sky;ctx.fillRect(camera,viewportTop,viewport,viewportHeight);
     const rooms=chapterRooms(stage);
     const visible=rooms.find(room=>room.start<=camera+viewport/2&&room.start+room.width>camera+viewport/2);
     const skyColor=visible&&this.outdoorSky.get(`${visible.map}-${past?'past':'present'}`);
-    if(skyColor){ctx.fillStyle=skyColor;ctx.fillRect(camera,0,viewport,600);}
+    if(skyColor){ctx.fillStyle=skyColor;ctx.fillRect(camera,viewportTop,viewport,viewportHeight);}
     rooms.forEach((room,index)=>{
       const x=room.start,roomWidth=room.width;if(x>camera+viewport||x+roomWidth<camera)return;
       const era=past?'past':'present',crop=MAP_CROPS[room.map][era],image=this.maps.get(`${room.map}-${era}`),scale=roomWidth/crop.w;
@@ -83,7 +83,7 @@ export class PixelWorld {
         }
         // Extend the soil beneath each painted floor without adding a second grass strip.
         const bottom=y+crop.h*scale;
-        ctx.fillStyle=past?'#292b23':'#0c171b';ctx.fillRect(x,bottom,roomWidth,Math.max(0,600-bottom));
+        ctx.fillStyle=past?'#292b23':'#0c171b';ctx.fillRect(x,bottom,roomWidth,Math.max(0,Math.max(600,viewportTop+viewportHeight)-bottom));
       }
       if(index>0){ctx.fillStyle=past?'#3c3226':'#142023';ctx.fillRect(x-2,210,4,270);}
     });
@@ -108,12 +108,12 @@ export class PixelWorld {
     }
     ctx.restore();
   }
-  foreground(ctx:CanvasRenderingContext2D,camera:number,viewport:number,width:number,tick:number){
+  foreground(ctx:CanvasRenderingContext2D,camera:number,viewport:number,width:number,tick:number,viewportTop=0,viewportHeight=600){
     ctx.save();
     const mist=ctx.createLinearGradient(0,455,0,550);mist.addColorStop(0,'#afc7b600');mist.addColorStop(.4,'#afc7b60c');mist.addColorStop(1,'#afc7b600');
     ctx.fillStyle=mist;ctx.fillRect(camera,455,viewport,95);
     const vignette=ctx.createRadialGradient(camera+viewport*.5,370,100,camera+viewport*.5,370,viewport*.72);
-    vignette.addColorStop(0,'#00000000');vignette.addColorStop(1,'#000b164c');ctx.fillStyle=vignette;ctx.fillRect(camera,0,viewport,600);
+    vignette.addColorStop(0,'#00000000');vignette.addColorStop(1,'#000b164c');ctx.fillStyle=vignette;ctx.fillRect(camera,viewportTop,viewport,viewportHeight);
     ctx.restore();
   }
 }

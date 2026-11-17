@@ -89,14 +89,14 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ lines, onClose }) => {
       onClick={handleAdvance}
       className="antique-menu fixed inset-x-0 bottom-0 z-50 p-4 md:p-6 flex justify-center items-end bg-gradient-to-t from-[#11150d]/95 via-[#11150d]/50 to-transparent select-none cursor-pointer"
     >
-      <div className="max-w-4xl w-full bg-[#11150d]/95 border-2 border-amber-500/60 rounded-2xl p-4 md:p-5 shadow-2xl backdrop-blur-md flex items-center gap-4 md:gap-5 relative">
+      <div className="dialogue-card max-w-4xl w-full bg-[#11150d]/95 border-2 border-amber-500/60 rounded-2xl p-4 md:p-5 shadow-2xl backdrop-blur-md flex items-center gap-4 md:gap-5 relative">
         {/* Expressive Character Portrait */}
-        <div className="w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl border-2 border-amber-500/50 overflow-hidden shadow-lg bg-[#232217]">
+        <div className="dialogue-portrait w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl border-2 border-amber-500/50 overflow-hidden shadow-lg bg-[#232217]">
           <CharacterPortrait speaker={currentLine.speaker} emotion={currentLine.emotion} />
         </div>
 
         {/* Dialogue Content */}
-        <div className="flex-1 min-w-0">
+        <div className="dialogue-content flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               <span
@@ -123,9 +123,9 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ lines, onClose }) => {
             </button>
           </div>
 
-          <p className="text-sm md:text-base text-amber-50 font-sans leading-relaxed min-h-[3.2rem]">
-            {fullText.slice(0, charIndex)}
-            {isTyping && <span className="inline-block w-1.5 h-4 ml-1 bg-amber-400 animate-pulse" />}
+          <p className="dialogue-text text-sm md:text-base text-amber-50 font-sans leading-relaxed min-h-[3.2rem]" tabIndex={0}>
+            <span className="dialogue-reserve" aria-hidden="true">{fullText}</span>
+            <span className="dialogue-reveal">{fullText.slice(0, charIndex)}{isTyping && <span className="inline-block w-1.5 h-4 ml-1 bg-amber-400 animate-pulse" />}</span>
           </p>
 
           <div className="mt-2 flex items-center justify-end gap-1.5 text-xs font-sans text-amber-300/90">

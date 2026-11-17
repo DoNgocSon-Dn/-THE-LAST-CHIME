@@ -10,7 +10,7 @@ export async function openChapter(page:Page,stage=5){
 
 async function hudGeometry(page:Page){
  return page.evaluate(()=>{
-  const selectors=['.hud-header','.encounter-hud','.hud-objective-bar','.hud-objective-details','.hud-objective:not(.hud-objective-compact)','.hud-hint-btn','.time-control','.interaction-control','.hud-toast','.touch-controls>div'];
+  const selectors=['.hud-header','.encounter-hud','.hud-objective-bar','.hud-objective-details','.hud-objective:not(.hud-objective-compact)','.hud-hint-btn','.time-control','.interaction-control','.hud-toast','.hud-journal','.touch-controls>div'];
   const elements=selectors.flatMap(s=>Array.from(document.querySelectorAll<HTMLElement>(s))).filter(el=>el.checkVisibility()&&el.getBoundingClientRect().width>0);
   const collisions:string[]=[],outside:string[]=[];
   for(const el of elements){const a=el.getBoundingClientRect();if(a.left<-.5||a.top<-.5||a.right>innerWidth+.5||a.bottom>innerHeight+.5)outside.push(el.className);
@@ -58,9 +58,81 @@ test('HUD rows, expanded hints and touch targets do not overlap in chapters 3 an
   }
   await page.screenshot({path:info.outputPath(`chapter-${stage===5?3:4}-expanded.png`)});
   if(compact){await page.getByRole('button',{name:'Thu gọn mục tiêu'}).click();await expect(page.locator('.hud-objective-details')).toHaveCount(0);}
+  await page.evaluate(stage=>{const e=(window as any).__gameEngine;e.player.x=stage===5?900:400;e.player.y=(stage===5?480:398)-e.player.height;e.player.vx=0;e.player.vy=0;e.update(1/60);e.justPressed.clear();},stage);
+  await expect(page.locator('.interaction-control')).toBeVisible();
+  expect(await hudGeometry(page)).toEqual({collisions:[],outside:[],hintUncovered:true});
+  await page.getByRole('button',{name:'Mở sổ tay'}).click();await expect(page.locator('.hud-journal')).toBeVisible();
+  const journalGeometry=await hudGeometry(page);expect(journalGeometry.collisions).toEqual([]);expect(journalGeometry.outside).toEqual([]);
+  await page.getByRole('button',{name:'Đóng sổ tay'}).click();
   await page.evaluate(()=>{const e=(window as any).__gameEngine;e.callbacks.onStartDialogue([{speaker:'AN',speakerName:'An',emotion:'normal',text:'Mình cần đi tiếp và giữ đủ ba ấn.'}]);});
   await expect(page.getByTestId('dialogue-box')).toBeVisible();
   await expect(page.locator('.game-hud')).toBeHidden();await expect(page.locator('.touch-controls')).toBeHidden();
   await page.keyboard.press('Escape');
  }
+});
+
+async function buttonReachable(page:Page,selector:string){
+ const button=page.locator(selector);await button.scrollIntoViewIfNeeded();
+ expect(await button.evaluate(el=>{const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&(hit===el||el.contains(hit));})).toBe(true);
+}
+
+test('story pages and endings keep navigation reachable and text unclipped',async({page},info)=>{
+ for(const view of ['story','choice','ending-accept','ending-eternal']){
+  await page.goto(`/tests/e2e/ui-fixture.html?view=${view}`);await page.evaluate(()=>document.fonts.ready);
+  const panel=page.locator(view==='story'?'.opening-comic-paper':'.memory-panel');
+  expect(await panel.evaluate(el=>{const r=el.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth;})).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  if(view==='story'){
+   for(let n=1;n<=3;n++){
+    await page.locator('.story-book-spread').evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished)));
+    await buttonReachable(page,'.story-book footer button:last-child');
+    expect(await page.locator('.story-book-spread').evaluate(el=>el.scrollTop)).toBe(0);
+    await page.screenshot({path:info.outputPath(`story-${n}.png`)});
+    await page.locator('.story-book footer button:last-child').click();
+   }
+   expect(await page.evaluate(()=>(window as any).__fixtureResult)).toBe('continued');
+  }else{
+   const buttons=await panel.locator('button').count();
+   for(let i=0;i<buttons;i++){const button=panel.locator('button').nth(i);await button.scrollIntoViewIfNeeded();await button.click({trial:true});}
+   if(view!=='choice'){await buttonReachable(page,'[data-start]');await buttonReachable(page,'[data-testid="switch-other-ending-btn"]');}
+   await page.screenshot({path:info.outputPath(`${view}.png`)});
+  }
+ }
+});
+
+test('well music and greenhouse controls scroll without obscuring confirmation',async({page},info)=>{
+ for(const view of ['well_winch','music_box','greenhouse_console']){
+  await page.goto(`/tests/e2e/ui-fixture.html?view=${view}`);await page.evaluate(()=>document.fonts.ready);
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await buttonReachable(page,'.mechanism-submit');
+  await page.screenshot({path:info.outputPath(`${view}.png`)});
+  if(view==='well_winch'){
+   for(let i=0;i<2;i++)await page.getByRole('button',{name:'Tăng bên trái'}).click();
+   await page.getByRole('button',{name:'Tăng bên phải'}).click();
+  }else if(view==='music_box'){
+   for(const name of ['Mi','Sol','Đô cao'])await page.getByRole('button',{name:`Gảy ${name}`,exact:true}).click();
+  }else for(const name of ['A','B','C'])await page.getByRole('button',{name:new RegExp(`^Cần ${name}`)}).click();
+  await buttonReachable(page,'.mechanism-submit');await page.locator('.mechanism-submit').click();
+  expect(await page.evaluate(()=>(window as any).__fixtureResult.valid)).toBe(true);
+  expect(await page.locator('.mechanism-body').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ }
+});
+
+test('boss trap feedback and dialogue animation remain stable',async({page},info)=>{
+ await openChapter(page,6);
+ const combat=await page.evaluate(()=>{
+  const e=(window as any).__gameEngine;e.timeline='PAST';e.player.x=400;e.player.y=398-e.player.height;e.player.interactCooldown=0;
+  Object.assign(e.pursuer,{x:455,y:e.player.y,phase:'PAST',phaseDelay:0,stagger:0});e.triggerInteract();e.switchCooldown=0;e.switchTimeline();
+  for(let i=0;i<80;i++){e.update(1/60);e.justPressed.clear();}
+  const exposed=e.puzzles.bossExposedTrap;e.player.interactCooldown=0;e.triggerInteract();e.renderer.update(.08,e.timeline);e.render();
+  return {exposed,hits:e.puzzles.bossHits,particles:e.renderer.bursts.length};
+ });
+ expect(combat.exposed).toBe(0);expect(combat.hits).toEqual([0]);expect(combat.particles).toBeGreaterThan(0);
+ expect(await hudGeometry(page)).toEqual({collisions:[],outside:[],hintUncovered:true});
+ await page.screenshot({path:info.outputPath('boss-hit.png')});
+ await page.evaluate(()=>{(window as any).__gameEngine.callbacks.onStartDialogue([{speaker:'AN',speakerName:'An',emotion:'normal',text:'Những vệt sáng đã tan. Mình vẫn nghe tiếng chuông từ phía lõi. '.repeat(4)}]);});
+ const card=page.locator('.dialogue-card');await expect(card).toBeVisible();const before=await card.boundingBox();
+ await page.keyboard.press('e');const after=await card.boundingBox();
+ expect(Math.abs(before!.height-after!.height)).toBeLessThanOrEqual(1);expect(Math.abs(before!.y-after!.y)).toBeLessThanOrEqual(1);
+ expect(after!.y).toBeGreaterThanOrEqual(0);
 });
