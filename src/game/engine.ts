@@ -1,3 +1,4 @@
+import { normalizeKey, cooldownScale } from './controls';
 import {chapterForArea,savedChapterProgress} from './campaign';
 import {BOSS_TRAPS,CHASE_SEALS,bossDefeated,completeSeals} from './encounters';
 import {houseDestination,houseCamera,migrateHouseLocation} from './houseLayout';
@@ -197,7 +198,7 @@ export class GameEngine {
       return;
     }
 
-    const key = e.key.toLowerCase();
+    const key = normalizeKey(e.key.toLowerCase());
     if (!this.keysPressed.has(key)) {
       this.justPressed.add(key);
     }
@@ -209,7 +210,7 @@ export class GameEngine {
   };
 
   private handleKeyUp = (e: KeyboardEvent) => {
-    const key = e.key.toLowerCase();
+    const key = normalizeKey(e.key.toLowerCase());
     this.keysPressed.delete(key);
   };
 
@@ -455,7 +456,7 @@ export class GameEngine {
       this.contactCooldown = Math.max(this.contactCooldown, 1.5);
     }
     this.nearbyInteractable=null;this.mechanismContext=null;this.callbacks.onNearbyPrompt(null);
-    this.switchCooldown = SWITCH_COOLDOWN_TIME;
+    this.switchCooldown = SWITCH_COOLDOWN_TIME * cooldownScale();
     this.stats.timelineSwitches++;
 
     soundManager.playTimelineWarp(nextTimeline);
@@ -465,7 +466,7 @@ export class GameEngine {
     this.renderer.shake(3,.25);
 
     this.callbacks.onTimelineChange(nextTimeline);
-    this.callbacks.onCooldownChange(1.0, SWITCH_COOLDOWN_TIME);
+    this.callbacks.onCooldownChange(1.0, Math.ceil(SWITCH_COOLDOWN_TIME * cooldownScale()));
 
     if(firstShift){
       this.callbacks.onNotification('');
@@ -675,7 +676,7 @@ export class GameEngine {
     // 1. Cooldowns & timers
     if (this.switchCooldown > 0) {
       this.switchCooldown = Math.max(0, this.switchCooldown - dt);
-      const ratio = this.switchCooldown / SWITCH_COOLDOWN_TIME;
+      const ratio = this.switchCooldown / (SWITCH_COOLDOWN_TIME * cooldownScale());
       this.callbacks.onCooldownChange(ratio, Math.ceil(this.switchCooldown));
     }
     if (this.player.interactCooldown > 0) {

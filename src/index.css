@@ -331,3 +331,5 @@ button,input,select,textarea,kbd,output{font-family:var(--font-sans)}
   .touch-controls button { width: 44px; height: 44px; }
 }
 .hud-hint-line{color:#e8d38c!important;opacity:1!important}.hud-hint-btn{pointer-events:auto;margin-top:8px;padding:6px 12px;min-height:36px;font:inherit;font-size:13px;background:#242719ee;color:#e2ca8d;border:1px solid #a68a43;cursor:pointer}.hud-hint-btn:disabled{opacity:.5;cursor:default}
+.settings-group{border:1px solid #6d5735;padding:10px 12px;margin-top:14px;display:grid;gap:6px;color:#e1d2a5}.settings-group legend{padding:0 6px;font-size:14px;color:#bca362}.settings-group small{font-size:12px;color:#b8ad83}.key-row{display:flex;justify-content:space-between;align-items:center;gap:10px}.key-row button,.settings-group>button{min-height:36px;padding:4px 12px;background:#242719;color:#e2ca8d;border:1px solid #a68a43;font:inherit;cursor:pointer}.key-row button{min-width:120px}
+.title-settings .settings-group label{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;font-size:15px}.title-settings .settings-group input[type=radio]{width:18px;height:18px;margin:0;flex:none}
