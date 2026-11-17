@@ -1,7 +1,8 @@
 import {savedChapterProgress} from '../game/campaign';
 import {ChapterSelect} from './ChapterSelect';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
-import {Volume2,VolumeX} from 'lucide-react';
+import {Volume2,VolumeX,Trophy} from 'lucide-react';
+import {ACHIEVEMENTS,getUnlocked} from '../game/achievements';
 import {soundManager} from '../game/audio';
 import {ACTIONS,ACTION_LABELS,getBinding,rebind,resetBindings,keyLabel,getDifficulty,setDifficulty,type Action,type Difficulty} from '../game/controls';
 import {MenuScene,type TitleReaction} from './MenuScene';
@@ -29,12 +30,17 @@ function ControlSettings(){
    {warn&&<small role="alert">{warn}</small>}<button onClick={()=>{resetBindings();bump(n=>n+1);setWarn('');}}>Khôi phục phím mặc định</button><small>Phím mũi tên và W vẫn dùng được. Hội thoại vẫn dùng E / Space.</small></fieldset>
  </>;
 }
+function AchievementList(){
+ const got=new Set(getUnlocked());
+ return <div className="achievement-list"><p className="achievement-count">{got.size} / {ACHIEVEMENTS.length} thành tựu</p>
+  {ACHIEVEMENTS.map(a=>{const ok=got.has(a.id);return <div key={a.id} className={`achievement ${ok?'is-unlocked':''}`}><strong>{ok?'★ ':'☆ '}{a.title}</strong><span>{ok?a.description:'Chưa mở khóa'}</span></div>;})}</div>;
+}
 function TitleSettings({muted,onMute}:{muted:boolean;onMute:()=>void}){
  const [music,setMusic]=useState(soundManager.getMusicVolume()),[sfx,setSfx]=useState(soundManager.getSfxVolume());
  return <div className="title-settings"><button onClick={onMute} aria-pressed={!muted}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}Âm thanh {muted?'đã tắt':'đang bật'}</button><label>Nhạc nền <output>{Math.round(music*100)}%</output><input aria-label="Âm lượng nhạc nền" type="range" min="0" max="1" step="0.05" value={music} onChange={e=>{const value=Number(e.target.value);setMusic(value);soundManager.setMusicVolume(value);}}/></label><label>Hiệu ứng <output>{Math.round(sfx*100)}%</output><input aria-label="Âm lượng hiệu ứng" type="range" min="0" max="1" step="0.05" value={sfx} onChange={e=>{const value=Number(e.target.value);setSfx(value);soundManager.setSfxVolume(value);soundManager.playClockTick();}}/></label><ControlSettings/></div>;
 }
 export function TitleScreen({onStart,onContinue,onSelectChapter,hasSave,devMode=false}:{onStart:()=>void;onContinue:()=>void;onSelectChapter:(stage:number)=>void;hasSave:boolean;devMode?:boolean}){
- const [muted,setMuted]=useState(soundManager.getMuted()),[panel,setPanel]=useState<'chapters'|'settings'|null>(null),[reaction,setReaction]=useState<TitleReaction>(null);
+ const [muted,setMuted]=useState(soundManager.getMuted()),[panel,setPanel]=useState<'chapters'|'settings'|'achievements'|null>(null),[reaction,setReaction]=useState<TitleReaction>(null);
  const [unlocked]=useState(unlockedChapter);
  const react=(who:'linh'|'an')=>setReaction({who,at:performance.now()});
  const toggleMute=()=>{soundManager.init();soundManager.setMuted(!muted);setMuted(!muted);};
@@ -50,9 +56,11 @@ export function TitleScreen({onStart,onContinue,onSelectChapter,hasSave,devMode=
     <button onClick={()=>setPanel('chapters')}><MenuLabel text="Chọn chương"/></button>
     <button onClick={()=>setPanel('settings')}><MenuLabel text="Cài đặt"/></button>
    </nav>
+   <button className="illustrated-menu-audio illustrated-menu-trophy" aria-label="Thành tựu" onClick={()=>setPanel('achievements')}><Trophy size={20}/></button>
    <button className="illustrated-menu-audio" aria-label={muted?'Bật âm thanh':'Tắt âm thanh'} onClick={toggleMute}>{muted?<VolumeX size={20}/>:<Volume2 size={20}/>}</button>
   </div>
   {panel==='chapters'&&<ChapterSelect unlocked={devMode?4:unlocked} current={hasSave?currentSavedChapter():0} onSelect={onSelectChapter} onClose={()=>setPanel(null)}/>}
+  {panel==='achievements'&&<MenuDialog title="Thành tựu" onClose={()=>setPanel(null)}><AchievementList/></MenuDialog>}
   {panel==='settings'&&<MenuDialog title="Cài đặt" onClose={()=>setPanel(null)}><TitleSettings muted={muted} onMute={toggleMute}/></MenuDialog>}
  </section>;
 }

@@ -1,3 +1,4 @@
+import { evaluateAchievements } from './game/achievements';
 import {areaForChapter,chapterForArea} from './game/campaign';
 import {ChapterSelect} from './components/ChapterSelect';
 import { MechanismPanel } from './components/MechanismPanel';
@@ -151,13 +152,17 @@ export default function App() {
   const handleTriggerEnding = useCallback((stats: GameStats, ending: EndingType) => {
     setEndingStats({ ...stats });
     setSelectedEnding(ending);
+    const fresh = evaluateAchievements(engineRef.current?.puzzles ?? ({} as PuzzleState), stats, ending);
+    if (fresh.length) showToast('Thành tựu: ' + fresh.map(a => a.title).join(', '));
     setGameState('ending');
-  }, []);
+  }, [showToast]);
 
   const handlePuzzleUpdate = useCallback((newPuzzles: PuzzleState) => {
     setPuzzles({ ...newPuzzles });
     setHasSave(true);
-  }, []);
+    const fresh = evaluateAchievements(newPuzzles);
+    if (fresh.length) showToast('Thành tựu: ' + fresh.map(a => a.title).join(', '));
+  }, [showToast]);
 
   const handleRoomChange = useCallback((room: RoomZone) => {
     setCurrentRoom(room);
