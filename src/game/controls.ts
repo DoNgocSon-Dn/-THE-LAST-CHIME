@@ -47,6 +47,12 @@ export function rebind(action: Action, key: string): boolean {
 export function resetBindings() { state = { ...state, keys: {} }; save(); }
 export const keyLabel = (k: string) => k === ' ' ? 'Space' : k.length === 1 ? k.toUpperCase() : k[0].toUpperCase() + k.slice(1);
 
+/** Dialogue follows the two configured actions; Enter remains a menu alternative. */
+export function isDialogueAdvanceKey(key:string):boolean{
+ const physical=key.toLowerCase();
+ return physical==='enter'||physical===getBinding('interact')||physical===getBinding('jump');
+}
+
 /**
  * Translate a physical key to the canonical key the engine listens to.
  * A rebound action's old default key stops working; arrows and other keys pass through.

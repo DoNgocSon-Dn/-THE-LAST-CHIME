@@ -5,6 +5,7 @@ import { StageConfig } from '../game/levelData';
 import { ChevronRight, Sparkles } from 'lucide-react';
 import { soundManager } from '../game/audio';
 import {controlText} from '../game/controlText';
+import {isDialogueAdvanceKey} from '../game/controls';
 
 interface CharacterPortraitProps {
   speaker: SpeakerId;
@@ -55,14 +56,15 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ lines, onClose }) => {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if(e.repeat||e.ctrlKey||e.altKey||e.metaKey||e.target instanceof HTMLElement&&e.target.closest('input,textarea,[contenteditable="true"]'))return;
       const key = e.key.toLowerCase();
-      if (key === 'e' || key === ' ' || key === 'enter') {
+      if (isDialogueAdvanceKey(key)) {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         handleAdvance();
       } else if (key === 'escape') {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         onClose();
       }
     };

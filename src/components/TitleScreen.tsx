@@ -27,7 +27,7 @@ function ControlSettings(){
  return <>
   <fieldset className="settings-group"><legend>Độ khó</legend>{(['easy','normal','hard'] as Difficulty[]).map(d=><label key={d}><input type="radio" name="difficulty" checked={difficulty===d} onChange={()=>{setDifficulty(d);setDiff(d);}}/> {DIFFICULTY_LABELS[d]}</label>)}<small>Độ khó chỉ đổi thời gian hồi khi đổi quá khứ/hiện tại.</small></fieldset>
   <fieldset className="settings-group"><legend>Phím điều khiển</legend>{ACTIONS.map(a=><div key={a} className="key-row"><span>{ACTION_LABELS[a]}</span><button onClick={()=>{setListening(listening===a?null:a);setWarn('');}} aria-label={`Đổi phím ${ACTION_LABELS[a]}`}>{listening===a?'Nhấn một phím…':keyLabel(getBinding(a))}</button></div>)}
-   {warn&&<small role="alert">{warn}</small>}<button onClick={()=>{resetBindings();bump(n=>n+1);setWarn('');}}>Khôi phục phím mặc định</button><small>Phím mũi tên và W vẫn dùng được. Hội thoại vẫn dùng E / Space.</small></fieldset>
+   {warn&&<small role="alert">{warn}</small>}<button onClick={()=>{resetBindings();bump(n=>n+1);setWarn('');}}>Khôi phục phím mặc định</button><small>Phím mũi tên và W vẫn dùng được. Hội thoại dùng {keyLabel(getBinding('interact'))} / {keyLabel(getBinding('jump'))} hoặc Enter.</small></fieldset>
  </>;
 }
 function AchievementList(){

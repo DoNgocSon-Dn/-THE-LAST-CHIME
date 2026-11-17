@@ -255,6 +255,7 @@ export default function App() {
   // Keyboard controls for global actions
   useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
+      if(e.defaultPrevented)return;
       const key = e.key.toLowerCase();
 
       // Title screen quick-start

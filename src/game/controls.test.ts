@@ -28,3 +28,12 @@ test('difficulty scales the timeline cooldown', () => {
   c.setDifficulty('hard'); assert.equal(c.cooldownScale(), 1.5);
   c.setDifficulty('normal'); assert.equal(c.cooldownScale(), 1);
 });
+
+test('dialogue accepts configured interaction/jump and drops their old defaults',()=>{
+ c.resetBindings();
+ for(const key of ['e','E',' ','Enter'])assert.equal(c.isDialogueAdvanceKey(key),true);
+ c.rebind('interact','f');c.rebind('jump','x');
+ for(const key of ['f','X','Enter'])assert.equal(c.isDialogueAdvanceKey(key),true);
+ for(const key of ['e',' ','q'])assert.equal(c.isDialogueAdvanceKey(key),false);
+ c.resetBindings();
+});
